@@ -18,23 +18,25 @@
 :root{
   --gp:#0D2318;--gd:#1A3C2E;--gm:#2D9B6F;--gb:#52B788;--gl:#E8F5F0;
   --fd:'Sora',sans-serif;--fb:'DM Sans',sans-serif;
+  --w:390px;   /* logical screen width  */
+  --h:844px;   /* logical screen height */
+  --s:1;       /* scale, set by script  */
+  --bez:13px;
 }
-html,body{height:100%}
 body{
   font-family:var(--fb);
   background:var(--gp);
   color:#fff;
-  overflow:hidden;
-  display:flex;flex-direction:column;
+  min-height:100vh;
   -webkit-font-smoothing:antialiased;
 }
 
 /* ── atmosphere ───────────────────────────────── */
-.bg{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.bg{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .bg-base{
   position:absolute;inset:0;
   background:
-    radial-gradient(120% 90% at 50% 8%, #24593c 0%, transparent 58%),
+    radial-gradient(120% 90% at 50% 6%, #24593c 0%, transparent 58%),
     radial-gradient(90% 70% at 50% 100%, #10301f 0%, transparent 60%),
     linear-gradient(170deg,#123021 0%,#0D2318 55%,#081a11 100%);
 }
@@ -44,28 +46,29 @@ body{
     linear-gradient(rgba(82,183,136,.055) 1px,transparent 1px),
     linear-gradient(90deg,rgba(82,183,136,.055) 1px,transparent 1px);
   background-size:64px 64px;
-  mask-image:radial-gradient(75% 65% at 50% 45%,#000 30%,transparent 78%);
-  -webkit-mask-image:radial-gradient(75% 65% at 50% 45%,#000 30%,transparent 78%);
+  mask-image:radial-gradient(80% 70% at 50% 42%,#000 30%,transparent 80%);
+  -webkit-mask-image:radial-gradient(80% 70% at 50% 42%,#000 30%,transparent 80%);
 }
 .bg-halo{
-  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:min(880px,150vw);height:min(880px,150vw);border-radius:50%;
+  position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
+  width:min(1000px,165vw);height:min(1000px,165vw);border-radius:50%;
   background:radial-gradient(circle,rgba(82,183,136,.30) 0%,rgba(45,155,111,.10) 42%,transparent 68%);
   filter:blur(8px);
 }
 .bg-dots{
   position:absolute;width:120px;height:120px;
   background-image:radial-gradient(circle,var(--gb) 1.4px,transparent 1.4px);
-  background-size:14px 14px;opacity:.14;
+  background-size:14px 14px;opacity:.13;
 }
-.bg-dots.tl{top:12%;left:8%}
-.bg-dots.br{bottom:12%;right:8%}
+.bg-dots.tl{top:14%;left:6%}
+.bg-dots.br{bottom:16%;right:6%}
 
-/* ── chrome ───────────────────────────────────── */
+/* ── layout ───────────────────────────────────── */
+.page{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column}
 .top{
-  position:relative;z-index:2;flex:0 0 auto;
+  flex:0 0 auto;
   display:flex;align-items:center;justify-content:space-between;
-  gap:16px;padding:20px clamp(16px,4vw,36px);
+  gap:16px;padding:18px clamp(16px,4vw,40px);
 }
 .brand{
   display:flex;align-items:center;gap:9px;
@@ -78,15 +81,14 @@ body{
 }
 .back:hover{color:#fff}
 
-/* ── stage ────────────────────────────────────── */
 .stage{
-  position:relative;z-index:2;flex:1 1 auto;min-height:0;
+  flex:1 1 auto;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:18px;padding:0 16px 8px;
+  gap:16px;padding:4px 12px 28px;
 }
 .pill{
   display:inline-flex;align-items:center;gap:9px;
-  padding:6px 15px;border-radius:100px;
+  padding:6px 16px;border-radius:100px;
   background:rgba(82,183,136,.10);border:1px solid rgba(82,183,136,.28);
   font-family:var(--fd);font-size:10.5px;font-weight:700;
   letter-spacing:2px;text-transform:uppercase;color:var(--gb);
@@ -96,100 +98,93 @@ body{
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(1.7)}}
 
 /* ── device ───────────────────────────────────── */
-.device-wrap{position:relative;animation:float 6s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-
 .device{
   position:relative;
-  height:min(720px,72vh);
-  width:calc(min(720px,72vh) * 0.4635);
-  max-width:88vw;
-  background:linear-gradient(150deg,#2b3b33 0%,#0a120d 32%,#0a120d 70%,#33463c 100%);
-  border-radius:min(52px,7vh);
-  padding:min(11px,1.2vh);
+  width:calc(var(--w) * var(--s) + var(--bez) * 2);
+  height:calc(var(--h) * var(--s) + var(--bez) * 2);
+  padding:var(--bez);
+  background:linear-gradient(150deg,#33463c 0%,#0a120d 30%,#0a120d 70%,#33463c 100%);
+  border-radius:calc(54px * var(--s));
   box-shadow:
-    0 0 0 1px rgba(255,255,255,.06),
-    0 30px 70px -20px rgba(0,0,0,.8),
-    0 0 90px -20px rgba(82,183,136,.35);
+    0 0 0 1px rgba(255,255,255,.07),
+    0 34px 80px -22px rgba(0,0,0,.85),
+    0 0 120px -26px rgba(82,183,136,.4);
 }
 .device::before,.device::after{
   content:'';position:absolute;left:-2px;width:3px;border-radius:3px;
-  background:linear-gradient(90deg,#0a120d,#37493f);
+  background:linear-gradient(90deg,#0a120d,#3d5148);
 }
-.device::before{top:19%;height:34px}
-.device::after{top:29%;height:58px}
+.device::before{top:20%;height:38px}
+.device::after{top:30%;height:66px}
 .btn-power{
-  position:absolute;right:-2px;top:24%;width:3px;height:74px;border-radius:3px;
-  background:linear-gradient(270deg,#0a120d,#37493f);
+  position:absolute;right:-2px;top:25%;width:3px;height:84px;border-radius:3px;
+  background:linear-gradient(270deg,#0a120d,#3d5148);
 }
 
 .screen{
-  position:relative;width:100%;height:100%;
-  border-radius:min(42px,5.8vh);overflow:hidden;
-  background:#FFF9F2;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.5);
+  position:relative;
+  width:calc(var(--w) * var(--s));
+  height:calc(var(--h) * var(--s));
+  border-radius:calc(43px * var(--s));
+  overflow:hidden;background:#FFF9F2;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.55);
 }
+/* the app renders at its natural 390x844 and is scaled up as a whole,
+   so the mobile layout is preserved and simply gets bigger */
 .screen iframe{
-  position:absolute;inset:0;width:100%;height:100%;
-  border:0;display:block;opacity:0;transition:opacity .5s ease;
+  position:absolute;top:0;left:0;
+  width:var(--w);height:var(--h);
+  border:0;display:block;
+  transform:scale(var(--s));transform-origin:top left;
+  opacity:0;transition:opacity .5s ease;
 }
 .screen.ready iframe{opacity:1}
-
-.notch{
-  position:absolute;top:9px;left:50%;transform:translateX(-50%);
-  width:31%;height:20px;border-radius:0 0 14px 14px;
-  background:#0a120d;z-index:4;pointer-events:none;
-}
-.home-bar{
-  position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
-  width:32%;height:4px;border-radius:99px;
-  background:rgba(31,42,36,.30);z-index:4;pointer-events:none;
-}
 .gloss{
   position:absolute;inset:0;z-index:3;pointer-events:none;
-  background:linear-gradient(128deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.04) 22%,transparent 44%);
+  border-radius:calc(43px * var(--s));
+  background:linear-gradient(132deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,.03) 20%,transparent 40%);
   mix-blend-mode:screen;
 }
 
-/* loading */
+/* boot */
 .boot{
   position:absolute;inset:0;z-index:5;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
   background:#FFF9F2;transition:opacity .45s ease;
 }
 .screen.ready .boot{opacity:0;pointer-events:none}
-.boot-mark{font-family:var(--fd);font-size:27px;font-weight:800;letter-spacing:-1px;color:var(--gm)}
-.boot-track{width:104px;height:3px;border-radius:99px;background:rgba(45,155,111,.18);overflow:hidden}
+.boot-mark{font-family:var(--fd);font-size:30px;font-weight:800;letter-spacing:-1px;color:var(--gm)}
+.boot-track{width:120px;height:3px;border-radius:99px;background:rgba(45,155,111,.18);overflow:hidden}
 .boot-fill{width:40%;height:100%;border-radius:99px;background:var(--gm);animation:slide 1.15s ease-in-out infinite}
 @keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(370%)}}
 .boot-txt{font-size:12px;color:#6B7280}
 
-.caption{
-  font-size:12.5px;color:rgba(255,255,255,.42);text-align:center;
-  max-width:34ch;line-height:1.6;
+/* ── call to action ───────────────────────────── */
+.cta{display:flex;flex-direction:column;align-items:center;gap:11px;text-align:center}
+.btn-download{
+  display:inline-flex;align-items:center;gap:9px;
+  background:var(--gm);color:#fff;
+  font-family:var(--fd);font-size:15px;font-weight:700;
+  padding:16px 36px;border-radius:100px;text-decoration:none;
+  box-shadow:0 10px 30px rgba(45,155,111,.35);
+  transition:transform .22s,background .22s,box-shadow .22s;
 }
+.btn-download:hover{background:var(--gb);transform:translateY(-2px);box-shadow:0 16px 40px rgba(82,183,136,.4)}
+.btn-download:focus-visible{outline:2px solid var(--gb);outline-offset:4px}
+.btn-download svg{transition:transform .2s}
+.btn-download:hover svg{transform:translateX(4px)}
+.caption{font-size:12.5px;color:rgba(255,255,255,.4);max-width:38ch;line-height:1.65}
 
-/* ── phones: drop the frame, run full-bleed ───── */
 @media (max-width:620px){
-  body{overflow:auto}
-  .bg-grid,.bg-dots,.bg-halo{display:none}
+  .bg-grid,.bg-dots{display:none}
   .top{padding:14px 18px}
-  .stage{gap:12px;padding:0 0 14px}
-  .device-wrap{animation:none;width:100%}
-  .device{
-    height:calc(100dvh - 132px);width:100%;max-width:none;
-    border-radius:26px;padding:0;
-    box-shadow:0 -1px 0 rgba(255,255,255,.06);
-  }
-  .device::before,.device::after,.btn-power,.gloss,.notch{display:none}
-  .screen{border-radius:26px}
-  .caption{padding:0 22px}
+  .stage{gap:12px;padding:2px 8px 24px}
+  .device::before,.device::after,.btn-power{display:none}
 }
 @media (prefers-reduced-motion:reduce){
-  .device-wrap{animation:none}
   .dot{animation:none}
   .boot-fill{animation:none;width:100%}
-  .screen iframe,.boot{transition:none}
+  .screen iframe,.boot,.btn-download{transition:none}
 }
 </style>
 </head>
@@ -203,19 +198,18 @@ body{
   <div class="bg-dots br"></div>
 </div>
 
-<header class="top">
-  <a class="brand" href="https://pandaindustry.co">🐼 panda</a>
-  <a class="back" href="https://pandaindustry.co">← Back to pandaindustry.co</a>
-</header>
+<div class="page">
+  <header class="top">
+    <a class="brand" href="https://pandaindustry.co">🐼 panda</a>
+    <a class="back" href="https://pandaindustry.co">← Back to pandaindustry.co</a>
+  </header>
 
-<main class="stage">
-  <span class="pill"><span class="dot"></span>Live preview</span>
+  <main class="stage">
+    <span class="pill"><span class="dot"></span>Live preview</span>
 
-  <div class="device-wrap">
-    <div class="device">
+    <div class="device" id="device">
       <span class="btn-power" aria-hidden="true"></span>
       <div class="screen" id="screen">
-        <span class="notch" aria-hidden="true"></span>
         <div class="boot">
           <div class="boot-mark">panda</div>
           <div class="boot-track"><div class="boot-fill"></div></div>
@@ -223,13 +217,39 @@ body{
         </div>
         <iframe id="app" title="Panda app preview" allow="clipboard-write; payment" allowfullscreen></iframe>
         <span class="gloss" aria-hidden="true"></span>
-        <span class="home-bar" aria-hidden="true"></span>
       </div>
     </div>
-  </div>
 
-  <p class="caption">Preview build — sample venues and test data. Nothing you enter is stored.</p>
-</main>
+    <div class="cta">
+      <a class="btn-download" href="https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform" target="_blank" rel="noopener">
+        Download now
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+      <p class="caption">Join the waitlist for first access. Preview build — sample venues and test data.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+/* Scale the whole handset to fill whatever room the window gives us.
+   The app keeps its native 390x844 layout and is magnified, so text and
+   controls grow together instead of the layout reflowing. */
+(function(){
+  var W=390,H=844,BEZ=13,root=document.documentElement;
+  function fit(){
+    var mobile=window.innerWidth<620;
+    var reserved=mobile?250:275;            // header + pill + CTA + padding
+    var availH=window.innerHeight-reserved;
+    var availW=window.innerWidth*(mobile?0.99:0.94)-BEZ*2;
+    var s=Math.min(availH/H,availW/W);
+    s=Math.max(0.72,Math.min(s,1.9));
+    root.style.setProperty('--s',s.toFixed(3));
+  }
+  fit();
+  window.addEventListener('resize',fit,{passive:true});
+  window.addEventListener('orientationchange',fit);
+})();
+</script>
 
 <script type="text/plain" id="app-source"><!DOCTYPE html>
 <html>
