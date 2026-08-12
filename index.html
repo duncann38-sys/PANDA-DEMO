@@ -531,7 +531,17 @@ const DEMO=[
   {id:'d5',name:"The Copper Tap",cuisine:"Cocktail Bar",lat:51.5119,lng:-.137,area:"Soho",rating:4.7,reviews:190,price:"££",hours:H.bar,phone:"+44 20 7946 0333",blurb:"Seasonal cocktails and bartenders who remember your order.",tags:[]},
   {id:'d6',name:"Taco Libre",cuisine:"Mexican",lat:51.5133,lng:-.142,area:"Fitzrovia",rating:4.5,reviews:240,price:"££",hours:H.rest,phone:"+44 20 7946 0444",blurb:"Street-style tacos, frozen margs and a lively room.",tags:[]},
   {id:'d7',name:"Grind House",cuisine:"Coffee",lat:51.515,lng:-.1385,area:"Fitzrovia",rating:4.8,reviews:410,price:"£",hours:H.cafe,phone:"+44 20 7946 0555",blurb:"Single-origin espresso and a rotating pastry case.",tags:[]},
-  {id:'d8',name:"Clay Pigeon",cuisine:"American BBQ",lat:51.5095,lng:-.131,area:"Covent Garden",rating:4.6,reviews:265,price:"££",hours:H.rest,phone:"+44 20 7946 0666",blurb:"Low-and-slow smoked meats and craft beer on tap.",tags:[]}
+  {id:'d8',name:"Clay Pigeon",cuisine:"American BBQ",lat:51.5095,lng:-.131,area:"Covent Garden",rating:4.6,reviews:265,price:"££",hours:H.rest,phone:"+44 20 7946 0666",blurb:"Low-and-slow smoked meats and craft beer on tap.",tags:[]},
+  {id:'d9',name:"El Farol",cuisine:"Spanish",lat:51.5148,lng:-.138,area:"Fitzrovia",rating:4.5,reviews:210,price:"££",hours:H.rest,phone:"+44 20 7946 0777",blurb:"Tapas, sherry and paella in a buzzy little room.",tags:[]},
+  {id:'d10',name:"Maison Verte",cuisine:"French",lat:51.5115,lng:-.129,area:"Covent Garden",rating:4.7,reviews:305,price:"£££",hours:H.rest,phone:"+44 20 7946 0888",blurb:"Classic French bistro — steak frites and a serious wine list.",tags:[]},
+  {id:'d11',name:"Bangkok Lane",cuisine:"Thai",lat:51.5162,lng:-.134,area:"Fitzrovia",rating:4.6,reviews:198,price:"££",hours:H.rest,phone:"+44 20 7946 0999",blurb:"Fragrant curries and pad thai cooked fast and fresh.",tags:[]},
+  {id:'d12',name:"Bamboo Garden",cuisine:"Chinese",lat:51.516,lng:-.133,area:"Fitzrovia",rating:4.5,reviews:340,price:"££",hours:H.rest,phone:"+44 20 7946 1010",blurb:"All-day dim sum and Cantonese classics.",tags:[]},
+  {id:'d13',name:"Anatolia Grill",cuisine:"Turkish",lat:51.5125,lng:-.143,area:"Fitzrovia",rating:4.6,reviews:176,price:"££",hours:H.rest,phone:"+44 20 7946 1111",blurb:"Charcoal kebabs, mezze and warm flatbread.",tags:[]},
+  {id:'d14',name:"Napoli Slice",cuisine:"Pizza",lat:51.5136,lng:-.138,area:"Soho",rating:4.7,reviews:412,price:"£",hours:H.rest,phone:"+44 20 7946 1212",blurb:"Wood-fired Neapolitan pizza by the slice or whole.",tags:[]},
+  {id:'d15',name:"Patty & Bun House",cuisine:"Burgers",lat:51.5108,lng:-.137,area:"Soho",rating:4.6,reviews:388,price:"££",hours:H.rest,phone:"+44 20 7946 1313",blurb:"Smashed patties, crispy fries and thick shakes.",tags:[]},
+  {id:'d16',name:"The Rose Tavern",cuisine:"Pub",lat:51.5131,lng:-.135,area:"Soho",rating:4.4,reviews:520,price:"££",hours:H.bar,phone:"+44 20 7946 1414",blurb:"Proper London pub — cask ales, Sunday roast and a beer garden.",tags:[]},
+  {id:'d17',name:"City Sightseeing Tour",cuisine:"Experience",lat:51.5101,lng:-.132,area:"Covent Garden",rating:4.5,reviews:2100,price:"££",hours:H.cafe,phone:"+44 20 7946 1515",blurb:"Open-top bus tour past London's landmarks — hop on, hop off.",tags:[]},
+  {id:'d18',name:"Lumen Spa",cuisine:"Spa",lat:51.509,lng:-.14,area:"Soho",rating:4.8,reviews:150,price:"£££",hours:H.cafe,phone:"+44 20 7946 1616",blurb:"Thermal suite, treatments and a quiet lounge to reset.",tags:[]}
 ];
 
 let MODE='demo',VENUES=[],apiKey='',locStatus='pending',searchCenter={...USER};
@@ -585,8 +595,29 @@ function renderCats(){
     return `<button class="catcard ${on?'on':''}" onclick="setCat('${id.replace(/'/g,"\\'")}')"><span class="e">${c.e}</span><span class="l">${c.label}</span></button>`;
   }).join('');
 }
-function setCat(id){state.cat=id;renderCats();renderSuggestions();updateFilterPills();if(document.getElementById('s-map').classList.contains('active'))renderMap();}
+function setCat(id){clearSearchBox();state.cat=id;renderCats();updateFilterPills();sfx('pop');ensureCategory(id);}
+function clearSearchBox(){const si=document.getElementById('searchInput');if(si)si.value='';state.query='';searchResults=null;searching=false;}
+function mapActive(){return document.getElementById('s-map').classList.contains('active');}
+const LODGE=['lodging','hotel','motel','resort_hotel','guest_house','hostel','bed_and_breakfast','apartment_complex','extended_stay_hotel','campground'];
+function isLodge(t){return (t||[]).some(x=>LODGE.includes(x));}
+function categoryQuery(label){const m={'Bars':'bars','Nightlife':'night clubs','Café':'cafe','Experiences':'things to do','Spa':'spa','Activities':'things to do and activities','Pub Food':'pubs','American':'american restaurants','Chicken':'fried chicken','Pizza':'pizza','Burgers':'burger restaurants'};return m[label]||(label+' restaurants');}
+let catLoading=false;
+async function ensureCategory(label){
+  if(MODE!=='live'||label==='all'){renderSuggestions();if(mapActive())renderMap();return;}
+  catLoading=true;renderSuggestions();
+  const opts={textQuery:categoryQuery(label),locationBias:{center:USER,radius:4000},maxResultCount:20,language:'en-GB',region:'gb'};
+  try{
+    const {Place}=await google.maps.importLibrary('places');
+    let places=[];
+    try{const r=await Place.searchByText({...opts,fields:FIELDS});places=r.places||[];}
+    catch(e){const r=await Place.searchByText({...opts,fields:CORE_FIELDS});places=r.places||[];}
+    const ids=new Set(VENUES.map(v=>v.id));
+    places.forEach(p=>{if(p.businessStatus&&p.businessStatus!=='OPERATIONAL')return;if(isLodge(p.types))return;if(!ids.has(p.id)){VENUES.push(mapPlace(p));ids.add(p.id);}});
+  }catch(e){console.warn('category search',e);}
+  catLoading=false;renderSuggestions();if(mapActive())renderMap();
+}
 let searchT=null,searchResults=null,searching=false;
+const PAGE=8;let moreRadius=4000,loadingMore=false;
 function onSearchInput(){
   const q=document.getElementById('searchInput').value.trim();state.query=q;
   if(!q){searchResults=null;searching=false;renderSuggestions();return;}
@@ -610,9 +641,9 @@ function renderSuggestions(){
   else if(q){list=filtered(q);}
   else{list=filtered();}
   const cnt=document.getElementById('sugCount');
-  cnt.textContent=searching?'Searching…':list.length+' places';
+  cnt.textContent=(searching||catLoading)?'Searching…':list.length+' places';
   document.getElementById('suggestions').innerHTML=list.map((v,i)=>rcard(v,i===0)).join('')||
-    (searching?'':`<div class="empty"><div class="em">🔍</div><p>No places match “${q}” yet.<br>Try another name or cuisine.</p></div>`);
+    ((searching||catLoading)?'':`<div class="empty"><div class="em">🔍</div><p>${q?`No places match “${q}” yet.`:'Nothing in this category nearby.'}<br>${MODE==='live'?'Try another search.':'Host it + allow location to pull real results here.'}</p></div>`);
   renderHome();
 }
 function rcard(v,feature){
@@ -636,7 +667,7 @@ function openCategoryGrid(){
   const cells=[{label:'All',e:'✨'}].concat(CATEGORIES).map(c=>{const id=c.label==='All'?'all':c.label;const on=state.cat===id;return `<button class="gcell ${on?'on':''}" onclick="pickCat('${id.replace(/'/g,"\\'")}')"><span class="e">${c.e}</span><span class="l">${c.label}</span></button>`;}).join('');
   openSheet(`<div class="grabber"></div><div class="sheet-title">Choose a cuisine</div><div class="grid">${cells}</div><div class="sheet-cta"><button class="btn fill" style="width:100%;margin:0" onclick="closeSheet()">Done</button></div>`);
 }
-function pickCat(id){state.cat=id;renderCats();renderSuggestions();updateFilterPills();if(document.getElementById('s-map').classList.contains('active'))renderMap();closeSheet();}
+function pickCat(id){clearSearchBox();state.cat=id;renderCats();updateFilterPills();ensureCategory(id);closeSheet();}
 function openBudget(){
   const o=v=>`<button class="opt ${state.budget===v?'on':''}" onclick="pickBudget('${v}')">${v==='£'?'£ · Modest':v==='££'?'££ · Mid-range':'£££ · High-end'}</button>`;
   openSheet(`<div class="grabber"></div><div class="sheet-title">Budget</div><div class="opts"><button class="opt ${!state.budget?'on':''}" onclick="pickBudget('')">Any budget</button>${o('£')}${o('££')}${o('£££')}</div><div class="sheet-cta"><button class="btn fill" style="width:100%;margin:0" onclick="closeSheet()">Done</button></div>`);
