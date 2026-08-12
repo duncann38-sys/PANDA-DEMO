@@ -5,6 +5,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="theme-color" content="#0E1113" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Panda" />
 <title>Panda</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,15 +26,16 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%}
-body{font-family:var(--ff);background:#20232A;color:var(--ink);display:flex;align-items:center;justify-content:center;min-height:100dvh;overflow:hidden}
+body{font-family:var(--ff);background:#20232A;color:var(--ink);display:flex;align-items:center;justify-content:center;min-height:100dvh;overflow:hidden;overscroll-behavior:none}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 img{max-width:100%}
 :focus-visible{outline:2px solid var(--emerald);outline-offset:2px}
 
-.device{position:relative;width:100%;max-width:420px;height:100dvh;max-height:900px;background:var(--paper);overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
-@media(min-width:520px){.device{border-radius:44px;border:10px solid #0b0d0f;height:880px}body{padding:20px}}
+.device{position:relative;width:100%;max-width:420px;height:100dvh;background:var(--paper);overflow:hidden;box-shadow:var(--shadow-lg);display:flex;flex-direction:column}
+@media(min-width:520px){.device{border-radius:44px;border:10px solid #0b0d0f;height:880px;max-height:900px}body{padding:20px}}
+@media(max-width:519px){body{padding:0;background:var(--paper)}.device{max-width:none;border:0;border-radius:0;box-shadow:none}}
 
-.statusbar{height:48px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 24px 0;font-size:14px;font-weight:600;color:var(--ink);z-index:40;position:relative}
+.statusbar{height:auto;min-height:48px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 24px 0;font-size:14px;font-weight:600;color:var(--ink);z-index:40;position:relative}
 .statusbar .dots{display:flex;gap:5px;align-items:center}
 .statusbar .sig{display:flex;gap:2px;align-items:flex-end;height:11px}
 .statusbar .sig i{width:3px;background:var(--ink);border-radius:1px;display:block}
@@ -40,7 +45,7 @@ img{max-width:100%}
 .batt i{display:block;height:100%;width:78%;background:var(--emerald);border-radius:1px}
 
 .viewport{flex:1;position:relative;overflow:hidden}
-.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:96px;opacity:0;transform:translateX(14px);pointer-events:none;transition:opacity .28s ease,transform .28s cubic-bezier(.22,.61,.36,1)}
+.screen{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:calc(96px + env(safe-area-inset-bottom));opacity:0;transform:translateX(14px);pointer-events:none;transition:opacity .28s ease,transform .28s cubic-bezier(.22,.61,.36,1)}
 .screen.active{opacity:1;transform:none;pointer-events:auto;z-index:2}
 .screen::-webkit-scrollbar{display:none}
 .pad{padding:0 20px}
@@ -124,8 +129,8 @@ img{max-width:100%}
 .mapscreen{padding-bottom:0}
 .mapwrap{position:absolute;inset:0}
 .mapcanvas{position:absolute;inset:0;background:#e9ede8}
-.map-overlay-top{position:absolute;top:0;left:0;right:0;padding:8px 20px 40px;z-index:5;background:linear-gradient(180deg,var(--paper) 30%,rgba(247,246,242,0))}
-.map-sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.12);padding:8px 0 96px;max-height:52%;overflow-y:auto;scrollbar-width:none}
+.map-overlay-top{position:absolute;top:0;left:0;right:0;padding:calc(8px + env(safe-area-inset-top)) 20px 40px;z-index:5;background:linear-gradient(180deg,var(--paper) 30%,rgba(247,246,242,0))}
+.map-sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.12);padding:8px 0 calc(96px + env(safe-area-inset-bottom));max-height:52%;overflow-y:auto;scrollbar-width:none}
 .map-sheet::-webkit-scrollbar{display:none}
 .grabber{width:38px;height:5px;border-radius:100px;background:var(--line);margin:6px auto 10px}
 .map-sheet .cnt{font-size:13px;color:var(--muted);padding:0 20px 8px;font-weight:600}
@@ -142,7 +147,7 @@ img{max-width:100%}
 .mydot .ring{position:absolute;inset:-14px;border-radius:50%;background:rgba(43,127,255,.18);animation:radar 2.2s infinite ease-out}
 @keyframes radar{0%{transform:scale(.5);opacity:.8}100%{transform:scale(1.4);opacity:0}}
 
-.tabbar{position:absolute;left:0;right:0;bottom:0;height:84px;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;padding:8px 6px 22px}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:calc(84px + env(safe-area-inset-bottom));z-index:50;background:rgba(255,255,255,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);display:flex;padding:8px 6px calc(22px + env(safe-area-inset-bottom))}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted-2);font-size:10.5px;font-weight:600;transition:.15s}
 .tab svg{width:23px;height:23px;stroke:var(--muted-2);fill:none;stroke-width:1.9;transition:.15s}
 .tab.on{color:var(--ink)}.tab.on svg{stroke:var(--ink)}
@@ -188,7 +193,7 @@ img{max-width:100%}
 .party .p{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-weight:700}
 .party .p.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 
-.cta-fixed{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(247,246,242,0),var(--paper) 34%);padding:16px 0 8px;margin-top:14px}
+.cta-fixed{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(247,246,242,0),var(--paper) 34%);padding:16px 0 calc(8px + env(safe-area-inset-bottom));margin-top:14px}
 .btn{width:100%;padding:16px;border-radius:16px;font-weight:700;font-size:16px;font-family:var(--ff-display);display:flex;align-items:center;justify-content:center;gap:9px;transition:transform .12s,filter .12s}
 .btn:active{transform:scale(.98)}
 .btn.primary{background:var(--emerald);color:#05271b}
@@ -341,6 +346,8 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 
       <div class="chips" id="chips"></div>
 
+      <div id="locBanner"></div>
+
       <div class="creditcard" id="creditBanner">
         <div class="status" id="creditStatus" style="display:none">✓ Active</div>
         <div class="k">Panda Credit</div><div class="amt">£300</div>
@@ -403,7 +410,7 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
    publishing, restrict it by HTTP referrer (your domain) and to
    only the Maps JS + Places APIs in the Google Cloud console.
    ============================================================ */
-const GOOGLE_API_KEY = "AIzaSyDaReTE6xowXD-s308SegFAituNNuMBRwM";   // live
+const GOOGLE_API_KEY = "AIzaSyBqexm9W6oHI-2usVOrMalyyAt74EnLpbo";   // live
 
 /* ---------- geo + reference data ---------- */
 const USER = {lat:51.5136,lng:-0.1365}; // default: Soho, London (overwritten by geolocation in live mode)
@@ -747,7 +754,27 @@ function loadGoogle(key){return new Promise((res,rej)=>{
   s.async=true;s.onerror=()=>rej(new Error('Google Maps script failed to load'));
   document.head.appendChild(s);
 });}
-function getLocation(){return new Promise(res=>{if(!navigator.geolocation){res();return;}navigator.geolocation.getCurrentPosition(p=>{USER.lat=p.coords.latitude;USER.lng=p.coords.longitude;res();},()=>res(),{timeout:6000,maximumAge:60000});});}
+let locStatus='pending';
+function getLocation(){return new Promise(res=>{
+  if(!navigator.geolocation){locStatus='unsupported';res(false);return;}
+  navigator.geolocation.getCurrentPosition(
+    p=>{USER.lat=p.coords.latitude;USER.lng=p.coords.longitude;locStatus='ok';res(true);},
+    err=>{locStatus=(err&&err.code===1)?'denied':'error';res(false);},
+    {enableHighAccuracy:true,timeout:8000,maximumAge:30000}
+  );
+});}
+function renderLocBanner(){
+  const el=document.getElementById('locBanner');if(!el)return;
+  if(MODE==='live'&&locStatus!=='ok'){
+    const msg=locStatus==='unsupported'?'This browser can’t share location — try Chrome over https.':'Allow location to see real places right next to you.';
+    el.innerHTML=`<div style="margin:2px 20px 14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow-sm)">
+      <div style="font-size:22px">📍</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px">Turn on location</div><div style="font-size:12.5px;color:var(--muted);line-height:1.4">${msg}</div></div>
+      <button class="btn primary" style="width:auto;padding:10px 14px;font-size:13px;flex:0 0 auto" onclick="locate()">Use my location</button>
+    </div>`;
+  }else{el.innerHTML='';}
+}
+function locate(){toast('Finding your location…');goLive();}
 
 function priceLbl(p){const m={FREE:'£',INEXPENSIVE:'£',MODERATE:'££',EXPENSIVE:'£££',VERY_EXPENSIVE:'££££',0:'£',1:'£',2:'££',3:'£££',4:'££££'};return (p!=null&&m[p])||'££';}
 function catFromTypes(types){types=types||[];if(types.some(t=>['bar','night_club','pub','wine_bar'].includes(t)))return 'Bar';if(types.some(t=>['cafe','coffee_shop','bakery'].includes(t)))return 'Cafe';if(types.some(t=>['spa','gym','tourist_attraction','amusement_park','stadium','park','museum','bowling_alley','health'].includes(t)))return 'Experience';return 'Restaurant';}
@@ -764,38 +791,55 @@ function mapPlace(p){
     photo,blurb:txt(p.editorialSummary),address:p.formattedAddress||'',area:shortArea(p.formattedAddress),phone:p.nationalPhoneNumber||'',website:p.websiteURI||'',tags:[]};
 }
 async function fetchPlaces(){
-  const {Place}=await google.maps.importLibrary('places');
+  const {Place,SearchNearbyRankPreference}=await google.maps.importLibrary('places');
   const fields=['id','displayName','location','rating','userRatingCount','priceLevel','types','primaryType','primaryTypeDisplayName','photos','editorialSummary','regularOpeningHours','formattedAddress','nationalPhoneNumber','websiteURI','businessStatus'];
-  const queries=['restaurants','bars','cafes','things to do'];
+  // distance-ranked nearby search across every food + drink type near the user
+  const groups=[['restaurant'],['bar'],['cafe'],['bakery'],['meal_takeaway'],['night_club']];
   let all=[];const seen=new Set();
-  for(const q of queries){
+  for(const types of groups){
     try{
-      const {places}=await Place.searchByText({textQuery:q,fields,locationBias:{center:USER,radius:1600},maxResultCount:12,language:'en-GB',region:'gb'});
+      const {places}=await Place.searchNearby({
+        fields,
+        locationRestriction:{center:USER,radius:2500},
+        includedTypes:types,
+        maxResultCount:20,
+        rankPreference:SearchNearbyRankPreference.DISTANCE,
+        language:'en-GB',region:'gb'
+      });
       (places||[]).forEach(p=>{if(p.businessStatus&&p.businessStatus!=='OPERATIONAL')return;if(!seen.has(p.id)){seen.add(p.id);all.push(mapPlace(p));}});
-    }catch(e){console.warn('search failed for',q,e);}
+    }catch(e){console.warn('nearby failed',types,e);}
   }
-  return all;
+  // fallback to text search if nearby returned nothing (e.g. type/permission issue)
+  if(!all.length){
+    try{
+      const {places}=await Place.searchByText({textQuery:'restaurants and bars near me',fields,locationBias:{center:USER,radius:2500},maxResultCount:20,language:'en-GB',region:'gb'});
+      (places||[]).forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);all.push(mapPlace(p));}});
+    }catch(e){console.warn('text fallback failed',e);}
+  }
+  all.sort((a,b)=>haversine(USER,a)-haversine(USER,b));
+  return all.slice(0,60);
 }
 async function goLive(){
   setPill('loading');
   try{
-    await getLocation();
+    const gotLoc=await getLocation();
     await loadGoogle(apiKey);
+    MODE='live';gmap=null;
     const places=await fetchPlaces();
-    if(!places.length)throw new Error('No places returned — check the key has Places API (New) enabled and billing on.');
-    VENUES=places;MODE='live';gmap=null;setPill('live');
-    document.getElementById('locName').textContent=shortArea(places[0].address)||'Nearby';
-    document.getElementById('discoverFoot').textContent='Live data from Google Places · updates with your location';
+    if(!places.length)throw new Error('No places returned — check Places API (New) is enabled and billing is on.');
+    VENUES=places;setPill('live');
+    document.getElementById('locName').textContent=(gotLoc?shortArea(places[0].address):'Soho')||'Nearby';
+    document.getElementById('discoverFoot').textContent=gotLoc?'Live from Google Places · nearest to you first':'Live data · showing central London (location off)';
     refreshAll();
-    toast('Live data loaded · '+places.length+' places');
+    toast(gotLoc?('Found '+places.length+' places near you'):('Loaded '+places.length+' places — turn on location for nearer results'));
   }catch(e){
     console.warn('goLive failed:',e);MODE='demo';VENUES=DEMO_VENUES.slice();setPill('demo');
-    refreshAll();toast(String(e.message||e).slice(0,60)||"Couldn't load live data — using demo");
+    refreshAll();toast(String(e.message||e).slice(0,64)||"Couldn't load live data — using demo");
   }
 }
 
 /* ============================ INIT ============================ */
-function refreshAll(){renderChips();renderNear();renderList();if(document.getElementById('s-map').classList.contains('active'))drawMap();}
+function refreshAll(){renderChips();renderLocBanner();renderNear();renderList();if(document.getElementById('s-map').classList.contains('active'))drawMap();}
 (function boot(){
   apiKey=GOOGLE_API_KEY||safeLS('panda_gkey')||'';
   renderChips();renderNear();renderList();setPill('demo');
