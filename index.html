@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -560,7 +559,7 @@ const GA_MEASUREMENT_ID = ""; // e.g. "G-XXXXXXX"
    move it behind a small proxy (Node/Next) and swap the URL below. The value you
    gave ("AQ.Ab8...") looks like an OAuth token, not a Gemini API key — Gemini keys
    start with "AIza". If replies fail, create a key at aistudio.google.com and paste it. */
-const PANDA_AI = { key:"AQ.Ab8RN6Kbpu0mxegg6OxKGNhSxQ1iFjw8X8WsE10cYhIVI7mYwA", model:"gemini-1.5-flash" };
+const PANDA_AI = { key:"AQ.Ab8RN6K2kikTESgnXQe6ikskuegtyw-IXYW3rIDwDGBmhSqw6A", model:"gemini-1.5-flash", proxy:"" };
 function submitToForm(d){
   try{
     if(!FORM.entry.email) return; // not configured yet
@@ -1185,14 +1184,21 @@ async function pandaSend(){
   try{
     const sys=PANDA_SYSTEM+'\n\nCONTEXT:\n'+buildAIContext();
     const body={systemInstruction:{parts:[{text:sys}]},contents:pandaHistory.slice(-10),generationConfig:{temperature:0.6,maxOutputTokens:500}};
-    const useKey=/^AIza/.test(PANDA_AI.key);
-    const url=`https://generativelanguage.googleapis.com/v1beta/models/${PANDA_AI.model}:generateContent`+(useKey?`?key=${encodeURIComponent(PANDA_AI.key)}`:'');
-    const headers={'Content-Type':'application/json'};
-    if(!useKey)headers['Authorization']='Bearer '+PANDA_AI.key;
-    const r=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
-    const data=await r.json();
-    let txt=((((data.candidates||[])[0]||{}).content||{}).parts||[{}])[0].text;
-    if(!txt)txt=data.error?('⚠️ '+(data.error.message||'AI error')+'  (GCP tokens expire after ~1 hour — generate a fresh one, or use an "AIza" key from aistudio.google.com.)'):'Sorry, I couldn\'t respond just now.';
+    let txt;
+    if(PANDA_AI.proxy){
+      const r=await fetch(PANDA_AI.proxy,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const data=await r.json();
+      txt=data.text||(data.error?('⚠️ '+data.error):'Sorry, I couldn\'t respond just now.');
+    }else{
+      const useKey=/^AIza/.test(PANDA_AI.key);
+      const url=`https://generativelanguage.googleapis.com/v1beta/models/${PANDA_AI.model}:generateContent`+(useKey?`?key=${encodeURIComponent(PANDA_AI.key)}`:'');
+      const headers={'Content-Type':'application/json'};
+      if(!useKey)headers['Authorization']='Bearer '+PANDA_AI.key;
+      const r=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
+      const data=await r.json();
+      txt=((((data.candidates||[])[0]||{}).content||{}).parts||[{}])[0].text;
+      if(!txt)txt=data.error?('⚠️ '+(data.error.message||'AI error')+'  (GCP tokens expire after ~1 hour — use an "AIza" key or set PANDA_AI.proxy.)'):'Sorry, I couldn\'t respond just now.';
+    }
     typing.remove();addBubble('model',txt);pandaHistory.push({role:'model',parts:[{text:txt}]});
   }catch(e){typing.remove();addBubble('model','⚠️ Couldn\'t reach Panda AI. Check the connection and try again.');}
 }
