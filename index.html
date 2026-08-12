@@ -1099,12 +1099,45 @@ function renderProfile(){
       <div class="mi" onclick="go('credit')"><span class="ic green"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>Panda Credit<svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
       <div class="mi"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>Live Google data<span class="rt" style="color:${MODE==='live'?'var(--green-deep)':'var(--muted)'}">${MODE==='live'?'On':'Off'}</span></div>
       <div class="mi" onclick="toggleMute()"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H2v6h4l5 4V5Z"/>${muted?'<path d="M22 9l-6 6M16 9l6 6"/>':'<path d="M16 9a5 5 0 0 1 0 6"/>'}</svg></span>Sound<span class="rt" style="color:${muted?'var(--muted)':'var(--green-deep)'}">${muted?'Off':'On'}</span></div>
+      <div class="mi" onclick="runDiagnostics()"><span class="ic teal"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></span>Run diagnostics<span class="rt" style="color:var(--muted)">Test Maps · Places · AI</span></div>
       <div class="mi" onclick="toast('Help centre')"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4 2c0 1.5-2 2-2 3.5"/><circle cx="12" cy="17" r=".6" fill="#fff"/></svg></span>Help & support<svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
     </div>
+    <div id="diag"></div>
     <p class="homefoot">Panda is creating a responsible credit and payments layer for hospitality.</p>`;
 }
 
 /* ---------- SHEET / TOAST ---------- */
+function diagRow(label,status,detail){const c=status==='ok'?'#2E7D50':status==='warn'?'#E9820A':'#E4553B';const dot=status==='...'?'…':(status==='ok'?'✓':'✕');return `<div style="display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line-2);font-size:13px;align-items:flex-start"><span style="color:${status==='...'?'var(--muted)':c};font-weight:700;width:16px;flex:0 0 auto">${dot}</span><div style="flex:1"><b>${label}</b>${detail?`<div style="color:var(--muted);font-size:11.5px;margin-top:2px;word-break:break-word">${detail}</div>`:''}</div></div>`;}
+async function runDiagnostics(){
+  const box=document.getElementById('diag');if(!box)return;sfx('pop');
+  const host=location.protocol==='https:'?'ok':'err';
+  const hostDetail=location.protocol==='https:'?('Running on '+location.host):'Not https — open your github.io/PANDA-DEMO/ URL, not the /blob/ source view.';
+  let rows=[['Environment',host,hostDetail],['Google Maps script','...',''],['Places API (New)','...',''],['Panda AI ('+(PANDA_AI.proxy?'proxy':(/^AIza/.test(PANDA_AI.key)?'API key':'GCP token'))+')','...','']];
+  const paint=()=>{box.innerHTML=`<div class="menu" style="margin-top:0"><div style="padding:12px 14px;font-weight:700;font-size:14px;border-bottom:1px solid var(--line-2)">Diagnostics</div>${rows.map(r=>diagRow(r[0],r[1],r[2])).join('')}</div>`;};
+  paint();
+  // Maps + Places
+  try{
+    await loadGoogle(apiKey);
+    rows[1]=['Google Maps script','ok','Loaded'];paint();
+    try{
+      const {Place,SearchNearbyRankPreference}=await google.maps.importLibrary('places');
+      const r=await Place.searchNearby({fields:['id','displayName'],locationRestriction:{center:USER,radius:1500},includedTypes:['restaurant'],maxResultCount:3,rankPreference:SearchNearbyRankPreference.DISTANCE});
+      rows[2]=(r.places&&r.places.length)?['Places API (New)','ok',r.places.length+' places returned — billing + API OK']:['Places API (New)','warn','Loaded but 0 results — usually billing not active on the project.'];
+    }catch(e){rows[2]=['Places API (New)','err',String((e&&e.message)||e)];}
+  }catch(e){rows[1]=['Google Maps script','err',String((e&&e.message)||e)];rows[2]=['Places API (New)','err','Skipped — Maps did not load.'];}
+  paint();
+  // Panda AI
+  try{
+    const body={contents:[{role:'user',parts:[{text:'Reply with the single word: ok'}]}],generationConfig:{maxOutputTokens:5}};
+    let ok=false,detail='';
+    if(PANDA_AI.proxy){const r=await fetch(PANDA_AI.proxy,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();ok=!!d.text&&!d.error;detail=d.error||d.text||('HTTP '+r.status);}
+    else{const useKey=/^AIza/.test(PANDA_AI.key);const url='https://generativelanguage.googleapis.com/v1beta/models/'+PANDA_AI.model+':generateContent'+(useKey?'?key='+encodeURIComponent(PANDA_AI.key):'');const h={'Content-Type':'application/json'};if(!useKey)h['Authorization']='Bearer '+PANDA_AI.key;const r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify(body)});const d=await r.json();ok=!(d.error);detail=d.error?d.error.message:'Responding';}
+    rows[3]=[rows[3][0],ok?'ok':'err',detail];
+  }catch(e){rows[3]=[rows[3][0],'err',String((e&&e.message)||e)];}
+  paint();
+}
+
+/* ---------- TOAST ---------- */
 function openSheet(html){const s=document.getElementById('sheet');s.innerHTML=html;s.classList.add('show');document.getElementById('scrim').classList.add('show');s.scrollTop=0;}
 function closeSheet(){document.getElementById('sheet').classList.remove('show');document.getElementById('scrim').classList.remove('show');}
 let tT;function toast(m){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),2400);}
