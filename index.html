@@ -106,6 +106,10 @@ input,select{font-family:inherit}
 .openflag.shut{color:var(--muted)}
 
 .homefoot{text-align:center;font-size:11px;color:var(--muted-2);padding:16px 20px 8px;line-height:1.5}
+.loadmore{padding:6px 20px 22px;text-align:center}
+.loadmore button{background:#fff;border:1px solid var(--line);border-radius:100px;padding:12px 24px;font-weight:600;font-size:14px;color:var(--green-deep);box-shadow:var(--sh-sm)}
+.loadmore button:active{background:var(--green-tint)}
+.loadmore button[disabled]{opacity:.5}
 
 /* credit strip on home */
 .creditstrip{margin:14px 20px 4px;border-radius:20px;padding:18px 18px;background:linear-gradient(120deg,#2E7D50,#3f9c66);color:#fff;position:relative;overflow:hidden;box-shadow:var(--sh-md)}
@@ -159,6 +163,12 @@ input,select{font-family:inherit}
 .tab svg{width:24px;height:24px;stroke:var(--muted-2);fill:none;stroke-width:1.9;transition:.15s}
 .tab.on{color:var(--green-deep)}
 .tab.on svg{stroke:var(--green-deep)}
+.tab[data-tab="map"].on,.tab[data-tab="map"].on svg{color:#2F80ED;stroke:#2F80ED}
+.tab[data-tab="bookings"].on,.tab[data-tab="bookings"].on svg{color:#EC4899;stroke:#EC4899}
+.tab[data-tab="profile"].on,.tab[data-tab="profile"].on svg{color:#8B5CF6;stroke:#8B5CF6}
+.tab.credit .cc{width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,#2E7D50,#41a06a);display:grid;place-items:center;margin-top:-14px;margin-bottom:1px;box-shadow:0 8px 16px rgba(46,125,80,.38)}
+.tab.credit .cc svg{width:23px;height:23px;stroke:#fff;fill:none;stroke-width:2}
+.tab.credit.on{color:var(--green-deep)}
 .tab:active{transform:scale(.9)}
 
 /* ---------- SHEET (grid / options) ---------- */
@@ -209,8 +219,12 @@ input,select{font-family:inherit}
 .dbio{font-size:14px;line-height:1.6;color:var(--ink-2);margin:12px 0 14px}
 .dlink{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);font-weight:500;text-decoration:none;margin-bottom:14px}
 .dlink svg{width:17px;height:17px}
-.dminimap{height:150px;border-radius:16px;overflow:hidden;background:var(--line-2);margin:4px 0 16px;position:relative}
+.dminimap{height:150px;border-radius:16px;overflow:hidden;background:var(--line-2);margin:0;position:relative}
 .dminimap .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px}
+.dmapwrap{position:relative;margin:4px 0 16px}
+.dmapcover{position:absolute;inset:0;z-index:4;display:block}
+.mapopen{position:absolute;right:10px;bottom:10px;z-index:5;background:#fff;border-radius:100px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--green-deep);box-shadow:var(--sh-sm);display:flex;align-items:center;gap:6px;text-decoration:none}
+.mapopen svg{width:14px;height:14px}
 .dmeta{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:var(--ink-2);margin-bottom:6px}
 .dmeta .price{color:var(--green-deep);font-weight:600}
 .drating{display:flex;align-items:center;gap:10px;margin:4px 0 20px}
@@ -321,6 +335,39 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .toast svg{width:16px;height:16px;stroke:var(--green);stroke-width:2.6;flex:0 0 auto}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* Panda AI */
+.pandafab{position:absolute;right:16px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:85;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0A4F3A,#0F6B4F);box-shadow:0 10px 24px rgba(10,79,58,.5);display:grid;place-items:center;font-size:28px;border:2px solid #fff}
+.pandafab:active{transform:scale(.92)}
+.pandachat{position:absolute;inset:0;z-index:120;background:#0A2A20;display:flex;flex-direction:column;transform:translateY(101%);transition:transform .32s cubic-bezier(.22,.61,.36,1)}
+.pandachat.show{transform:none}
+.pc-head{padding:calc(14px + env(safe-area-inset-top)) 18px 14px;background:linear-gradient(135deg,#0A4F3A,#0F6B4F);color:#fff;display:flex;align-items:center;justify-content:space-between}
+.pc-title{display:flex;align-items:center;gap:10px;font-family:var(--ff-round);font-weight:700;font-size:18px}
+.pc-ava{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:20px}
+.pc-actions{display:flex;gap:6px}
+.pc-actions button{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center}
+.pc-actions svg{width:18px;height:18px}
+.pc-msgs{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:10px;scrollbar-width:none}
+.pc-msgs::-webkit-scrollbar{display:none}
+.pbub{max-width:82%;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.5}
+.pbub.ai{background:#123a2d;color:#eafff4;align-self:flex-start;border-bottom-left-radius:5px}
+.pbub.me{background:#0F6B4F;color:#fff;align-self:flex-end;border-bottom-right-radius:5px}
+.pbub.typing{opacity:.6;letter-spacing:2px}
+.pbub a{color:#8ef0c4}
+.pc-input{display:flex;gap:10px;padding:12px 14px calc(16px + env(safe-area-inset-bottom));background:#0A2A20;border-top:1px solid rgba(255,255,255,.08)}
+.pc-input input{flex:1;background:#123a2d;border:none;border-radius:100px;padding:13px 16px;color:#fff;font-size:15px;outline:none;font-family:inherit}
+.pc-input input::placeholder{color:#6fae94}
+.pc-input button{width:46px;height:46px;border-radius:50%;background:#0F6B4F;display:grid;place-items:center;flex:0 0 auto}
+.pc-input svg{width:20px;height:20px}
+/* pay + avatar upload */
+.paybtns{display:flex;gap:12px;margin:12px 20px 0}
+.pay{flex:1;padding:14px;border-radius:14px;font-weight:600;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--sh-sm)}
+.pay.apple{background:#000;color:#fff}
+.pay.gpay{background:#fff;color:#3c4043;border:1px solid var(--line)}
+.pay.gpay b{color:#4285F4}
+.avatar{position:relative;background-size:cover;background-position:center;cursor:pointer}
+.avatar .camera{position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--green-deep);border:2px solid #fff;display:grid;place-items:center}
+.avatar .camera svg{width:11px;height:11px;stroke:#fff;stroke-width:2}
+
 /* engagement + colour */
 .homehead{display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 20px 2px}
 .pagehead{padding:calc(12px + env(safe-area-inset-top)) 20px 6px;display:flex;align-items:center;gap:12px}
@@ -417,7 +464,6 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
       </div>
       <div class="sec-h"><h2>Suggestions</h2><span class="cnt" id="sugCount"></span></div>
       <div class="rlist" id="suggestions"></div>
-      <div class="homefoot" id="homeFoot">Open status from your device time · distances from your location</div>
     </section>
 
     <!-- MAP -->
@@ -450,12 +496,27 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
     <div class="sheet" id="sheet"></div>
     <!-- toast -->
     <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7"/></svg><span id="toastMsg"></span></div>
+
+    <!-- Panda AI -->
+    <button class="pandafab" id="pandaFab" onclick="openPandaChat()" ontouchstart="fabTouchStart(event)" ontouchend="chatSwipeEnd(event)" style="display:none">🐼</button>
+    <div class="pandachat" id="pandaChat" ontouchstart="fabTouchStart(event)" ontouchend="chatSwipeEnd(event)">
+      <div class="pc-head">
+        <div class="pc-title"><span class="pc-ava">🐼</span>Panda AI</div>
+        <div class="pc-actions">
+          <button onclick="closePandaChat()" aria-label="Minimise"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+          <button onclick="exitPandaAI()" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
+      </div>
+      <div class="pc-msgs" id="pandaMsgs"></div>
+      <div class="pc-input"><input id="pandaInput" placeholder="Ask Panda AI…" onkeydown="if(event.key==='Enter')pandaSend()"><button onclick="pandaSend()" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg></button></div>
+    </div>
     <iframe name="pandaFormFrame" id="pandaFormFrame" style="display:none" title="waitlist"></iframe>
   </div>
 
   <nav class="tabbar">
     <button class="tab on" data-tab="home" onclick="go('home')"><svg viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2Z"/></svg>Home</button>
     <button class="tab" data-tab="map" onclick="go('map')"><svg viewBox="0 0 24 24"><path d="m9 4 6 2 5-2v14l-5 2-6-2-5 2V6Z"/><path d="M9 4v14M15 6v14"/></svg>Map</button>
+    <button class="tab credit" data-tab="credit" onclick="go('credit')"><span class="cc"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg></span>Credit</button>
     <button class="tab" data-tab="bookings" onclick="go('bookings')"><svg viewBox="0 0 24 24"><path d="M5 11h14M7 11a5 5 0 0 1 10 0M4 15h16M12 6V4"/></svg>Saved</button>
     <button class="tab" data-tab="profile" onclick="go('profile')"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profile</button>
   </nav>
@@ -477,17 +538,38 @@ const GOOGLE_API_KEY = "AIzaSyBqexm9W6oHI-2usVOrMalyyAt74EnLpbo";
    Until filled, submissions are still captured in-app; once filled,
    they also land in your Google responses sheet. */
 const FORM = {
+  // Published form: /forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform
+  // To make sign-ups land in your responses sheet, paste the field IDs once:
+  //   Form → ⋮ → "Get pre-filled link" → fill dummy answers → "Get link" → copy.
+  //   The copied URL contains entry.NUMBER=value for each question. Paste the numbers below.
+  // (Answer values sent by the app already match your form's options exactly.)
   action:"https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/formResponse",
   entry:{ email:"", age:"", student:"", frequency:"", spend:"", interested:"", followed:"" }
 };
+
+/* ===== Analytics (know how many people use the app) =====
+   Create a free Google Analytics 4 property (analytics.google.com), copy the
+   Measurement ID (looks like G-XXXXXXX) and paste it below. Then the dashboard
+   shows real active users, and Panda fires events (app_open, search, view_venue,
+   join_waitlist, ai_message). */
+const GA_MEASUREMENT_ID = ""; // e.g. "G-XXXXXXX"
+
+/* ===== Panda AI (Gemini) =====
+   NOTE ON SECURITY: a key in a public page is visible to anyone. This calls Gemini
+   directly from the browser so it works on a static host, but for launch you should
+   move it behind a small proxy (Node/Next) and swap the URL below. The value you
+   gave ("AQ.Ab8...") looks like an OAuth token, not a Gemini API key — Gemini keys
+   start with "AIza". If replies fail, create a key at aistudio.google.com and paste it. */
+const PANDA_AI = { key:"AQ.Ab8RN6Kbpu0mxegg6OxKGNhSxQ1iFjw8X8WsE10cYhIVI7mYwA", model:"gemini-1.5-flash" };
 function submitToForm(d){
   try{
     if(!FORM.entry.email) return; // not configured yet
+    const SPEND={'Less than £100':'less than £ 100','More than £150':'More than 150','£300 +':'£300 +'};
     const f=document.createElement('form');
     f.action=FORM.action;f.method='POST';f.target='pandaFormFrame';f.style.display='none';
     const add=(k,v)=>{if(!k)return;const i=document.createElement('input');i.type='hidden';i.name=k;i.value=(v==null?'':v);f.appendChild(i);};
     add(FORM.entry.email,d.email);add(FORM.entry.age,d.age);add(FORM.entry.student,d.student);
-    add(FORM.entry.frequency,d.frequency);add(FORM.entry.spend,d.spend);add(FORM.entry.interested,d.interested);
+    add(FORM.entry.frequency,d.frequency);add(FORM.entry.spend,SPEND[d.spend]||d.spend);add(FORM.entry.interested,d.interested);
     add(FORM.entry.followed,d.followed?'Followed':'');
     document.body.appendChild(f);f.submit();setTimeout(()=>f.remove(),1500);
   }catch(e){console.warn('form submit',e);}
@@ -545,7 +627,7 @@ const DEMO=[
 ];
 
 let MODE='demo',VENUES=[],apiKey='',locStatus='pending',searchCenter={...USER};
-let state={cat:'all',budget:null,hoursOnly:false,favs:new Set(),account:null,applications:0,selected:null,creditStep:0,creditData:{},sheetCtx:null,streak:1,points:0,query:''};
+let state={cat:'all',budget:null,hoursOnly:false,favs:new Set(),account:null,applications:0,selected:null,creditStep:0,creditData:{},sheetCtx:null,streak:1,points:0,query:'',shown:8};
 
 /* ---------- helpers ---------- */
 function txt(x){return x==null?'':(typeof x==='string'?x:(x.text||''))}
@@ -585,6 +667,7 @@ function go(tab){
   if(tab==='profile')renderProfile();
   if(tab==='credit')renderCredit();
   if('vibrate' in navigator)navigator.vibrate(6);
+  updateFab();
 }
 
 /* ---------- HOME ---------- */
@@ -596,7 +679,7 @@ function renderCats(){
   }).join('');
 }
 function setCat(id){clearSearchBox();state.cat=id;renderCats();updateFilterPills();sfx('pop');ensureCategory(id);}
-function clearSearchBox(){const si=document.getElementById('searchInput');if(si)si.value='';state.query='';searchResults=null;searching=false;}
+function clearSearchBox(){const si=document.getElementById('searchInput');if(si)si.value='';state.query='';searchResults=null;searching=false;state.shown=PAGE;moreRadius=4000;}
 function mapActive(){return document.getElementById('s-map').classList.contains('active');}
 const LODGE=['lodging','hotel','motel','resort_hotel','guest_house','hostel','bed_and_breakfast','apartment_complex','extended_stay_hotel','campground'];
 function isLodge(t){return (t||[]).some(x=>LODGE.includes(x));}
@@ -619,7 +702,7 @@ async function ensureCategory(label){
 let searchT=null,searchResults=null,searching=false;
 const PAGE=8;let moreRadius=4000,loadingMore=false;
 function onSearchInput(){
-  const q=document.getElementById('searchInput').value.trim();state.query=q;
+  const q=document.getElementById('searchInput').value.trim();state.query=q;state.shown=PAGE;moreRadius=4000;
   if(!q){searchResults=null;searching=false;renderSuggestions();return;}
   if(MODE!=='live'){searchResults=null;renderSuggestions();return;}
   clearTimeout(searchT);searching=true;renderSuggestions();
@@ -635,17 +718,43 @@ async function runSearch(q){
     if((document.getElementById('searchInput').value||'').trim()===q)renderSuggestions();
   }catch(e){console.warn('search',e);searchResults=null;searching=false;renderSuggestions();}
 }
+function computeList(){
+  const q=(state.query||'').trim();
+  if(q&&searchResults)return searchResults.map(id=>VENUES.find(v=>v.id===id)).filter(Boolean).filter(v=>matchBudget(v)&&(!state.hoursOnly||openInfo(v).open)).sort((a,b)=>distM(a)-distM(b));
+  if(q)return filtered(q);
+  return filtered();
+}
 function renderSuggestions(){
-  const q=(state.query||'').trim();let list;
-  if(q&&searchResults){list=searchResults.map(id=>VENUES.find(v=>v.id===id)).filter(Boolean).filter(v=>matchBudget(v)&&(!state.hoursOnly||openInfo(v).open)).sort((a,b)=>distM(a)-distM(b));}
-  else if(q){list=filtered(q);}
-  else{list=filtered();}
+  const q=(state.query||'').trim();
+  const full=computeList();
+  const view=full.slice(0,state.shown);
   const cnt=document.getElementById('sugCount');
-  cnt.textContent=(searching||catLoading)?'Searching…':list.length+' places';
-  document.getElementById('suggestions').innerHTML=list.map((v,i)=>rcard(v,i===0)).join('')||
-    ((searching||catLoading)?'':`<div class="empty"><div class="em">🔍</div><p>${q?`No places match “${q}” yet.`:'Nothing in this category nearby.'}<br>${MODE==='live'?'Try another search.':'Host it + allow location to pull real results here.'}</p></div>`);
+  cnt.textContent=(searching||catLoading)?'Searching…':full.length+(full.length===1?' place':' places');
+  let html=view.map((v,i)=>rcard(v,i===0)).join('');
+  if(!html){html=(searching||catLoading)?'':`<div class="empty"><div class="em">🔍</div><p>${q?`No places match “${q}” yet.`:'Nothing in this category nearby.'}<br>${MODE==='live'?'Try another search.':'Host it + allow location to pull real results here.'}</p></div>`;}
+  else if(full.length>view.length||MODE==='live'){html+=`<div class="loadmore"><button ${loadingMore?'disabled':''} onclick="loadMore()">${loadingMore?'Loading…':(full.length>view.length?'Show more':'Load more nearby')}</button></div>`;}
+  document.getElementById('suggestions').innerHTML=html;
   renderHome();
 }
+async function loadMore(){
+  const q=(state.query||'').trim();const full=computeList();
+  if(state.shown<full.length){state.shown+=PAGE;renderSuggestions();return;}
+  if(MODE!=='live'||loadingMore)return;
+  loadingMore=true;renderSuggestions();
+  const base=q?q:(state.cat!=='all'?categoryQuery(state.cat):'restaurants and bars near me');
+  moreRadius=Math.min(moreRadius+3000,20000);
+  try{
+    const {Place}=await google.maps.importLibrary('places');
+    const opts={textQuery:base,locationBias:{center:USER,radius:moreRadius},maxResultCount:20,language:'en-GB',region:'gb'};
+    let places=[];try{const r=await Place.searchByText({...opts,fields:FIELDS});places=r.places||[];}catch(e){const r=await Place.searchByText({...opts,fields:CORE_FIELDS});places=r.places||[];}
+    const ids=new Set(VENUES.map(v=>v.id));const added=[];
+    places.forEach(p=>{if(p.businessStatus&&p.businessStatus!=='OPERATIONAL')return;if(isLodge(p.types))return;if(!ids.has(p.id)){VENUES.push(mapPlace(p));ids.add(p.id);added.push(p.id);}});
+    if(q&&searchResults)searchResults=searchResults.concat(added);
+    state.shown+=PAGE;
+  }catch(e){console.warn('loadMore',e);}
+  loadingMore=false;renderSuggestions();
+}
+function onHomeScroll(){const el=document.getElementById('s-home');if(!el||!el.classList.contains('active'))return;if(el.scrollTop+el.clientHeight>=el.scrollHeight-160&&!loadingMore)loadMore();}
 function rcard(v,feature){
   const fav=state.favs.has(v.id);const oi=openInfo(v);
   const thumb=v.photo?`style="background-image:url('${v.photo}')"`:'';
@@ -672,11 +781,11 @@ function openBudget(){
   const o=v=>`<button class="opt ${state.budget===v?'on':''}" onclick="pickBudget('${v}')">${v==='£'?'£ · Modest':v==='££'?'££ · Mid-range':'£££ · High-end'}</button>`;
   openSheet(`<div class="grabber"></div><div class="sheet-title">Budget</div><div class="opts"><button class="opt ${!state.budget?'on':''}" onclick="pickBudget('')">Any budget</button>${o('£')}${o('££')}${o('£££')}</div><div class="sheet-cta"><button class="btn fill" style="width:100%;margin:0" onclick="closeSheet()">Done</button></div>`);
 }
-function pickBudget(v){state.budget=v||null;updateFilterPills();renderSuggestions();renderMap();closeSheet();}
+function pickBudget(v){state.budget=v||null;state.shown=PAGE;updateFilterPills();renderSuggestions();renderMap();closeSheet();}
 function openHours(){
   openSheet(`<div class="grabber"></div><div class="sheet-title">Hours</div><div class="opts"><button class="opt ${!state.hoursOnly?'on':''}" onclick="pickHours(false)">Any time</button><button class="opt ${state.hoursOnly?'on':''}" onclick="pickHours(true)">Open now</button></div><div class="sheet-cta"><button class="btn fill" style="width:100%;margin:0" onclick="closeSheet()">Done</button></div>`);
 }
-function pickHours(v){state.hoursOnly=v;updateFilterPills();renderSuggestions();renderMap();closeSheet();}
+function pickHours(v){state.hoursOnly=v;state.shown=PAGE;updateFilterPills();renderSuggestions();renderMap();closeSheet();}
 function updateFilterPills(){
   const c=document.getElementById('fp-cuisine'),b=document.getElementById('fp-budget'),h=document.getElementById('fp-hours');
   if(c)c.classList.toggle('on',state.cat!=='all');if(b)b.classList.toggle('on',!!state.budget);if(h)h.classList.toggle('on',state.hoursOnly);
@@ -699,7 +808,7 @@ function goodToKnow(v){
 }
 function openDetail(id){
   sfx('pop');
-  const v=VENUES.find(x=>String(x.id)===String(id));if(!v)return;state.selected=v;
+  const v=VENUES.find(x=>String(x.id)===String(id));if(!v)return;state.selected=v;gaEvent('view_venue',{name:v.name});
   const oi=openInfo(v);const fav=state.favs.has(v.id);
   const photos=(v.photos&&v.photos.length)?v.photos:(v.photo?[v.photo]:[]);
   const slides=photos.length?photos.map(p=>`<div class="slide" style="background-image:url('${p}')"></div>`).join(''):`<div class="slide" style="background:linear-gradient(135deg,#cfe3d3,#eef5ef)"><span class="e">${catEmoji(v)}</span></div>`;
@@ -724,7 +833,7 @@ function openDetail(id){
       <div class="dabout"><h3>About</h3><div class="ostatus ${oi.open||oi.unknown?'':'shut'}"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>${oi.unknown?'Hours n/a':(oi.open?'Open now':'Closed')}</div></div>
       ${v.blurb?`<p class="dbio">${v.blurb}</p>`:'<p class="dbio" style="color:var(--muted-2)">No description yet — tap Reviews below to see what people say.</p>'}
       ${igOrWeb}
-      <div class="dminimap" id="dMiniMap"><div class="ph">📍 ${v.area||v.address||'Location'}</div></div>
+      <div class="dmapwrap"><div class="dminimap" id="dMiniMap"><div class="ph">📍 ${v.area||v.address||'Location'}</div></div><a class="dmapcover" href="${gmapsLink(v)}" target="_blank" rel="noopener" aria-label="Open in Google Maps"></a><a class="mapopen" href="${gmapsLink(v)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 20l-6 2V6l6-2 6 2 6-2v16l-6 2-6-2Z"/><path d="M9 4v16M15 6v16"/></svg>Open in Maps</a></div>
       <div class="dmeta"><span>${distLabel(v)}</span><span style="color:var(--muted-2)">·</span><span class="price">${v.price||'££'}</span><span style="color:var(--muted-2)">·</span><span>${v.cuisine||''}</span></div>
       <div class="drating"><span class="num">${v.rating||'—'}</span><span class="starrow">${starRow(v.rating)}</span>${reviewsLink}</div>
       ${goodToKnow(v)}
@@ -743,7 +852,7 @@ function dScroll(el){const i=Math.round(el.scrollLeft/el.clientWidth);const dots
 function closeDetail(){document.getElementById('detail').classList.remove('show');}
 function refreshDetailHeart(id){const h=document.getElementById('dHeart');if(h)h.classList.toggle('on',state.favs.has(id));}
 function shareVenue(id){const v=VENUES.find(x=>String(x.id)===String(id));if(navigator.share){navigator.share({title:v.name,text:`${v.name} on Panda`,url:gmapsLink(v)}).catch(()=>{});}else{toast('Link copied');try{navigator.clipboard.writeText(gmapsLink(v));}catch(e){}}}
-function menuAction(id){const v=VENUES.find(x=>String(x.id)===String(id));const url=v.website||gmapsLink(v);window.open(url,'_blank','noopener');}
+function menuAction(id){const v=VENUES.find(x=>String(x.id)===String(id));const url=v.website||gmapsLink(v);window.open(url,'_blank','noopener');toast('Menu opened in a new tab — Panda stays open here ↩︎');}
 function reserveAction(id){
   const v=VENUES.find(x=>String(x.id)===String(id));
   if(v.phone){toast('Calling '+v.name+' to reserve');location.href='tel:'+v.phone.replace(/[^+\d]/g,'');}
@@ -833,7 +942,7 @@ function mapPlace(p){
 async function fetchPlaces(center){
   center=center||searchCenter||USER;
   const {Place,SearchNearbyRankPreference}=await google.maps.importLibrary('places');
-  const groups=[['restaurant'],['bar'],['cafe'],['bakery'],['meal_takeaway'],['night_club'],['tourist_attraction'],['spa']];
+  const groups=[['restaurant'],['bar'],['cafe'],['bakery'],['meal_takeaway'],['ice_cream_shop'],['night_club'],['tourist_attraction'],['spa']];
   let all=[];const seen=new Set();
   const collect=(places)=>{(places||[]).forEach(p=>{if(p.businessStatus&&p.businessStatus!=='OPERATIONAL')return;const t=p.types||[];if(t.some(x=>['lodging','hotel','motel','resort_hotel','guest_house','hostel','bed_and_breakfast','apartment_complex','extended_stay_hotel','campground'].includes(x)))return;if(!seen.has(p.id)){seen.add(p.id);all.push(mapPlace(p));}});};
   for(const types of groups){
@@ -864,7 +973,6 @@ async function goLive(){
     const places=await fetchPlaces(searchCenter);
     if(!places.length)throw new Error('No places — check Places API (New) + billing.');
     VENUES=places;
-    document.getElementById('homeFoot').textContent=got?'Live from Google Places · nearest first':'Live · central London (location off)';
     renderCats();renderSuggestions();renderLocBanner();
     if(document.getElementById('s-map').classList.contains('active'))drawMap();
     toast(got?('Found '+places.length+' places near you'):('Loaded '+places.length+' places'));
@@ -931,7 +1039,7 @@ function cProcessing(){const el=document.getElementById('creditContent');el.inne
 function cThankYou(){
   const d=state.creditData;const amt=d.amount||300;
   state.account={name:d.name||'',email:d.email||'',age:d.age||'',student:d.student||'',frequency:d.frequency||'',spend:d.spend||'',interested:d.interested||'',followed:!!d.followed,limit:amt,available:amt,waitlist:true,joined:new Date().toISOString()};
-  saveProfile();addPoints(50);const g=document.getElementById('gate');if(g)g.remove();sfx('win');
+  saveProfile();addPoints(50);gaEvent('join_waitlist');const g=document.getElementById('gate');if(g)g.remove();sfx('win');
   const num="•••• •••• •••• "+String(1000+Math.floor(Math.random()*9000));
   document.getElementById('creditContent').innerHTML=`<div class="approved">
     <div style="font-size:64px;margin-bottom:4px">🐼</div>
@@ -966,8 +1074,9 @@ function renderProfile(){
       <div class="r"><span class="lab">Status</span><span class="val" style="color:var(--green-deep)">On the waitlist</span></div>
     </div>`:'';
   el.innerHTML=`<div class="pagehead" style="padding-top:14px"><h1>Profile</h1></div>
-    <div class="pfhead"><div class="avatar">${ini}</div><div><div class="pfname">${name}</div><div class="pfmail">${email}</div></div></div>
-    ${a?`<div class="wallet"><div class="k">${a.waitlist?'Panda Credit · coming soon':'Panda Credit · available'}</div><div class="bal">${money(a.available)}</div><div class="of">of ${money(a.limit)} limit</div><div class="bar"><i style="width:${a.available/a.limit*100}%"></i></div><div class="mc" style="right:18px;bottom:18px">${mcLogo()}</div></div>`:
+    <div class="pfhead"><div class="avatar" onclick="document.getElementById('picInput').click()" style="${(safeLS('panda_pic')||'')?`background-image:url('${safeLS('panda_pic')}')`:''}">${(safeLS('panda_pic')||'')?'':ini}<span class="camera"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3"/></svg></span></div><input id="picInput" type="file" accept="image/*" style="display:none" onchange="onPic(event)"><div><div class="pfname">${name}</div><div class="pfmail">${email}</div></div></div>
+    ${a?`<div class="wallet"><div class="k">${a.waitlist?'Panda Credit · coming soon':'Panda Credit · available'}</div><div class="bal">${money(a.available)}</div><div class="of">of ${money(a.limit)} limit</div><div class="bar"><i style="width:${a.available/a.limit*100}%"></i></div><div class="mc" style="right:18px;bottom:18px">${mcLogo()}</div></div>
+    <div class="paybtns"><button class="pay apple" onclick="toast('Apple Pay — coming for our Launch')"> Pay</button><button class="pay gpay" onclick="toast('Google Pay — coming for our Launch')"><b>G</b>&nbsp;Pay</button></div>`:
       `<div class="creditstrip" style="margin:14px 20px"><div class="k">Panda Credit</div><div class="amt">£300</div><div class="ld">Join the waitlist to unlock your credit.</div><button class="go" onclick="go('credit')">Join now<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`}
     <div class="statcards">
       <div class="statcard s1"><div class="n">🔥 ${state.streak||1}</div><div class="l">Day streak</div></div>
@@ -976,6 +1085,7 @@ function renderProfile(){
     </div>
     ${about}
     <div class="menu">
+      <div class="mi" onclick="activatePandaAI()"><span class="ic teal" style="font-size:17px">🐼</span>Panda AI<span class="rt" style="color:${aiOn()?'var(--green-deep)':'var(--muted)'}">${aiOn()?'On':'Ask anything'}</span></div>
       <div class="mi" onclick="go('bookings')"><span class="ic red"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 4.9 5.3 4.5 7.4 4.2 9 5.5 12 8c3-2.5 4.6-3.8 6.7-3.5C22 4.9 23.6 8.4 22 11.7 19.5 16.1 12 21 12 21Z"/></svg></span>Saved places<span class="rt" style="color:var(--muted)">${state.favs.size}</span></div>
       <div class="mi" onclick="go('credit')"><span class="ic green"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>Panda Credit<svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
       <div class="mi"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>Live Google data<span class="rt" style="color:${MODE==='live'?'var(--green-deep)':'var(--muted)'}">${MODE==='live'?'On':'Off'}</span></div>
@@ -1038,13 +1148,65 @@ function checkGate(){
 function showGate(){let g=document.getElementById('gate');if(!g){g=document.createElement('div');g.className='gate';g.id='gate';g.innerHTML=`<div class="em">🐼</div><h2>Join Panda to keep exploring</h2><p>You've been with Panda for a week! Add your details to unlock offers, credit and everything near you.</p><button onclick="dismissGateToCredit()">Join the waitlist</button>`;document.querySelector('.device').appendChild(g);}g.style.display='flex';}
 function dismissGateToCredit(){const g=document.getElementById('gate');if(g)g.style.display='none';go('credit');}
 
+/* ---------- analytics ---------- */
+function initGA(){if(!GA_MEASUREMENT_ID)return;try{const s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+GA_MEASUREMENT_ID;document.head.appendChild(s);window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};gtag('js',new Date());gtag('config',GA_MEASUREMENT_ID);}catch(e){}}
+function gaEvent(n,p){try{if(window.gtag)gtag('event',n,p||{});}catch(e){}}
+
+/* ---------- profile photo ---------- */
+function onPic(e){const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{safeLS('panda_pic',r.result);}catch(err){toast('Image too large');return;}renderProfile();};r.readAsDataURL(f);}
+
+/* ---------- Panda AI (Gemini) ---------- */
+const PANDA_SYSTEM=`You are "Panda AI", the friendly assistant embedded in the Panda app — a UK app for discovering places to eat, drink and go out. Always call yourself Panda AI. Never reveal you are Gemini or Google; zero third-party AI branding.
+SCOPE: local discovery, opening hours, menus, routing/directions, price ranges and real deals only. Politely decline anything outside this.
+USE REAL DATA ONLY: recommend venues from the NEARBY VENUES list in context (these are real, from Google). Never invent venues, menus, prices or offers. If you don't know a menu detail, say so and point to the venue's website or phone from context. If there's no website, suggest they call.
+ROUTING: for directions give a Google Maps link like https://www.google.com/maps/search/?api=1&query=NAME.
+STYLE: warm, concise, a little playful. Use the user's first name if provided. Short paragraphs.
+HARD RULES: Never use the phrase "Dine Now, Pay Later". Refer to this rollout only as "for our Launch". Panda does not onboard venues or run B2B/merchant tools — never mention those. No fake table availability; share the phone/website so users contact the venue directly.`;
+let pandaHistory=[],pandaOpen=false,fabSX=0;
+function aiOn(){return safeLS('panda_ai')==='1';}
+function setAI(on){safeLS('panda_ai',on?'1':'0');updateFab();}
+function activatePandaAI(){setAI(true);openPandaChat();gaEvent('ai_activate');}
+function updateFab(){const fab=document.getElementById('pandaFab');if(!fab)return;const cur=[...document.querySelectorAll('.screen')].find(s=>s.classList.contains('active'));const tab=cur?cur.id.replace('s-',''):'home';const main=['home','map','bookings','credit'].includes(tab);fab.style.display=(aiOn()&&main&&!pandaOpen)?'grid':'none';}
+function openPandaChat(){pandaOpen=true;document.getElementById('pandaChat').classList.add('show');updateFab();if(!pandaHistory.length){const nm=state.account&&state.account.name?state.account.name.split(' ')[0]:'there';addBubble('model',`Hi ${nm}! 🐼 I'm Panda AI. Tell me what you fancy — "great ramen near me", "cocktails tonight", "who does fish & chips?" — and I'll find real spots around you.`);}}
+function closePandaChat(){pandaOpen=false;document.getElementById('pandaChat').classList.remove('show');updateFab();}
+function exitPandaAI(){setAI(false);closePandaChat();toast('Panda AI hidden · reopen from Profile');}
+function addBubble(role,text){const box=document.getElementById('pandaMsgs');const d=document.createElement('div');d.className='pbub '+(role==='user'?'me':'ai');d.innerHTML=String(text).replace(/</g,'&lt;').replace(/\n/g,'<br>').replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">open ↗</a>');box.appendChild(d);box.scrollTop=box.scrollHeight;return d;}
+function buildAIContext(){
+  const u=state.account&&state.account.name?state.account.name:'there';
+  const near=filtered().slice(0,14).map(v=>`- ${v.name} (${v.cuisine||'venue'}, ${v.price||'££'}, ${v.rating||'?'}★, ${v.area||''}, ${distLabel(v)}${openInfo(v).open?', open now':''}${v.phone?', tel '+v.phone:''}${v.website?', '+v.website:''})`).join('\n');
+  let ctx=`USER NAME: ${u}\nUSER AREA: ${(document.getElementById('locName')||{}).textContent||'London'}\nNEARBY VENUES:\n${near||'(none loaded)'}`;
+  if(state.selected){const v=state.selected;ctx+=`\n\nCURRENTLY VIEWING: ${v.name} — ${v.cuisine||''}, ${v.price||''}, ${v.rating||''}★, ${v.address||v.area||''}. ${v.blurb||''} ${v.phone?'Phone '+v.phone+'.':''} ${v.website?'Website '+v.website+'.':''}`;}
+  return ctx;
+}
+async function pandaSend(){
+  const inp=document.getElementById('pandaInput');const t=inp.value.trim();if(!t)return;inp.value='';
+  addBubble('user',t);pandaHistory.push({role:'user',parts:[{text:t}]});gaEvent('ai_message');
+  const typing=addBubble('model','·  ·  ·');typing.classList.add('typing');
+  try{
+    const sys=PANDA_SYSTEM+'\n\nCONTEXT:\n'+buildAIContext();
+    const body={systemInstruction:{parts:[{text:sys}]},contents:pandaHistory.slice(-10),generationConfig:{temperature:0.6,maxOutputTokens:500}};
+    const useKey=/^AIza/.test(PANDA_AI.key);
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${PANDA_AI.model}:generateContent`+(useKey?`?key=${encodeURIComponent(PANDA_AI.key)}`:'');
+    const headers={'Content-Type':'application/json'};
+    if(!useKey)headers['Authorization']='Bearer '+PANDA_AI.key;
+    const r=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
+    const data=await r.json();
+    let txt=((((data.candidates||[])[0]||{}).content||{}).parts||[{}])[0].text;
+    if(!txt)txt=data.error?('⚠️ '+(data.error.message||'AI error')+'  (GCP tokens expire after ~1 hour — generate a fresh one, or use an "AIza" key from aistudio.google.com.)'):'Sorry, I couldn\'t respond just now.';
+    typing.remove();addBubble('model',txt);pandaHistory.push({role:'model',parts:[{text:txt}]});
+  }catch(e){typing.remove();addBubble('model','⚠️ Couldn\'t reach Panda AI. Check the connection and try again.');}
+}
+function fabTouchStart(e){fabSX=e.touches[0].clientX;}
+function chatSwipeEnd(e){const dx=e.changedTouches[0].clientX-fabSX;if(dx<-60)exitPandaAI();}
+
 /* ---------- init ---------- */
 function hideLoader(){setTimeout(()=>{document.getElementById('loader').classList.add('hide');},900);}
 (function boot(){
   apiKey=GOOGLE_API_KEY||safeLS('panda_gkey')||'';
-  loadPersist();
+  loadPersist();initGA();gaEvent('app_open');
+  const sh=document.getElementById('s-home');if(sh)sh.addEventListener('scroll',onHomeScroll,{passive:true});
   VENUES=demoVenues();MODE='demo';
-  renderCats();renderSuggestions();updateFilterPills();renderHome();
+  renderCats();renderSuggestions();updateFilterPills();renderHome();updateFab();
   if(apiKey){goLive().finally(()=>{hideLoader();checkGate();});}else{renderLocBanner();hideLoader();checkGate();}
 })();
 </script>
