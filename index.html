@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -921,7 +922,16 @@ async function searchThisArea(){
 }
 
 /* ---------- GOOGLE ---------- */
-function loadGoogle(key){return new Promise((res,rej)=>{if(window.google&&window.google.maps){res();return;}window.__pgReady=()=>res();const s=document.createElement('script');s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places&v=weekly&loading=async&callback=__pgReady`;s.async=true;s.onerror=()=>rej(new Error('Google Maps failed to load'));document.head.appendChild(s);});}
+function loadGoogle(key){return new Promise((res,rej)=>{
+  if(window.google&&window.google.maps){res();return;}
+  window.gm_authFailure=()=>{rej(new Error('Google rejected the key — enable Maps JavaScript API + Places API (New), turn on billing, and add your site to the key\'s allowed referrers.'));};
+  window.__pgReady=()=>res();
+  const s=document.createElement('script');
+  s.src=`https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=places&v=weekly&loading=async&callback=__pgReady`;
+  s.async=true;
+  s.onerror=()=>rej(new Error('Maps script blocked — this is normal in the in-app preview/local file; publish to https and it loads.'));
+  document.head.appendChild(s);
+});}
 function getLocation(){return new Promise(res=>{if(!navigator.geolocation){locStatus='unsupported';res(false);return;}navigator.geolocation.getCurrentPosition(p=>{USER.lat=p.coords.latitude;USER.lng=p.coords.longitude;searchCenter={lat:USER.lat,lng:USER.lng};locStatus='ok';res(true);},e=>{locStatus=(e&&e.code===1)?'denied':'error';res(false);},{enableHighAccuracy:true,timeout:8000,maximumAge:30000});});}
 function priceLbl(p){const m={FREE:'£',INEXPENSIVE:'£',MODERATE:'££',EXPENSIVE:'£££',VERY_EXPENSIVE:'££££',0:'£',1:'£',2:'££',3:'£££',4:'££££'};return (p!=null&&m[p])||'££';}
 function ghours(roh){if(!roh||!roh.periods)return null;const w=[null,null,null,null,null,null,null];roh.periods.forEach(p=>{if(!p.open||p.open.day==null)return;const md=(p.open.day+6)%7;const o=p.open.hour+(p.open.minute||0)/60;let c=p.close?(p.close.hour+(p.close.minute||0)/60):24;w[md]=[o,c];});return w.some(x=>x)?w:null;}
@@ -977,7 +987,7 @@ async function goLive(){
     toast(got?('Found '+places.length+' places near you'):('Loaded '+places.length+' places'));
   }catch(e){
     console.warn('goLive failed:',e);MODE='demo';VENUES=demoVenues();renderCats();renderSuggestions();renderLocBanner();
-    toast(String(e.message||e).slice(0,60));
+    toast(String(e.message||e).slice(0,110));
   }
 }
 function demoVenues(){return DEMO.map(v=>({...v,searchStr:(v.cuisine||'').toLowerCase(),photos:[],reviews_list:[],gid:null}));}
