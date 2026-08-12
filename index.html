@@ -318,6 +318,50 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 .toast svg{width:16px;height:16px;stroke:var(--green);stroke-width:2.6;flex:0 0 auto}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* engagement + colour */
+.homehead{display:flex;align-items:center;justify-content:space-between;padding:2px 20px 2px}
+.hello{font-size:12.5px;color:var(--muted);line-height:1.2}
+.hello b{color:var(--ink);font-weight:600;font-size:16px;display:block;margin-top:1px}
+.streak{display:flex;align-items:center;gap:5px;background:#FFF3E0;color:#E9820A;font-weight:700;font-size:12.5px;padding:8px 12px;border-radius:100px;box-shadow:var(--sh-sm)}
+.offer-daily{margin:14px 20px 4px;border-radius:20px;overflow:hidden;position:relative;box-shadow:var(--sh-md);color:#fff;min-height:132px;display:flex;align-items:flex-end;background:#2E7D50;transition:transform .12s}
+.offer-daily:active{transform:scale(.985)}
+.offer-daily .bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.offer-daily .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.72))}
+.offer-daily .c{position:relative;z-index:2;padding:16px}
+.offer-daily .tagline{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:#F5B301;color:#3a2a00;display:inline-block;padding:4px 8px;border-radius:6px;margin-bottom:8px}
+.offer-daily .ot{font-family:var(--ff-round);font-weight:700;font-size:19px;line-height:1.12}
+.offer-daily .os{font-size:12.5px;opacity:.92;margin-top:4px}
+.offers-rail{display:flex;gap:12px;overflow-x:auto;padding:2px 20px 8px;scrollbar-width:none}
+.offers-rail::-webkit-scrollbar{display:none}
+.ocard{flex:0 0 auto;width:196px;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--sh-sm);transition:transform .12s}
+.ocard:active{transform:scale(.97)}
+.ocard .top{height:86px;background-size:cover;background-position:center;position:relative;background:#EAF6EC;display:grid;place-items:center;font-size:34px}
+.ocard .badge{position:absolute;top:8px;left:8px;background:var(--heart);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px}
+.ocard .b{padding:10px 12px 12px}
+.ocard .on2{font-weight:600;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ocard .od{font-size:11.5px;color:var(--green-deep);font-weight:600;margin-top:2px}
+.mi .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto}
+.mi .ic svg{width:18px;height:18px;stroke:#fff;stroke-width:2}
+.ic.red{background:#F0554E}.ic.blue{background:#3B82F6}.ic.green{background:#2E7D50}.ic.amber{background:#F5B301}.ic.purple{background:#8B5CF6}.ic.teal{background:#14B8A6}.ic.pink{background:#EC4899}
+.btn.fill:active{background:#5EA873}.btn.dark:active{background:#215C3B}.dbtn.fill:active{background:#5EA873}
+.catcard:active{background:var(--green-tint);border-color:var(--green)}
+.fpill:active{background:var(--green-deep);color:#fff}
+.gate{position:absolute;inset:0;z-index:150;background:linear-gradient(180deg,#2E7D50,#1c5334);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 30px}
+.gate .em{font-size:64px;margin-bottom:8px}
+.gate h2{font-family:var(--ff-round);font-size:26px;margin:0}
+.gate p{font-size:14.5px;line-height:1.55;opacity:.92;margin:10px 0 24px;max-width:300px}
+.gate button{background:#fff;color:var(--green-deep);font-weight:700;font-size:16px;padding:15px 32px;border-radius:100px;box-shadow:var(--sh-md)}
+.mc{position:absolute;right:18px;bottom:16px;z-index:3}
+.aboutme{margin:16px 20px 0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.aboutme .r{display:flex;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.aboutme .r:last-child{border-bottom:none}
+.aboutme .lab{color:var(--muted)}.aboutme .val{font-weight:600}
+.statcards{display:flex;gap:12px;margin:16px 20px 0}
+.statcard{flex:1;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:var(--sh-sm)}
+.statcard .n{font-family:var(--ff-round);font-weight:700;font-size:22px}
+.statcard .l{font-size:11px;color:var(--muted);margin-top:2px}
+.statcard.s1 .n{color:#E9820A}.statcard.s2 .n{color:var(--green-deep)}.statcard.s3 .n{color:#8B5CF6}
+
 /* loading screen */
 .loader{position:absolute;inset:0;z-index:200;background:var(--green-soft);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .5s ease}
 .loader.hide{opacity:0;pointer-events:none}
@@ -357,10 +401,14 @@ input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;bac
 
     <!-- HOME -->
     <section class="screen active" id="s-home">
+      <div class="homehead" id="homeHead"></div>
       <div class="searchbar"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg><input id="searchInput" placeholder="Search places, cuisines, a spot by name…" oninput="onSearchInput()"/></div>
       <div id="locBanner" class="locbanner"></div>
       <div class="sec-h"><h2>Top categories</h2><button class="filt" onclick="openCategoryGrid()" aria-label="All categories"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
       <div class="cats" id="cats"></div>
+      <div id="dailyOffer"></div>
+      <div class="sec-h" id="offersHead" style="display:none"><h2>Panda offers</h2><span class="cnt">Near you</span></div>
+      <div class="offers-rail" id="offersRail"></div>
       <div class="creditstrip" id="creditStrip">
         <div class="k">Panda Credit</div><div class="amt">£300</div>
         <div class="ld">Split any meal or night out over 3 months. Hospitality-only, no surprises.</div>
@@ -466,7 +514,13 @@ const CATEGORIES=[
   {label:'Pizza',e:'🍕',m:['pizza','pizzeria']},
   {label:'Burgers',e:'🍔',m:['burger','hamburger']},
   {label:'Café',e:'☕',m:['cafe','coffee','bakery','brunch','café']},
-  {label:'Bars',e:'🍸',m:['bar','cocktail','wine','night club','pub']}
+  {label:'Bars',e:'🍸',m:['bar','cocktail','wine','night club','pub']},
+  {label:'Experiences',e:'🎟️',m:['tourist','attraction','experience','activity','landmark','sightseeing','things to do']},
+  {label:'Hotels',e:'🏨',m:['hotel','lodging','resort','inn']},
+  {label:'Stays',e:'🛏️',m:['guest house','bed and breakfast','hostel','apartment','lodging','stay']},
+  {label:'Nightlife',e:'🪩',m:['night club','club','late night','dance']},
+  {label:'Spa',e:'💆',m:['spa','wellness','sauna','massage','thermal']},
+  {label:'Activities',e:'🎳',m:['bowling','cinema','movie','arcade','gym','climbing','museum','gallery','park','golf']}
 ];
 const H={rest:[[12,23],[12,23],[12,23],[12,23.5],[12,24],[11,24],[11,22]],bar:[[16,1],[16,1],[16,1],[16,2],[16,2.5],[15,2.5],[15,0]],cafe:[[7,18],[7,18],[7,18],[7,18],[7,19],[8,19],[8,17]]};
 const DEMO=[
@@ -481,7 +535,7 @@ const DEMO=[
 ];
 
 let MODE='demo',VENUES=[],apiKey='',locStatus='pending',searchCenter={...USER};
-let state={cat:'all',budget:null,hoursOnly:false,favs:new Set(),account:null,applications:0,selected:null,creditStep:0,creditData:{},sheetCtx:null};
+let state={cat:'all',budget:null,hoursOnly:false,favs:new Set(),account:null,applications:0,selected:null,creditStep:0,creditData:{},sheetCtx:null,streak:1,points:0,query:''};
 
 /* ---------- helpers ---------- */
 function txt(x){return x==null?'':(typeof x==='string'?x:(x.text||''))}
@@ -511,6 +565,7 @@ function gmapsLink(v){return `https://www.google.com/maps/search/?api=1&query=${
 
 /* ---------- nav ---------- */
 function go(tab){
+  sfx('tab');
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-'+tab).classList.add('active');
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab));
@@ -558,6 +613,7 @@ function renderSuggestions(){
   cnt.textContent=searching?'Searching…':list.length+' places';
   document.getElementById('suggestions').innerHTML=list.map((v,i)=>rcard(v,i===0)).join('')||
     (searching?'':`<div class="empty"><div class="em">🔍</div><p>No places match “${q}” yet.<br>Try another name or cuisine.</p></div>`);
+  renderHome();
 }
 function rcard(v,feature){
   const fav=state.favs.has(v.id);const oi=openInfo(v);
@@ -573,7 +629,7 @@ function rcard(v,feature){
     <button class="heart ${fav?'on':''}" onclick="event.stopPropagation();toggleFav('${v.id}')" aria-label="Save"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 4.9 5.3 4.5 7.4 4.2 9 5.5 12 8c3-2.5 4.6-3.8 6.7-3.5C22 4.9 23.6 8.4 22 11.7 19.5 16.1 12 21 12 21Z"/></svg></button>
   </div>`;
 }
-function toggleFav(id){if(state.favs.has(id))state.favs.delete(id);else{state.favs.add(id);toast('Saved to your list');}renderSuggestions();if(document.getElementById('s-bookings').classList.contains('active'))renderBookings();const d=document.getElementById('detail');if(d.classList.contains('show'))refreshDetailHeart(id);}
+function toggleFav(id){if(state.favs.has(id))state.favs.delete(id);else{state.favs.add(id);addPoints(5);toast('Saved · +5 points');sfx('pop');}saveFavs();renderSuggestions();if(document.getElementById('s-bookings').classList.contains('active'))renderBookings();const d=document.getElementById('detail');if(d.classList.contains('show'))refreshDetailHeart(id);}
 
 /* ---------- CATEGORY / FILTER SHEETS ---------- */
 function openCategoryGrid(){
@@ -597,6 +653,7 @@ function updateFilterPills(){
 
 /* ---------- DETAIL ---------- */
 function openDetail(id){
+  sfx('pop');
   const v=VENUES.find(x=>String(x.id)===String(id));if(!v)return;state.selected=v;
   const oi=openInfo(v);const fav=state.favs.has(v.id);
   const photos=(v.photos&&v.photos.length)?v.photos:(v.photo?[v.photo]:[]);
@@ -723,7 +780,7 @@ async function fetchPlaces(center){
   center=center||searchCenter||USER;
   const {Place,SearchNearbyRankPreference}=await google.maps.importLibrary('places');
   const fields=FIELDS;
-  const groups=[['restaurant'],['bar'],['cafe'],['bakery'],['meal_takeaway'],['night_club']];
+  const groups=[['restaurant'],['bar'],['cafe'],['bakery'],['meal_takeaway'],['night_club'],['lodging'],['tourist_attraction'],['spa']];
   let all=[];const seen=new Set();
   for(const types of groups){
     try{const {places}=await Place.searchNearby({fields,locationRestriction:{center,radius:2500},includedTypes:types,maxResultCount:20,rankPreference:SearchNearbyRankPreference.DISTANCE,language:'en-GB',region:'gb'});
@@ -811,16 +868,25 @@ function schedule(amt){const per=Math.round(amt/3);const d0=new Date();const f=n
     <div class="srow"><div class="sleft"><div class="sdot">1</div><div><div class="st">First payment</div><div class="ss">In 30 days · ${f(30)}</div></div></div><div class="sa">${money(per)}</div></div>
     <div class="srow"><div class="sleft"><div class="sdot">2</div><div><div class="st">Second payment</div><div class="ss">In 60 days · ${f(60)}</div></div></div><div class="sa">${money(per)}</div></div>
     <div class="srow"><div class="sleft"><div class="sdot">3</div><div><div class="st">Final payment</div><div class="ss">In 90 days · ${f(90)}</div></div></div><div class="sa">${money(amt-per*2)}</div></div></div>`;}
-function cProcessing(){const el=document.getElementById('creditContent');el.innerHTML=`<div class="processing"><div class="spinner"></div><h3>Reviewing your application</h3><p id="pm">Running a soft check…</p></div>`;const m=["Running a soft check…","Verifying your details…","Setting your limit…","Almost there…"];let i=0;const iv=setInterval(()=>{i++;const p=document.getElementById('pm');if(p&&m[i])p.textContent=m[i];},650);setTimeout(()=>{clearInterval(iv);cApprove();},2500);}
-function cApprove(){const d=state.creditData;const amt=d.amount||300;state.account={name:d.name,email:d.email,limit:amt,available:amt};const num="•••• •••• •••• "+String(1000+Math.floor(Math.random()*9000));
-  document.getElementById('creditContent').innerHTML=`<div class="approved"><div class="tick"><svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7"/></svg></div><h2>You're approved 🎉</h2><p class="s2">${(d.name||'You').split(' ')[0]}, your <b>${money(amt)}</b> Panda Credit is ready.</p>
-    <div class="vcard"><div class="top"><div class="pnd">Panda</div><div class="chip"></div></div><div class="num">${num}</div><div class="bot"><div><div class="lb">Card holder</div><div class="vl">${d.name}</div></div><div style="text-align:right"><div class="lb">Limit</div><div class="vl">${money(amt)}</div></div></div></div>
-    ${schedule(amt)}<button class="btn fill" onclick="go('home')">Start exploring</button><button class="btn ghost" style="margin-top:0" onclick="go('profile')">View my account</button></div>`;
-  if('vibrate' in navigator)navigator.vibrate([10,40,10]);
+function cProcessing(){const el=document.getElementById('creditContent');el.innerHTML=`<div class="processing"><div class="spinner"></div><h3>Adding you to the waitlist</h3><p id="pm">Saving your details…</p></div>`;const m=["Saving your details…","Checking eligibility…","Reserving your £300…","Almost there…"];let i=0;const iv=setInterval(()=>{i++;const p=document.getElementById('pm');if(p&&m[i])p.textContent=m[i];},600);setTimeout(()=>{clearInterval(iv);cThankYou();},2400);}
+function cThankYou(){
+  const d=state.creditData;const amt=d.amount||300;
+  state.account={name:d.name||'',email:d.email||'',age:d.age||'',student:d.student||'',frequency:d.frequency||'',spend:d.spend||'',interested:d.interested||'',followed:!!d.followed,limit:amt,available:amt,waitlist:true,joined:new Date().toISOString()};
+  saveProfile();addPoints(50);const g=document.getElementById('gate');if(g)g.remove();sfx('win');
+  const num="•••• •••• •••• "+String(1000+Math.floor(Math.random()*9000));
+  document.getElementById('creditContent').innerHTML=`<div class="approved">
+    <div style="font-size:64px;margin-bottom:4px">🐼</div>
+    <h2>You're on the list!</h2>
+    <p class="s2">Thanks for joining our waitlist — Panda, see you later 🐼<br>We'll email ${d.email||'you'} the moment your ${money(amt)} is ready.</p>
+    <div class="vcard"><div class="top"><div class="pnd">Panda</div><div class="chip"></div></div><div class="num">${num}</div><div class="bot"><div><div class="lb">Card holder</div><div class="vl">${d.name||'Panda member'}</div></div><div style="text-align:right"><div class="lb">Coming soon</div><div class="vl">${money(amt)}</div></div></div><div class="mc">${mcLogo()}</div></div>
+    ${schedule(amt)}
+    <button class="btn fill" onclick="go('home')">Back to home</button>
+    <button class="btn ghost" style="margin-top:0" onclick="go('profile')">View my profile</button></div>`;
+  if('vibrate' in navigator)navigator.vibrate([10,40,10,40,20]);
 }
 function creditActive(){const a=state.account;return `<div class="pagehead" style="padding-top:14px"><button class="back" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button><h1>Your credit</h1></div>
-  <div class="wallet" style="margin-top:4px"><div class="k">Available to spend</div><div class="bal">${money(a.available)}</div><div class="of">of ${money(a.limit)} limit</div><div class="bar"><i style="width:${a.available/a.limit*100}%"></i></div></div>
-  ${schedule(a.limit)}<button class="btn fill" onclick="go('home')">Find somewhere to spend</button>`;}
+  <div class="wallet" style="margin-top:4px"><div class="k">${a.waitlist?'On the waitlist · coming soon':'Available to spend'}</div><div class="bal">${money(a.available)}</div><div class="of">of ${money(a.limit)} limit</div><div class="bar"><i style="width:${a.available/a.limit*100}%"></i></div><div class="mc" style="right:18px;bottom:18px">${mcLogo()}</div></div>
+  ${schedule(a.limit)}<button class="btn fill" onclick="go('home')">Explore places</button>`;}
 
 /* ---------- BOOKINGS (saved) ---------- */
 function renderBookings(){
@@ -832,16 +898,30 @@ function renderBookings(){
 /* ---------- PROFILE ---------- */
 function renderProfile(){
   const el=document.getElementById('profileContent');const a=state.account;
-  const name=a?a.name:'Guest';const ini=a?name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase():'🐼';const email=a?a.email:'Not signed up yet';
+  const name=a&&a.name?a.name:'Guest';const ini=a&&a.name?name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase():'🐼';const email=a?a.email:'Not signed up yet';
+  const about=a?`<div class="aboutme">
+      ${a.age?`<div class="r"><span class="lab">Age</span><span class="val">${a.age}</span></div>`:''}
+      ${a.student?`<div class="r"><span class="lab">Student</span><span class="val">${a.student}</span></div>`:''}
+      ${a.frequency?`<div class="r"><span class="lab">Goes out</span><span class="val">${a.frequency}/month</span></div>`:''}
+      ${a.spend?`<div class="r"><span class="lab">Monthly spend</span><span class="val">${a.spend}</span></div>`:''}
+      <div class="r"><span class="lab">Status</span><span class="val" style="color:var(--green-deep)">On the waitlist</span></div>
+    </div>`:'';
   el.innerHTML=`<div class="pagehead" style="padding-top:14px"><h1>Profile</h1></div>
     <div class="pfhead"><div class="avatar">${ini}</div><div><div class="pfname">${name}</div><div class="pfmail">${email}</div></div></div>
-    ${a?`<div class="wallet"><div class="k">Panda Credit · available</div><div class="bal">${money(a.available)}</div><div class="of">of ${money(a.limit)} limit</div><div class="bar"><i style="width:${a.available/a.limit*100}%"></i></div></div>`:
-      `<div class="creditstrip" style="margin:14px 20px"><div class="k">Panda Credit</div><div class="amt">£300</div><div class="ld">You haven't set up your credit yet.</div><button class="go" onclick="go('credit')">Apply now<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`}
+    ${a?`<div class="wallet"><div class="k">${a.waitlist?'Panda Credit · coming soon':'Panda Credit · available'}</div><div class="bal">${money(a.available)}</div><div class="of">of ${money(a.limit)} limit</div><div class="bar"><i style="width:${a.available/a.limit*100}%"></i></div><div class="mc" style="right:18px;bottom:18px">${mcLogo()}</div></div>`:
+      `<div class="creditstrip" style="margin:14px 20px"><div class="k">Panda Credit</div><div class="amt">£300</div><div class="ld">Join the waitlist to unlock your credit.</div><button class="go" onclick="go('credit')">Join now<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`}
+    <div class="statcards">
+      <div class="statcard s1"><div class="n">🔥 ${state.streak||1}</div><div class="l">Day streak</div></div>
+      <div class="statcard s2"><div class="n">${state.points||0}</div><div class="l">Points</div></div>
+      <div class="statcard s3"><div class="n">${state.favs.size}</div><div class="l">Saved</div></div>
+    </div>
+    ${about}
     <div class="menu">
-      <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 4.9 5.3 4.5 7.4 4.2 9 5.5 12 8c3-2.5 4.6-3.8 6.7-3.5C22 4.9 23.6 8.4 22 11.7 19.5 16.1 12 21 12 21Z"/></svg>Saved places<span class="rt" style="color:var(--muted)">${state.favs.size}</span></div>
-      <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Live data<span class="rt" style="color:${MODE==='live'?'var(--green-deep)':'var(--muted)'}">${MODE==='live'?'On':'Off'}</span></div>
-      <div class="mi" onclick="go('credit')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Panda Credit<svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
-      <div class="mi" onclick="toast('Help centre')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4 2c0 1.5-2 2-2 3.5"/><circle cx="12" cy="17" r=".6" fill="currentColor"/></svg>Help & support<svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+      <div class="mi" onclick="go('bookings')"><span class="ic red"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.9-10-9.3C.4 8.4 2 4.9 5.3 4.5 7.4 4.2 9 5.5 12 8c3-2.5 4.6-3.8 6.7-3.5C22 4.9 23.6 8.4 22 11.7 19.5 16.1 12 21 12 21Z"/></svg></span>Saved places<span class="rt" style="color:var(--muted)">${state.favs.size}</span></div>
+      <div class="mi" onclick="go('credit')"><span class="ic green"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></span>Panda Credit<svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+      <div class="mi"><span class="ic blue"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.3-7-11a7 7 0 0 1 14 0c0 4.7-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>Live Google data<span class="rt" style="color:${MODE==='live'?'var(--green-deep)':'var(--muted)'}">${MODE==='live'?'On':'Off'}</span></div>
+      <div class="mi" onclick="toggleMute()"><span class="ic purple"><svg viewBox="0 0 24 24" fill="none"><path d="M11 5 6 9H2v6h4l5 4V5Z"/>${muted?'<path d="M22 9l-6 6M16 9l6 6"/>':'<path d="M16 9a5 5 0 0 1 0 6"/>'}</svg></span>Sound<span class="rt" style="color:${muted?'var(--muted)':'var(--green-deep)'}">${muted?'Off':'On'}</span></div>
+      <div class="mi" onclick="toast('Help centre')"><span class="ic amber"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 4 2c0 1.5-2 2-2 3.5"/><circle cx="12" cy="17" r=".6" fill="#fff"/></svg></span>Help & support<svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
     </div>
     <p class="homefoot">Panda is creating a responsible credit and payments layer for hospitality.</p>`;
 }
@@ -855,13 +935,76 @@ let tT;function toast(m){const t=document.getElementById('toast');document.getEl
 function tick(){const n=new Date();document.getElementById('clock').textContent=`${n.getHours()}:${String(n.getMinutes()).padStart(2,'0')}`;}
 setInterval(tick,1000);tick();
 
+/* ---------- engagement engine ---------- */
+let audioCtx=null,muted=false;
+function sfx(type){
+  if(muted)return;
+  try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();const t=audioCtx.currentTime;
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);
+    let f=520,dur=.06;if(type==='tab')f=430;if(type==='pop')f=660;if(type==='win'){f=740;dur=.12;}
+    o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.13,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.start(t);o.stop(t+dur+.02);
+    if(type==='win'){const o2=audioCtx.createOscillator(),g2=audioCtx.createGain();o2.connect(g2);g2.connect(audioCtx.destination);o2.type='sine';o2.frequency.value=990;g2.gain.setValueAtTime(.0001,t+.1);g2.gain.exponentialRampToValueAtTime(.13,t+.12);g2.gain.exponentialRampToValueAtTime(.0001,t+.26);o2.start(t+.1);o2.stop(t+.28);}
+  }catch(e){}
+}
+function toggleMute(){muted=!muted;safeLS('panda_muted',muted?'1':'0');if(!muted)sfx('pop');renderProfile();}
+
+function dayKey(){return new Date().toISOString().slice(0,10);}
+function hashStr(s){let h=0;s=String(s||'');for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h;}
+const OFFER_TEMPLATES=[
+  {t:'£5 back with Panda',d:'On your first visit',tag:'£5 BACK',e:'💸'},
+  {t:'2-for-1 cocktails',d:'Before 7pm',tag:'2-FOR-1',e:'🍸'},
+  {t:'Free dessert',d:'With any main',tag:'FREE',e:'🍰'},
+  {t:'10% off the bill',d:'Pay with Panda',tag:'10% OFF',e:'🏷️'},
+  {t:'Free coffee',d:'With any pastry',tag:'FREE',e:'☕'},
+  {t:'Late check-out',d:'On weekend stays',tag:'PERK',e:'🛏️'},
+  {t:'Skip the queue',d:'Panda members only',tag:'VIP',e:'⚡'}
+];
+function offerFor(v){const s=(v.searchStr||v.cuisine||'').toLowerCase();let tpl=OFFER_TEMPLATES[hashStr((v.id||'')+dayKey())%OFFER_TEMPLATES.length];
+  if(/bar|pub|cocktail|night/.test(s))tpl=OFFER_TEMPLATES[1];else if(/hotel|lodging|stay|resort/.test(s))tpl=OFFER_TEMPLATES[5];else if(/cafe|coffee|bakery/.test(s))tpl=OFFER_TEMPLATES[4];
+  return tpl;}
+function renderHome(){
+  const hh=document.getElementById('homeHead');if(!hh)return;
+  const nm=state.account&&state.account.name?state.account.name.split(' ')[0]:'there';
+  hh.innerHTML=`<div class="hello">Welcome back<b>Hi, ${nm} 👋</b></div><div class="streak" onclick="toast('${state.streak||1}-day streak · keep it going!')">🔥 ${state.streak||1} day${(state.streak||1)>1?'s':''}</div>`;
+  const list=filtered();const dO=document.getElementById('dailyOffer'),oH=document.getElementById('offersHead'),oR=document.getElementById('offersRail');
+  if(list.length){const v=list[hashStr(dayKey())%list.length];const o=offerFor(v);
+    dO.innerHTML=`<div class="offer-daily" onclick="openDetail('${v.id}')"><div class="bg" style="${v.photo?`background-image:url('${v.photo}')`:'background:linear-gradient(120deg,#2E7D50,#3f9c66)'}"></div><div class="c"><span class="tagline">Today's Panda offer</span><div class="ot">${o.t} at ${v.name}</div><div class="os">${o.d} · ${distLabel(v)} away</div></div></div>`;
+  }else dO.innerHTML='';
+  const offers=list.slice(0,8);oH.style.display=offers.length?'':'none';
+  oR.innerHTML=offers.map(v=>{const o=offerFor(v);return `<div class="ocard" onclick="openDetail('${v.id}')"><div class="top" style="${v.photo?`background-image:url('${v.photo}')`:''}">${v.photo?'':o.e}<span class="badge">${o.tag}</span></div><div class="b"><div class="on2">${v.name}</div><div class="od">${o.t}</div></div></div>`;}).join('');
+}
+
+/* ---------- persistence + points + gate ---------- */
+function saveProfile(){try{localStorage.setItem('panda_profile',JSON.stringify(state.account));}catch(e){}}
+function saveFavs(){try{localStorage.setItem('panda_favs',JSON.stringify([...state.favs]));}catch(e){}}
+function addPoints(n){state.points=(state.points||0)+n;safeLS('panda_points',String(state.points));}
+function loadPersist(){
+  try{const p=localStorage.getItem('panda_profile');if(p)state.account=JSON.parse(p);}catch(e){}
+  try{const f=localStorage.getItem('panda_favs');if(f)state.favs=new Set(JSON.parse(f));}catch(e){}
+  muted=safeLS('panda_muted')==='1';
+  state.points=parseInt(safeLS('panda_points')||'0',10)||0;
+  const today=dayKey(),last=safeLS('panda_last');let streak=parseInt(safeLS('panda_streak')||'0',10)||0;
+  if(last!==today){const y=new Date(Date.now()-864e5).toISOString().slice(0,10);streak=(last===y)?streak+1:1;safeLS('panda_streak',String(streak));safeLS('panda_last',today);addPoints(10);}
+  state.streak=streak||1;
+  if(!safeLS('panda_first'))safeLS('panda_first',today);
+}
+function checkGate(){
+  const first=safeLS('panda_first');if(!first)return;
+  const days=(Date.now()-new Date(first+'T00:00:00').getTime())/864e5;
+  const hasProfile=state.account&&state.account.email;
+  if(days>=7&&!hasProfile)showGate();
+}
+function showGate(){let g=document.getElementById('gate');if(!g){g=document.createElement('div');g.className='gate';g.id='gate';g.innerHTML=`<div class="em">🐼</div><h2>Join Panda to keep exploring</h2><p>You've been with Panda for a week! Add your details to unlock offers, credit and everything near you.</p><button onclick="dismissGateToCredit()">Join the waitlist</button>`;document.querySelector('.device').appendChild(g);}g.style.display='flex';}
+function dismissGateToCredit(){const g=document.getElementById('gate');if(g)g.style.display='none';go('credit');}
+
 /* ---------- init ---------- */
 function hideLoader(){setTimeout(()=>{document.getElementById('loader').classList.add('hide');},900);}
 (function boot(){
   apiKey=GOOGLE_API_KEY||safeLS('panda_gkey')||'';
+  loadPersist();
   VENUES=demoVenues();MODE='demo';
-  renderCats();renderSuggestions();updateFilterPills();
-  if(apiKey){goLive().finally(hideLoader);}else{renderLocBanner();hideLoader();}
+  renderCats();renderSuggestions();updateFilterPills();renderHome();
+  if(apiKey){goLive().finally(()=>{hideLoader();checkGate();});}else{renderLocBanner();hideLoader();checkGate();}
 })();
 </script>
 </body>
