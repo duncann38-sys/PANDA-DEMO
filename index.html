@@ -134,6 +134,10 @@ input,select{font-family:inherit}
 .mapcanvas{position:absolute;inset:0;background:#e9ede8}
 .searcharea{position:absolute;left:50%;transform:translateX(-50%);z-index:7;background:var(--green-btn);color:#fff;font-weight:600;font-size:13px;padding:10px 18px;border-radius:100px;box-shadow:var(--sh-md);display:flex;align-items:center;gap:7px;top:calc(150px + env(safe-area-inset-top))}
 .searcharea svg{width:15px;height:15px;stroke:#fff}
+.mapstatus{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(186px + env(safe-area-inset-bottom));z-index:7;background:#fff;border:1px solid var(--line);border-radius:100px;padding:9px 15px;font-size:12.5px;font-weight:600;color:var(--ink-2);box-shadow:var(--sh-md);display:flex;align-items:center;gap:8px}
+.mapstatus .d{width:8px;height:8px;border-radius:50%;background:var(--muted-2)}
+.mapstatus.live .d{background:var(--green);animation:pulse 1.8s infinite}
+.mapstatus b{color:var(--green-deep)}
 .mapcard{position:absolute;left:16px;right:16px;bottom:calc(100px + env(safe-area-inset-bottom));z-index:7;background:#fff;border-radius:18px;padding:12px;box-shadow:var(--sh-md);display:flex;gap:12px;align-items:center;transform:translateY(20px);opacity:0;pointer-events:none;transition:.25s}
 .mapcard.show{transform:none;opacity:1;pointer-events:auto}
 .mapcard .thumb{width:64px;height:64px;border-radius:12px;flex:0 0 64px;background:var(--line-2);background-size:cover;background-position:center;display:grid;place-items:center;font-size:26px}
@@ -494,6 +498,7 @@ function submitToForm(d){
 function mcLogo(){return `<svg width="42" height="26" viewBox="0 0 48 30" xmlns="http://www.w3.org/2000/svg"><circle cx="18" cy="15" r="12" fill="#EB001B"/><circle cx="30" cy="15" r="12" fill="#F79E1B"/><path d="M24 6.2a12 12 0 0 1 0 17.6 12 12 0 0 1 0-17.6Z" fill="#FF5F00"/></svg>`;}
 
 const FIELDS=['id','displayName','location','rating','userRatingCount','priceLevel','types','primaryType','primaryTypeDisplayName','photos','editorialSummary','regularOpeningHours','formattedAddress','nationalPhoneNumber','internationalPhoneNumber','websiteURI','businessStatus','reviews','reservable'];
+const CORE_FIELDS=['id','displayName','location','rating','userRatingCount','priceLevel','types','primaryType','primaryTypeDisplayName','photos','regularOpeningHours','formattedAddress','nationalPhoneNumber','websiteURI','businessStatus'];
 
 const USER={lat:51.5136,lng:-0.1365};
 const CATEGORIES=[
@@ -714,7 +719,15 @@ const MAP_STYLE=[{elementType:'geometry',stylers:[{color:'#f4f3ee'}]},{elementTy
 function pinSvg(){return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="34" height="44" viewBox="0 0 34 44"><path d="M17 0C7.6 0 0 7.6 0 17c0 12 17 27 17 27s17-15 17-27C34 7.6 26.4 0 17 0z" fill="#E4553B"/><circle cx="17" cy="17" r="6.5" fill="#fff"/></svg>`);}
 function userSvg(){return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="11" cy="11" r="7" fill="#2b7fff" stroke="#fff" stroke-width="3"/></svg>`);}
 let gmap=null,gmarkers=[];
-function drawMap(){if(MODE==='live')drawLiveMap();else drawDemoMap();}
+function drawMap(){if(MODE==='live')drawLiveMap();else drawDemoMap();mapStatusChip();}
+function mapStatusChip(){
+  const c=document.getElementById('mapcanvas');if(!c)return;
+  let chip=document.getElementById('mapStatus');if(chip)chip.remove();
+  chip=document.createElement('div');chip.id='mapStatus';
+  if(MODE==='live'){chip.className='mapstatus live';chip.innerHTML=`<span class="d"></span><b>Live</b> · real places near you`;}
+  else{chip.className='mapstatus';chip.innerHTML=`<span class="d"></span>Demo data · <b onclick="locate()" style="cursor:pointer">tap to go live</b>`;chip.onclick=()=>locate();}
+  c.parentElement.appendChild(chip);
+}
 function drawDemoMap(){
   const c=document.getElementById('mapcanvas');
   c.innerHTML=`<svg id="ms" width="100%" height="100%" preserveAspectRatio="none" style="position:absolute;inset:0"></svg><div id="dpins"></div><div class="mydot" id="mydot"><div class="ring"></div><div class="core"></div></div>`;
@@ -779,14 +792,19 @@ function mapPlace(p){
 async function fetchPlaces(center){
   center=center||searchCenter||USER;
   const {Place,SearchNearbyRankPreference}=await google.maps.importLibrary('places');
-  const fields=FIELDS;
   const groups=[['restaurant'],['bar'],['cafe'],['bakery'],['meal_takeaway'],['night_club'],['lodging'],['tourist_attraction'],['spa']];
   let all=[];const seen=new Set();
+  const collect=(places)=>{(places||[]).forEach(p=>{if(p.businessStatus&&p.businessStatus!=='OPERATIONAL')return;if(!seen.has(p.id)){seen.add(p.id);all.push(mapPlace(p));}});};
   for(const types of groups){
-    try{const {places}=await Place.searchNearby({fields,locationRestriction:{center,radius:2500},includedTypes:types,maxResultCount:20,rankPreference:SearchNearbyRankPreference.DISTANCE,language:'en-GB',region:'gb'});
-      (places||[]).forEach(p=>{if(p.businessStatus&&p.businessStatus!=='OPERATIONAL')return;if(!seen.has(p.id)){seen.add(p.id);all.push(mapPlace(p));}});}catch(e){console.warn('nearby',types,e);}
+    const base={locationRestriction:{center,radius:2500},includedTypes:types,maxResultCount:20,rankPreference:SearchNearbyRankPreference.DISTANCE,language:'en-GB',region:'gb'};
+    try{const r=await Place.searchNearby({...base,fields:FIELDS});collect(r.places);}
+    catch(e){try{const r=await Place.searchNearby({...base,fields:CORE_FIELDS});collect(r.places);}catch(e2){console.warn('nearby',types,(e2&&e2.message)||e2);}}
   }
-  if(!all.length){try{const {places}=await Place.searchByText({textQuery:'restaurants and bars near me',fields,locationBias:{center,radius:2500},maxResultCount:20,language:'en-GB',region:'gb'});(places||[]).forEach(p=>{if(!seen.has(p.id)){seen.add(p.id);all.push(mapPlace(p));}});}catch(e){console.warn('text',e);}}
+  if(!all.length){
+    const b={textQuery:'restaurants and bars near me',locationBias:{center,radius:2500},maxResultCount:20,language:'en-GB',region:'gb'};
+    try{const r=await Place.searchByText({...b,fields:FIELDS});collect(r.places);}
+    catch(e){try{const r=await Place.searchByText({...b,fields:CORE_FIELDS});collect(r.places);}catch(e2){console.warn('text',(e2&&e2.message)||e2);}}
+  }
   all.sort((a,b)=>hav(center,a)-hav(center,b));return all.slice(0,60);
 }
 function renderLocBanner(){
