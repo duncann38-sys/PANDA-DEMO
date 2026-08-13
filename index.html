@@ -152,7 +152,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .prow .arrow{margin-left:auto;color:#b9c9c0}
 .prow.cta{background:var(--green-800);color:#fff}.prow.cta .pic{background:rgba(255,255,255,.15);color:#fff}
 /* nav */
-.tabbar{position:absolute;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:space-around;align-items:flex-end;padding:10px 10px calc(env(safe-area-inset-bottom,0px) + 10px);background:rgba(255,255,255,.9);backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.tabbar{position:absolute;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:space-around;align-items:flex-end;padding:10px 10px calc(env(safe-area-inset-bottom,0px) + 10px);background:#ffffff;border-top:1px solid var(--line)}
 .tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:#8aa094;font-size:11px;font-weight:700;padding:4px 8px;border-radius:14px;position:relative;flex:1}
 .tab.on{color:var(--green-800)}
 .tab .tic{width:30px;height:28px;display:grid;place-items:center}
@@ -235,7 +235,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .modal .box .go{display:block;background:var(--green-800);color:#fff;font-weight:800;padding:15px;border-radius:16px;font-size:15px}
 .modal .box .later{display:block;margin-top:10px;color:var(--muted);font-weight:700;font-size:13.5px}
 /* trending drawer */
-.trend-drawer{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);z-index:46;background:var(--card);border-radius:26px 26px 0 0;box-shadow:0 -12px 30px rgba(6,46,34,.16);transform:translateY(calc(100% - 52px));transition:transform .34s cubic-bezier(.2,.8,.2,1);touch-action:none}
+.trend-drawer{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 64px);z-index:38;background:var(--card);border-radius:26px 26px 0 0;box-shadow:0 -12px 30px rgba(6,46,34,.16);transform:translateY(calc(100% - 52px));transition:transform .34s cubic-bezier(.2,.8,.2,1);touch-action:none}
 .trend-drawer.open{transform:translateY(0)}
 .trend-drawer[hidden]{display:none}
 .td-handle{width:100%;display:flex;flex-direction:column;align-items:center;gap:7px;padding:9px 18px 8px;background:transparent}
@@ -246,8 +246,8 @@ img{display:block}a{color:inherit;text-decoration:none}
 .trend-drawer.open .td-chev{transform:rotate(180deg)}
 .trend-drawer .rail-sm{padding-top:0;padding-bottom:16px}
 .rail-sm{padding:2px 18px 6px}
-.rail-sm .vcard{width:152px}
-.rail-sm .vphoto{height:92px}
+.rail-sm .vcard{width:140px}
+.rail-sm .vphoto{height:80px}
 .rail-sm .vbody{padding:9px 11px 11px}
 .rail-sm .vname{font-size:13.5px}
 .rail-sm .vmeta{font-size:11px;margin-top:3px}
@@ -414,7 +414,7 @@ let COORDS=null;
 function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
 
 function discovery(){const h=new Date().getHours();if(h<11)return{label:"Breakfast time",q:"breakfast"};if(h<16)return{label:"Lunch spots",q:"lunch"};if(h<23)return{label:"Dinner & drinks",q:"dinner restaurants bars"};return{label:"Out out",q:"nightlife bars clubs"};}
-const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Breakfast",em:"🥐",q:"breakfast brunch"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Dessert",em:"🍰",q:"dessert"}];
+const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Spanish",em:"🥘",q:"spanish tapas"},{label:"French",em:"🥖",q:"french restaurants"},{label:"British",em:"🥧",q:"modern british restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Mexican",em:"🌮",q:"mexican restaurants"},{label:"Turkish",em:"🥙",q:"turkish restaurants"},{label:"Pub Food",em:"🍺",q:"gastropub pub food"},{label:"American",em:"🌭",q:"american diner"},{label:"Lebanese",em:"🧆",q:"lebanese middle eastern"},{label:"Thai",em:"🍜",q:"thai restaurants"},{label:"Chicken",em:"🍗",q:"fried chicken"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Dessert",em:"🍰",q:"dessert"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Breakfast",em:"🍳",q:"breakfast"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Brunch",em:"🥐",q:"brunch"},{label:"Bottomless",em:"🍾",q:"bottomless brunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"}];
 let activeCat=0;
 
 function ph(v,cls){return v.photoName?'<img loading="lazy" decoding="async" src="'+PHOTO_URL(v.photoName,cls==="hero"?1200:600)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>';}
