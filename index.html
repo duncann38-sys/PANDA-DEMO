@@ -67,16 +67,18 @@ body{
 #app{
   position:relative;
   width:100%;
-  max-width:440px;
+  max-width:480px;
   min-height:100dvh;
+  height:100dvh;
   margin:0 auto;
   background:linear-gradient(180deg,var(--app-bg) 0%,var(--app-bg-2) 100%);
   overflow:hidden;
   isolation:isolate;
 }
-@media (min-width:480px){
-  body{display:flex;align-items:center;justify-content:center;min-height:100dvh;padding:18px}
-  #app{min-height:min(920px,96dvh);height:min(920px,96dvh);border-radius:38px;box-shadow:var(--shadow-lg);border:1px solid rgba(255,255,255,.4)}
+/* On bigger screens: a clean full-height app column, not a toy phone frame */
+@media (min-width:600px){
+  body{background:var(--green-950)}
+  #app{height:100dvh;box-shadow:0 0 0 1px rgba(255,255,255,.05), 0 24px 70px rgba(0,0,0,.45)}
 }
 
 .safe-top{height:env(safe-area-inset-top,0px)}
