@@ -45,7 +45,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .screen[hidden]{display:none}
 .screen.home{overflow:hidden;padding-bottom:0}
 .home-top{flex:0 0 auto}
-.home-feed{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:2px 0 8px;scroll-snap-type:y proximity}
+.home-feed{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:2px 0 138px;scroll-snap-type:y proximity}
 .home-feed .sec-h{scroll-snap-align:start;scroll-margin-top:4px}
 .home-feed .feed-divider{scroll-snap-align:start}
 .homefilters{display:flex;gap:9px;padding:2px 18px 10px;overflow-x:auto;scrollbar-width:none}
@@ -234,9 +234,17 @@ img{display:block}a{color:inherit;text-decoration:none}
 .modal .box p{margin:0 0 18px;color:var(--muted);font-weight:600;font-size:14px;line-height:1.5}
 .modal .box .go{display:block;background:var(--green-800);color:#fff;font-weight:800;padding:15px;border-radius:16px;font-size:15px}
 .modal .box .later{display:block;margin-top:10px;color:var(--muted);font-weight:700;font-size:13.5px}
-/* trending sticky shelf */
-.trend-shelf{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:6;background:linear-gradient(to top,var(--app-bg-2) 78%,rgba(207,230,214,0));padding-bottom:6px}
-.trend-shelf .feed-divider{margin-top:8px}
+/* trending drawer */
+.trend-drawer{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 72px);z-index:46;background:var(--card);border-radius:26px 26px 0 0;box-shadow:0 -12px 30px rgba(6,46,34,.16);transform:translateY(calc(100% - 52px));transition:transform .34s cubic-bezier(.2,.8,.2,1);touch-action:none}
+.trend-drawer.open{transform:translateY(0)}
+.trend-drawer[hidden]{display:none}
+.td-handle{width:100%;display:flex;flex-direction:column;align-items:center;gap:7px;padding:9px 18px 8px;background:transparent}
+.td-grip{width:42px;height:5px;border-radius:3px;background:#cdddd3}
+.td-row{width:100%;display:flex;align-items:center;justify-content:space-between}
+.td-row b{font-size:16px;font-weight:800}
+.td-chev{transition:transform .3s;color:var(--green-700)}
+.trend-drawer.open .td-chev{transform:rotate(180deg)}
+.trend-drawer .rail-sm{padding-top:0;padding-bottom:16px}
 .rail-sm{padding:2px 18px 6px}
 .rail-sm .vcard{width:152px}
 .rail-sm .vphoto{height:92px}
@@ -244,7 +252,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .rail-sm .vname{font-size:13.5px}
 .rail-sm .vmeta{font-size:11px;margin-top:3px}
 .rail-sm .vopen{font-size:11px;margin-top:5px}
-
+.panda-fab.fab-hide{opacity:0;pointer-events:none;transform:scale(.8)}
 /* loader */
 #loader{position:fixed;inset:0;z-index:200;background:linear-gradient(180deg,var(--green-800),var(--green-950));display:grid;place-items:center;transition:opacity .5s}
 #loader.gone{opacity:0;pointer-events:none}
@@ -282,12 +290,7 @@ img{display:block}a{color:inherit;text-decoration:none}
     </div>
     <div class="home-feed">
       <div class="sec-h"><h2 id="sugHead">Suggestions</h2><span class="count" id="sugCount"></span></div>
-      <div id="sugList" style="padding-bottom:14px"></div>
-      <div class="trend-shelf">
-        <div class="feed-divider"></div>
-        <div class="sec-h"><h2>Trending tonight</h2></div>
-        <div class="rail rail-sm" id="trendList"></div>
-      </div>
+      <div id="sugList"></div>
     </div>
   </section>
 
@@ -347,6 +350,15 @@ img{display:block}a{color:inherit;text-decoration:none}
   </nav>
 
   <button class="panda-fab hint" id="pandaFab" aria-label="Open Panda AI"><span class="tag">Ask</span><svg viewBox="0 0 120 120"><circle cx="34" cy="36" r="15" fill="#071A14"/><circle cx="86" cy="36" r="15" fill="#071A14"/><circle cx="60" cy="64" r="36" fill="#fff"/><ellipse cx="46" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(-18 46 60)"/><ellipse cx="74" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(18 74 60)"/><circle cx="48" cy="62" r="2.7" fill="#fff"/><circle cx="72" cy="62" r="2.7" fill="#fff"/><ellipse cx="60" cy="78" rx="5" ry="3.4" fill="#071A14"/><path d="M60 82 q-6 6 -12 3 M60 82 q6 6 12 3" stroke="#071A14" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg></button>
+
+  <!-- TRENDING DRAWER -->
+  <div class="trend-drawer" id="trendDrawer">
+    <button class="td-handle" id="tdHandle">
+      <span class="td-grip"></span>
+      <span class="td-row"><b>Trending tonight</b><svg class="td-chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg></span>
+    </button>
+    <div class="rail rail-sm" id="trendList"></div>
+  </div>
 
   <!-- CHAT -->
   <div class="chat" id="chat" aria-hidden="true">
@@ -436,7 +448,7 @@ function buildCats(){$("#cats").innerHTML=CATEGORIES.map((c,i)=>'<button class="
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
-function showScreen(n){Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();loadMapVenues();},60);}if(n==="profile")renderSaved();}
+function showScreen(n){Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();loadMapVenues();},60);}if(n==="profile")renderSaved();}
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
@@ -491,6 +503,17 @@ function boot(){
   $("#pfpInput").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{store.lset("panda_pfp",rd.result);loadProfile();};rd.readAsDataURL(f);});
   $("#formGo").addEventListener("click",()=>{store.setFlag("form_done");$("#formModal").classList.remove("show");});
   $("#formLater").addEventListener("click",()=>{store.setFlag("form_done");$("#formModal").classList.remove("show");});
+  (function(){
+    const d=$("#trendDrawer"),h=$("#tdHandle");
+    function open(){d.classList.add("open");$("#pandaFab").classList.add("fab-hide");}
+    function close(){d.classList.remove("open");$("#pandaFab").classList.remove("fab-hide");}
+    function toggle(){d.classList.contains("open")?close():open();}
+    let sy=0,drag=false,moved=false;
+    h.addEventListener("click",()=>{if(!moved)toggle();});
+    h.addEventListener("touchstart",e=>{drag=true;moved=false;sy=e.touches[0].clientY;},{passive:true});
+    h.addEventListener("touchmove",e=>{if(!drag)return;const dy=e.touches[0].clientY-sy;if(Math.abs(dy)>8)moved=true;if(dy<-24)open();else if(dy>24)close();},{passive:true});
+    h.addEventListener("touchend",()=>{drag=false;setTimeout(()=>moved=false,50);});
+  })();
   const si=$("#searchInput");si.addEventListener("keydown",e=>{if(e.key==="Enter"&&si.value.trim()){const q=si.value.trim();si.value="";openChat();sendMessage(q);}});
   renderSaved();refreshHome();getLocation();checkFormGate();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
