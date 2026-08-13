@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -559,7 +560,13 @@ const GA_MEASUREMENT_ID = ""; // e.g. "G-XXXXXXX"
    move it behind a small proxy (Node/Next) and swap the URL below. The value you
    gave ("AQ.Ab8...") looks like an OAuth token, not a Gemini API key — Gemini keys
    start with "AIza". If replies fail, create a key at aistudio.google.com and paste it. */
-const PANDA_AI = { key:"AIzaSyD1LcdPsaBBnMl7jncA2fGHot75M4ywJLw", model:"gemini-1.5-flash", proxy:"" };
+/* Panda AI. Your Google org policy requires Gemini keys to be bound to a service
+   account, so a plain AIza key returns "blocked". The durable, org-compliant fix
+   is the proxy in /panda-ai-proxy (it uses a service account + mints fresh tokens).
+   Deploy it, then set proxy below to your endpoint, e.g.
+     proxy:"https://your-project.vercel.app/api/panda-ai"
+   If you later obtain a personal AIza key that works, put it in `key` and clear `proxy`. */
+const PANDA_AI = { key:"", model:"gemini-1.5-flash", proxy:"https://panda-ai-proxy.vercel.app/api/panda-ai" };
 function submitToForm(d){
   try{
     if(!FORM.entry.email) return; // not configured yet
@@ -1239,7 +1246,14 @@ async function pandaSend(){
       const r=await fetch(url,{method:'POST',headers,body:JSON.stringify(body)});
       const data=await r.json();
       txt=((((data.candidates||[])[0]||{}).content||{}).parts||[{}])[0].text;
-      if(!txt){const hint=useKey?'  (If this persists: enable the Generative Language API on the key\'s project and allow a few minutes.)':'  (GCP tokens expire ~1h — use an "AIza" key or set PANDA_AI.proxy.)';txt=data.error?('⚠️ '+(data.error.message||'AI error')+hint):'Sorry, I couldn\'t respond just now.';}
+      if(!txt){
+        const em=((data.error&&data.error.message)||'').toLowerCase();
+        let hint='';
+        if(em.includes('blocked')||em.includes('referer')||em.includes('referrer')||em.includes('restrict'))hint='  → Your API key is restricted. In Cloud Console → Credentials → this key: under API restrictions allow "Generative Language API", and under HTTP referrers add https://duncann38-sys.github.io/*. Then test on the live github.io URL.';
+        else if(em.includes('not been used')||em.includes('disabled')||em.includes('not enabled'))hint='  → Enable the Generative Language API on the key\'s project, then wait a few minutes.';
+        else if(!useKey)hint='  → GCP tokens expire ~1h. Use an "AIza" key or set PANDA_AI.proxy.';
+        txt=data.error?('⚠️ '+(data.error.message||'AI error')+hint):'Sorry, I couldn\'t respond just now.';
+      }
     }
     typing.remove();addBubble('model',txt);pandaHistory.push({role:'model',parts:[{text:txt}]});
   }catch(e){typing.remove();addBubble('model','⚠️ Couldn\'t reach Panda AI. Check the connection and try again.');}
