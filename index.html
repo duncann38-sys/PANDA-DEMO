@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -79,7 +78,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .vphoto img{width:100%;height:100%;object-fit:cover}
 .vphoto .ph-init{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:34px;font-weight:800;opacity:.92;background:linear-gradient(135deg,var(--green-700),var(--green-500))}
 .vbody{padding:12px 14px 14px}
-.vname{font-size:15.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vname{font-size:15.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .vmeta{margin-top:5px;font-size:12.5px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .vmeta .star{color:#e0951b;font-weight:800}.vmeta .price{color:var(--green-700);font-weight:800}.vmeta .sep{opacity:.4}
 .vopen{margin-top:7px;font-size:12px;font-weight:800}.vopen.o{color:#0c7a45}.vopen.c{color:#9aa8a0}
@@ -87,8 +86,8 @@ img{display:block}a{color:inherit;text-decoration:none}
 .lcard .lp{width:96px;height:96px;flex:0 0 96px;border-radius:14px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--green-700),var(--green-500))}
 .lcard .lp img{width:100%;height:100%;object-fit:cover}
 .lcard .lp .ph-init{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:30px;font-weight:800;opacity:.92}
-.lcard .lb{flex:1;min-width:0;padding-right:26px;display:flex;flex-direction:column;justify-content:center}
-.lcard .ln{font-size:16px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lcard .lb{flex:1;min-width:0;padding-right:40px;display:flex;flex-direction:column;justify-content:center}
+.lcard .ln{font-size:16px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .lcard .la{margin-top:3px;font-size:12.5px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .lcard .la span,.lcard .la{min-width:0}
 .lcard .lm{margin-top:7px;font-size:12.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -99,6 +98,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .skead{height:120px;border-radius:20px;margin:0 18px 13px;background:linear-gradient(100deg,#dcece2 30%,#eef7f1 50%,#dcece2 70%);background-size:200% 100%;animation:sh 1.2s infinite}
 .skead.wide{width:228px;height:196px;margin:0;flex:0 0 auto;display:inline-block}
 @keyframes sh{to{background-position:-200% 0}}
+.feed-divider{height:1px;background:var(--line);margin:20px 18px 4px}
 .empty{margin:0 18px;padding:26px 18px;text-align:center;color:var(--muted);font-weight:600;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
 .screen-head{padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 6px}
 .screen-head h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
@@ -269,6 +269,7 @@ img{display:block}a{color:inherit;text-decoration:none}
     <div class="home-feed">
       <div class="sec-h"><h2 id="sugHead">Suggestions</h2><span class="count" id="sugCount"></span></div>
       <div id="sugList"></div>
+      <div class="feed-divider"></div>
       <div class="sec-h"><h2>Trending tonight</h2></div>
       <div class="rail" id="trendList"></div>
     </div>
@@ -396,9 +397,13 @@ function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.pric
 
 let DATA={home:[],trend:[],map:[],saved:[]};
 async function fetchVenues(q){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:COORDS})});if(!r.ok)return[];return (await r.json()).venues||[];}catch(e){return[]}}
+async function fetchVenuesPaged(q,token){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:COORDS,pageToken:token||undefined})});if(!r.ok)return{venues:[],nextPageToken:null};const d=await r.json();return{venues:d.venues||[],nextPageToken:d.nextPageToken||null};}catch(e){return{venues:[],nextPageToken:null}}}
 function sk(el,n,wide){el.innerHTML=Array.from({length:n}).map(()=>'<div class="skead'+(wide?' wide':'')+'"></div>').join(wide?'':'')}
 
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";const q=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";sk($("#sugList"),4,false);let v=await fetchVenues(q);const bud=$("#hBudget").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#hSort").value;if(sort==="rating")v=v.slice().sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.slice().sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));DATA.home=v;$("#sugCount").textContent=v.length?v.length+" places":"";$("#sugList").innerHTML=v.length?v.slice(0,14).map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';if(!DATA.trend.length){let t=await fetchVenues("popular restaurants and bars");t=t.slice().sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));DATA.trend=t;$("#trendList").innerHTML=t.slice(0,10).map((x,i)=>railCard(x,i,"trend")).join('')}}
+let homeQuery="",homeToken=null,homeLoading=false,homeRaw=[];
+function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#hBudget").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#hSort").value;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));DATA.home=v;$("#sugCount").textContent=v.length?v.length+" places":"";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';}
+async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!DATA.trend.length){let t=await fetchVenues("popular restaurants and bars");t=t.slice().sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));DATA.trend=t;$("#trendList").innerHTML=t.slice(0,10).map((x,i)=>railCard(x,i,"trend")).join('')}}
+async function loadMoreHome(){if(homeLoading||!homeToken)return;homeLoading=true;const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,homeToken);const seen=new Set(homeRaw.map(x=>x.id));venues.forEach(v=>{if(!seen.has(v.id))homeRaw.push(v);});homeToken=nextPageToken;applyHomeFilters();homeLoading=false;}
 
 /* MAP */
 let map=null,markers=null;
@@ -426,14 +431,18 @@ function saveProfile(){const p={name:$("#dName").value.trim(),email:$("#dEmail")
 function openSheet(v){if(!v)return;$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Reserve a table</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View official website &amp; menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);}
 function closeSheet(){$("#sheet").classList.remove("open");$("#scrim").classList.remove("show");}
 
-const SUGGESTS=["What's open now?","Nearest breakfast","Cocktails nearby","Cheap eats","Date-night dinner"];
+function suggestChips(){const h=new Date().getHours();
+ if(h<11)return["What's open now?","Nearest breakfast","Best coffee near me","Brunch spots"];
+ if(h<16)return["What's open now?","Lunch near me","Cheap eats","Quick bite"];
+ if(h<23)return["What's open now?","Dinner tonight","Cocktails nearby","Date-night dinner"];
+ return["What's open now?","Late-night eats","Cocktails nearby","Bars still open"];}
 let history=store.get("panda_chat")||[];
 function renderMsgs(){const box=$("#msgs");box.innerHTML=history.map((m,mi)=>{if(m.role==="me")return '<div class="row me"><div class="bubble">'+esc(m.text)+'</div></div>';let cards="";if(m.venues&&m.venues.length){cards='<div class="chat-rail" data-mi="'+mi+'">'+m.venues.slice(0,8).map((v,i)=>'<button class="cvcard" data-v="'+i+'"><div class="vphoto">'+ph(v)+'</div><div class="cvb"><div class="cvn">'+esc(v.name)+'</div><div class="cvm">'+(v.rating?'★ '+v.rating:'')+(v.distanceMeters!=null?' · '+fmtDist(v.distanceMeters):'')+'</div></div></button>').join('')+'</div>';}return '<div class="row ai"><div style="max-width:100%"><div class="bubble">'+esc(m.text)+'</div>'+cards+'</div></div>';}).join('');$$(".chat-rail").forEach(rail=>{const mi=+rail.dataset.mi;rail.addEventListener("click",e=>{const b=e.target.closest(".cvcard");if(b)openSheet(history[mi].venues[+b.dataset.v]);});});box.scrollTop=box.scrollHeight;}
 function greeting(){if(!history.length){const p=store.lget("panda_profile")||{};const nm=(p.name||"").trim().split(" ")[0];history=[{role:"ai",text:"Hey"+(nm?" "+nm:"")+"! I'm Panda 🐼 — tell me what you fancy (breakfast, a cheeky cocktail, dinner…) and I'll find the best spots right by you."}];store.set("panda_chat",history);}renderMsgs();}
 function toContents(){return history.filter(m=>m.text).map(m=>({role:m.role==="me"?"user":"model",parts:[{text:m.text}]}));}
 let sending=false;
 async function sendMessage(text){text=(text||"").trim();if(!text||sending)return;sending=true;history.push({role:"me",text});store.set("panda_chat",history);renderMsgs();const box=$("#msgs");box.insertAdjacentHTML("beforeend",'<div class="row ai" id="typing"><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>');box.scrollTop=box.scrollHeight;try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT+" Right now in London it is about "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+" ("+discovery().label+"), so bias suggestions to what suits this time of day."}]},contents:toContents(),generationConfig:{temperature:0.85,maxOutputTokens:700},location:COORDS})});const d=await r.json();$("#typing")?.remove();if(!r.ok)history.push({role:"ai",text:"Hmm, I tripped over my own paws there — give that another go in a sec."});else history.push({role:"ai",text:(d.text||"").trim()||"Not sure I caught that — try rephrasing?",venues:d.venues||[]});}catch(e){$("#typing")?.remove();history.push({role:"ai",text:"I couldn't reach the kitchen just now — check your connection and try again."});}store.set("panda_chat",history);renderMsgs();sending=false;}
-function openChat(){$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
+function openChat(){$("#suggests").innerHTML=suggestChips().map(s=>'<button class="chip">'+s+'</button>').join('');$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
 function closeChat(){$("#chat").classList.remove("open");history=[];store.del("panda_chat");showScreen("home");}
 
 function makeDraggable(el){let sx,sy,ox,oy,moved,dragging=false;const saved=store.get("fabpos");if(saved){el.style.left=saved.x+"px";el.style.top=saved.y+"px";el.style.right="auto";el.style.bottom="auto";}
@@ -447,7 +456,6 @@ function checkFormGate(){let first=store.lget("first_use");if(!first){first=Date
 function boot(){
   buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();
   $("#fCuisine").innerHTML=CATEGORIES.map((c,i)=>'<option value="'+esc(c.q)+'">'+(i===0?"All cuisines":c.label)+'</option>').join('');
-  $("#suggests").innerHTML=SUGGESTS.map(s=>'<button class="chip">'+s+'</button>').join('');
   $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b)sendMessage(b.textContent)});
   $("#closeChat").addEventListener("click",closeChat);
   $("#scrim").addEventListener("click",closeSheet);
@@ -458,7 +466,8 @@ function boot(){
   $("#creditApply").addEventListener("click",applyNow);
   $("#profApply").addEventListener("click",applyNow);
   ["fCuisine","fBudget","fHours"].forEach(id=>$("#"+id).addEventListener("change",loadMapVenues));
-  ["hBudget","hSort"].forEach(id=>$("#"+id).addEventListener("change",refreshHome));
+  ["hBudget","hSort"].forEach(id=>$("#"+id).addEventListener("change",applyHomeFilters));
+  $(".home-feed").addEventListener("scroll",function(){if(this.scrollTop+this.clientHeight>=this.scrollHeight-160)loadMoreHome();});
   $("#mcOpen").addEventListener("click",()=>{if(mapCardVenue)openSheet(mapCardVenue);});
   $("#mcGo").addEventListener("click",()=>{if(mapCardVenue)openSheet(mapCardVenue);});
   $("#mcClose").addEventListener("click",()=>$("#mapCard").classList.remove("show"));
