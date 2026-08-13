@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -23,18 +24,18 @@
   --app-bg:#DCEDE2;--app-bg-2:#CFE6D6;--card:#FFFFFF;--card-soft:#E9F5EE;
   --ink:#0A211A;--muted:#5C7568;--line:#E2EFE6;
   --honey:#F4B43C;--honey-soft:#FCE9C4;--honey-ink:#8a5a12;
-  --chat-bg:#08251C;--chat-panel:#0C3327;--chat-ai:#0E3A2C;--chat-user:#17936A;
+  --chat-bg:#041310;--chat-panel:#07201A;--chat-ai:#0B2A21;--chat-user:#17936A;
   --radius:22px;--shadow:0 10px 28px rgba(6,46,34,.12);--shadow-lg:0 22px 54px rgba(6,46,34,.3);
   --font:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
-body{font-family:var(--font);color:var(--ink);background:#dfe4e3;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{font-family:var(--font);color:var(--ink);background:#dfe4e3;-webkit-font-smoothing:antialiased;overscroll-behavior:none;overflow-x:hidden}
 button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 img{display:block}a{color:inherit;text-decoration:none}
 :focus-visible{outline:3px solid var(--honey);outline-offset:2px;border-radius:12px}
 .device{width:100%;max-width:440px;margin:0 auto;min-height:100dvh}
-#app{position:relative;background:linear-gradient(180deg,var(--app-bg),var(--app-bg-2));overflow:hidden;min-height:100dvh;isolation:isolate}
+#app{position:relative;background:linear-gradient(180deg,var(--app-bg),var(--app-bg-2));overflow:hidden;min-height:100dvh;isolation:isolate;max-width:100%}
 @media (min-width:480px){
   body{display:flex;align-items:center;justify-content:center;min-height:100dvh;padding:22px}
   .device{width:auto;min-height:auto;background:#0a0d0c;padding:13px;border-radius:56px;box-shadow:var(--shadow-lg),inset 0 0 0 2px #24312c}
@@ -42,6 +43,12 @@ img{display:block}a{color:inherit;text-decoration:none}
 }
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:104px}
 .screen[hidden]{display:none}
+.screen.home{overflow:hidden;padding-bottom:0}
+.home-top{flex:0 0 auto}
+.home-feed{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px 0 112px}
+.homefilters{display:flex;gap:9px;padding:2px 18px 10px;overflow-x:auto;scrollbar-width:none}
+.homefilters::-webkit-scrollbar{display:none}
+.homefilters select{flex:0 0 auto;appearance:none;-webkit-appearance:none;background:var(--card);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-weight:700;font-size:13px;padding:9px 28px 9px 13px;border-radius:999px;box-shadow:var(--shadow);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230F6B4F' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
 .dhead{padding:calc(env(safe-area-inset-top,0px) + 20px) 18px 4px}
 .dhead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .hello{font-size:13.5px;font-weight:600;color:var(--green-700);letter-spacing:.02em}
@@ -59,10 +66,12 @@ img{display:block}a{color:inherit;text-decoration:none}
 .sec-h .filter{width:40px;height:40px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;color:var(--green-800)}
 .cats{display:flex;gap:10px;overflow-x:auto;padding:2px 18px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
-.cat{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 6px 10px;min-width:76px;min-height:74px;border-radius:18px;background:var(--card);box-shadow:0 6px 16px rgba(6,46,34,.07);border:2px solid transparent}
-.cat .em{font-size:26px;line-height:1}
-.cat span{font-size:12px;font-weight:700;color:var(--ink)}
-.cat.on{background:var(--honey-soft)}.cat.on span{color:#c6720c}
+.cats{min-height:92px}
+.cat{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:7px;padding:2px;min-width:64px;background:transparent;border:none}
+.cat .ic{width:56px;height:56px;border-radius:18px;background:var(--card);box-shadow:0 6px 16px rgba(6,46,34,.09);display:grid;place-items:center;font-size:26px;border:2px solid transparent;transition:.15s}
+.cat.on .ic{background:var(--honey-soft)}
+.cat .lb{font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.cat.on .lb{color:#c6720c}
 .rail{display:flex;gap:14px;overflow-x:auto;padding:2px 18px 8px;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
 .vcard{flex:0 0 auto;width:228px;background:var(--card);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);text-align:left}
@@ -80,7 +89,8 @@ img{display:block}a{color:inherit;text-decoration:none}
 .lcard .lp .ph-init{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:30px;font-weight:800;opacity:.92}
 .lcard .lb{flex:1;min-width:0;padding-right:26px;display:flex;flex-direction:column;justify-content:center}
 .lcard .ln{font-size:16px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.lcard .la{margin-top:3px;font-size:12.5px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px}
+.lcard .la{margin-top:3px;font-size:12.5px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.lcard .la span,.lcard .la{min-width:0}
 .lcard .lm{margin-top:7px;font-size:12.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .lcard .lm .price{color:var(--green-700)}.lcard .lm .sep{opacity:.4;color:var(--muted)}
 .lcard .lo{margin-top:5px;font-size:12px;font-weight:800}.lcard .lo.o{color:#0c7a45}.lcard .lo.c{color:#9aa8a0}
@@ -242,18 +252,26 @@ img{display:block}a{color:inherit;text-decoration:none}
 <div class="device"><div id="app">
 
   <!-- HOME -->
-  <section id="s-home" class="screen">
-    <div class="dhead"><div class="dhead-row">
-      <div><div class="hello">Welcome back</div><div class="name">Hi, <span id="homeName">there</span> <span aria-hidden="true">👋</span></div></div>
-      <button class="badge" id="badge"><span class="dot"></span><span id="badgeText">Lunch spots</span></button>
-    </div></div>
-    <div class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="search" enterkeyhint="search" placeholder="Search places, cuisines, a spot by name" /></div>
-    <div class="sec-h"><h2>Top categories</h2><button class="filter" aria-label="Filters"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></button></div>
-    <div class="cats" id="cats"></div>
-    <div class="sec-h"><h2 id="sugHead">Suggestions</h2><span class="count" id="sugCount"></span></div>
-    <div id="sugList"></div>
-    <div class="sec-h"><h2>Trending tonight</h2></div>
-    <div class="rail" id="trendList"></div>
+  <section id="s-home" class="screen home">
+    <div class="home-top">
+      <div class="dhead"><div class="dhead-row">
+        <div><div class="hello">Welcome back</div><div class="name">Hi, <span id="homeName">there</span> <span aria-hidden="true">👋</span></div></div>
+        <button class="badge" id="badge"><span class="dot"></span><span id="badgeText">Lunch spots</span></button>
+      </div></div>
+      <div class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="search" enterkeyhint="search" placeholder="Search places, cuisines, a spot by name" /></div>
+      <div class="sec-h"><h2>Top categories</h2></div>
+      <div class="cats" id="cats"></div>
+      <div class="homefilters">
+        <select id="hBudget"><option value="">Any price</option><option value="1">£</option><option value="2">££</option><option value="3">£££</option></select>
+        <select id="hSort"><option value="dist">Nearest first</option><option value="rating">Top rated</option></select>
+      </div>
+    </div>
+    <div class="home-feed">
+      <div class="sec-h"><h2 id="sugHead">Suggestions</h2><span class="count" id="sugCount"></span></div>
+      <div id="sugList"></div>
+      <div class="sec-h"><h2>Trending tonight</h2></div>
+      <div class="rail" id="trendList"></div>
+    </div>
   </section>
 
   <!-- MAP -->
@@ -339,7 +357,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";  /* leave as-is if the app already works */
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
 const FORCE_FORM_AFTER_DAYS = 48;   /* lower this (e.g. 2) to capture details sooner */
-const RESERVATIONS_URL = "./reservations.json"; /* file your Apify/GitHub Action writes */
+const RESERVATIONS_URL = "./venues.json"; /* file your Apify/GitHub Action writes */
 /* ================= */
 
 const AI_URL=PANDA_API_BASE+"/api/panda-ai";
@@ -366,17 +384,8 @@ function toggleSave(v){if(SAVED[v.id])delete SAVED[v.id];else SAVED[v.id]=v;stor
 let COORDS=null;
 function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
 
-function discovery(){const h=new Date().getHours();
- if(h<7)return{label:"Early bites",q:"breakfast open early"};
- if(h<11)return{label:"Breakfast spots",q:"breakfast"};
- if(h<12)return{label:"Brunch spots",q:"brunch"};
- if(h<14)return{label:"Lunch spots",q:"lunch restaurants"};
- if(h<16)return{label:"Cheap eats & deals",q:"cheap eats casual food"};
- if(h<18)return{label:"Coffee & cake",q:"coffee and cake"};
- if(h<20)return{label:"Evening drinks",q:"cocktail bars wine bars"};
- if(h<23)return{label:"Dinner spots",q:"dinner restaurants"};
- return{label:"Late-night eats",q:"late night food"};}
-const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥟",q:"chinese restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Coffee",em:"☕",q:"coffee shops"},{label:"Bars",em:"🍸",q:"cocktail bars"},{label:"Dessert",em:"🍰",q:"dessert"}];
+function discovery(){const h=new Date().getHours();if(h<11)return{label:"Breakfast time",q:"breakfast"};if(h<16)return{label:"Lunch spots",q:"lunch"};if(h<23)return{label:"Dinner & drinks",q:"dinner restaurants bars"};return{label:"Out out",q:"nightlife bars clubs"};}
+const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Breakfast",em:"🥐",q:"breakfast brunch"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Dessert",em:"🍰",q:"dessert"}];
 let activeCat=0;
 
 function ph(v,cls){return v.photoName?'<img loading="lazy" decoding="async" src="'+PHOTO_URL(v.photoName,cls==="hero"?1200:600)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>';}
@@ -389,7 +398,7 @@ let DATA={home:[],trend:[],map:[],saved:[]};
 async function fetchVenues(q){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:COORDS})});if(!r.ok)return[];return (await r.json()).venues||[];}catch(e){return[]}}
 function sk(el,n,wide){el.innerHTML=Array.from({length:n}).map(()=>'<div class="skead'+(wide?' wide':'')+'"></div>').join(wide?'':'')}
 
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:d.label;const q=activeCat>0?CATEGORIES[activeCat].q:d.q;sk($("#sugList"),4,false);const v=await fetchVenues(q);DATA.home=v;$("#sugCount").textContent=v.length?v.length+" places":"";$("#sugList").innerHTML=v.length?v.slice(0,10).map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category.</div>';if(!DATA.trend.length){let t=await fetchVenues("popular restaurants and bars");t=t.slice().sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));DATA.trend=t;$("#trendList").innerHTML=t.slice(0,10).map((x,i)=>railCard(x,i,"trend")).join('')}}
+async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";const q=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";sk($("#sugList"),4,false);let v=await fetchVenues(q);const bud=$("#hBudget").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#hSort").value;if(sort==="rating")v=v.slice().sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.slice().sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));DATA.home=v;$("#sugCount").textContent=v.length?v.length+" places":"";$("#sugList").innerHTML=v.length?v.slice(0,14).map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';if(!DATA.trend.length){let t=await fetchVenues("popular restaurants and bars");t=t.slice().sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));DATA.trend=t;$("#trendList").innerHTML=t.slice(0,10).map((x,i)=>railCard(x,i,"trend")).join('')}}
 
 /* MAP */
 let map=null,markers=null;
@@ -402,7 +411,7 @@ function showMapCard(v){mapCardVenue=v;$("#mcPhoto").innerHTML=ph(v);$("#mcName"
 function renderSaved(){const arr=Object.values(SAVED);DATA.saved=arr;$("#savedCount").textContent=arr.length?arr.length+" saved":"";$("#savedList").innerHTML=arr.length?arr.map((x,i)=>listCard(x,i,"saved")).join(''):'<div class="empty">Tap the ♥ on any spot to save it here.</div>';}
 function srcArr(s){return s==="home"?DATA.home:s==="trend"?DATA.trend:s==="map"?DATA.map:DATA.saved}
 
-function buildCats(){$("#cats").innerHTML=CATEGORIES.map((c,i)=>'<button class="cat'+(i===activeCat?' on':'')+'" data-cat="'+i+'"><span class="em">'+c.em+'</span><span>'+c.label+'</span></button>').join('');$("#cats").addEventListener("click",e=>{const b=e.target.closest(".cat");if(!b)return;activeCat=+b.dataset.cat;$$(".cat").forEach(x=>x.classList.toggle("on",+x.dataset.cat===activeCat));refreshHome();});}
+function buildCats(){$("#cats").innerHTML=CATEGORIES.map((c,i)=>'<button class="cat'+(i===activeCat?' on':'')+'" data-cat="'+i+'"><span class="ic">'+c.em+'</span><span class="lb">'+c.label+'</span></button>').join('');$("#cats").addEventListener("click",e=>{const b=e.target.closest(".cat");if(!b)return;activeCat=+b.dataset.cat;$$(".cat").forEach(x=>x.classList.toggle("on",+x.dataset.cat===activeCat));refreshHome();});}
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
@@ -423,9 +432,9 @@ function renderMsgs(){const box=$("#msgs");box.innerHTML=history.map((m,mi)=>{if
 function greeting(){if(!history.length){const p=store.lget("panda_profile")||{};const nm=(p.name||"").trim().split(" ")[0];history=[{role:"ai",text:"Hey"+(nm?" "+nm:"")+"! I'm Panda 🐼 — tell me what you fancy (breakfast, a cheeky cocktail, dinner…) and I'll find the best spots right by you."}];store.set("panda_chat",history);}renderMsgs();}
 function toContents(){return history.filter(m=>m.text).map(m=>({role:m.role==="me"?"user":"model",parts:[{text:m.text}]}));}
 let sending=false;
-async function sendMessage(text){text=(text||"").trim();if(!text||sending)return;sending=true;history.push({role:"me",text});store.set("panda_chat",history);renderMsgs();const box=$("#msgs");box.insertAdjacentHTML("beforeend",'<div class="row ai" id="typing"><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>');box.scrollTop=box.scrollHeight;try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT}]},contents:toContents(),generationConfig:{temperature:0.8,maxOutputTokens:600},location:COORDS})});const d=await r.json();$("#typing")?.remove();if(!r.ok)history.push({role:"ai",text:"Hmm, I tripped over my own paws there — give that another go in a sec."});else history.push({role:"ai",text:(d.text||"").trim()||"Not sure I caught that — try rephrasing?",venues:d.venues||[]});}catch(e){$("#typing")?.remove();history.push({role:"ai",text:"I couldn't reach the kitchen just now — check your connection and try again."});}store.set("panda_chat",history);renderMsgs();sending=false;}
+async function sendMessage(text){text=(text||"").trim();if(!text||sending)return;sending=true;history.push({role:"me",text});store.set("panda_chat",history);renderMsgs();const box=$("#msgs");box.insertAdjacentHTML("beforeend",'<div class="row ai" id="typing"><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>');box.scrollTop=box.scrollHeight;try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT+" Right now in London it is about "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+" ("+discovery().label+"), so bias suggestions to what suits this time of day."}]},contents:toContents(),generationConfig:{temperature:0.85,maxOutputTokens:700},location:COORDS})});const d=await r.json();$("#typing")?.remove();if(!r.ok)history.push({role:"ai",text:"Hmm, I tripped over my own paws there — give that another go in a sec."});else history.push({role:"ai",text:(d.text||"").trim()||"Not sure I caught that — try rephrasing?",venues:d.venues||[]});}catch(e){$("#typing")?.remove();history.push({role:"ai",text:"I couldn't reach the kitchen just now — check your connection and try again."});}store.set("panda_chat",history);renderMsgs();sending=false;}
 function openChat(){$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
-function closeChat(){$("#chat").classList.remove("open");}
+function closeChat(){$("#chat").classList.remove("open");history=[];store.del("panda_chat");showScreen("home");}
 
 function makeDraggable(el){let sx,sy,ox,oy,moved,dragging=false;const saved=store.get("fabpos");if(saved){el.style.left=saved.x+"px";el.style.top=saved.y+"px";el.style.right="auto";el.style.bottom="auto";}
  function down(e){dragging=true;moved=false;const p=e.touches?e.touches[0]:e;const r=el.getBoundingClientRect();sx=p.clientX;sy=p.clientY;ox=r.left;oy=r.top;el.style.transition="none";}
@@ -449,6 +458,7 @@ function boot(){
   $("#creditApply").addEventListener("click",applyNow);
   $("#profApply").addEventListener("click",applyNow);
   ["fCuisine","fBudget","fHours"].forEach(id=>$("#"+id).addEventListener("change",loadMapVenues));
+  ["hBudget","hSort"].forEach(id=>$("#"+id).addEventListener("change",refreshHome));
   $("#mcOpen").addEventListener("click",()=>{if(mapCardVenue)openSheet(mapCardVenue);});
   $("#mcGo").addEventListener("click",()=>{if(mapCardVenue)openSheet(mapCardVenue);});
   $("#mcClose").addEventListener("click",()=>$("#mapCard").classList.remove("show"));
