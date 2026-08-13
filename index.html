@@ -45,7 +45,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .screen[hidden]{display:none}
 .screen.home{overflow:hidden;padding-bottom:0}
 .home-top{flex:0 0 auto}
-.home-feed{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:2px 0 112px;scroll-snap-type:y proximity}
+.home-feed{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:2px 0 8px;scroll-snap-type:y proximity}
 .home-feed .sec-h{scroll-snap-align:start;scroll-margin-top:4px}
 .home-feed .feed-divider{scroll-snap-align:start}
 .homefilters{display:flex;gap:9px;padding:2px 18px 10px;overflow-x:auto;scrollbar-width:none}
@@ -234,6 +234,17 @@ img{display:block}a{color:inherit;text-decoration:none}
 .modal .box p{margin:0 0 18px;color:var(--muted);font-weight:600;font-size:14px;line-height:1.5}
 .modal .box .go{display:block;background:var(--green-800);color:#fff;font-weight:800;padding:15px;border-radius:16px;font-size:15px}
 .modal .box .later{display:block;margin-top:10px;color:var(--muted);font-weight:700;font-size:13.5px}
+/* trending sticky shelf */
+.trend-shelf{position:sticky;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:6;background:linear-gradient(to top,var(--app-bg-2) 78%,rgba(207,230,214,0));padding-bottom:6px}
+.trend-shelf .feed-divider{margin-top:8px}
+.rail-sm{padding:2px 18px 6px}
+.rail-sm .vcard{width:152px}
+.rail-sm .vphoto{height:92px}
+.rail-sm .vbody{padding:9px 11px 11px}
+.rail-sm .vname{font-size:13.5px}
+.rail-sm .vmeta{font-size:11px;margin-top:3px}
+.rail-sm .vopen{font-size:11px;margin-top:5px}
+
 /* loader */
 #loader{position:fixed;inset:0;z-index:200;background:linear-gradient(180deg,var(--green-800),var(--green-950));display:grid;place-items:center;transition:opacity .5s}
 #loader.gone{opacity:0;pointer-events:none}
@@ -271,10 +282,12 @@ img{display:block}a{color:inherit;text-decoration:none}
     </div>
     <div class="home-feed">
       <div class="sec-h"><h2 id="sugHead">Suggestions</h2><span class="count" id="sugCount"></span></div>
-      <div id="sugList"></div>
-      <div class="feed-divider"></div>
-      <div class="sec-h"><h2>Trending tonight</h2></div>
-      <div class="rail" id="trendList"></div>
+      <div id="sugList" style="padding-bottom:14px"></div>
+      <div class="trend-shelf">
+        <div class="feed-divider"></div>
+        <div class="sec-h"><h2>Trending tonight</h2></div>
+        <div class="rail rail-sm" id="trendList"></div>
+      </div>
     </div>
   </section>
 
