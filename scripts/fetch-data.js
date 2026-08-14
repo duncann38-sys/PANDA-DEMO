@@ -1,4 +1,3 @@
-
 const { ApifyClient } = require('apify-client');
 const fs = require('fs');
 const path = require('path');
@@ -9,13 +8,14 @@ async function run() {
   try {
     console.log('Fetching live venue data from Apify (shahidirfan/opentable-scraper)...');
 
-    // Input matches the exact keys the actor expects (from a verified console run).
+    // The single London URL spans all neighbourhoods (Mayfair, Soho, Shoreditch, etc.).
+    // results_wanted controls how many we pull across London — raise it for wider coverage.
     const run = await client.actor('shahidirfan/opentable-scraper').call({
       startUrls: [
         { url: 'https://www.opentable.co.uk/london-restaurants' }
       ],
-      results_wanted: 40,
-      max_pages: 3,
+      results_wanted: 200,
+      max_pages: 10,
       proxyConfiguration: {
         useApifyProxy: true,
         apifyProxyGroups: ['RESIDENTIAL']
