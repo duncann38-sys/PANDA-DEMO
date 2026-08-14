@@ -1,4 +1,3 @@
-
 const { ApifyClient } = require('apify-client');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -45,7 +44,7 @@ async function run() {
 
     const run = await client.actor('shahidirfan/opentable-scraper').call({
       startUrls,
-      results_wanted: 100,
+      results_wanted: 500,
       max_pages: 10,
       proxyConfiguration: {
         useApifyProxy: true,
