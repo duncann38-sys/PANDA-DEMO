@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -91,19 +90,23 @@ img{display:block}a{color:inherit;text-decoration:none}
 .vmeta{margin-top:5px;font-size:12.5px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .vmeta .star{color:#e0951b;font-weight:800}.vmeta .price{color:var(--green-700);font-weight:800}.vmeta .sep{opacity:.4}
 .vopen{margin-top:7px;font-size:12px;font-weight:800}.vopen.o{color:#0c7a45}.vopen.c{color:#9aa8a0}
-.lcard{display:flex;gap:11px;margin:0 18px 9px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;position:relative;text-align:left;box-shadow:0 4px 14px rgba(6,46,34,.06)}
-.lcard .lp{width:70px;height:70px;flex:0 0 70px;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--green-700),var(--green-500))}
+.lcard{display:flex;gap:11px;margin:0 16px 8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px;position:relative;text-align:left;box-shadow:0 3px 11px rgba(6,46,34,.05);height:84px;align-items:center;transition:transform .12s,box-shadow .2s,border-color .2s}
+.lcard:active{transform:scale(.985);box-shadow:0 8px 20px rgba(198,161,91,.24);border-color:var(--gold-line)}
+.lcard .lp{width:68px;height:68px;flex:0 0 68px;border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--green-700),var(--green-500))}
+.lcard .lp::after{content:"";position:absolute;inset:0;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(198,161,91,.28);pointer-events:none}
 .lcard .lp img{width:100%;height:100%;object-fit:cover}
-.lcard .lp .ph-init{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:30px;font-weight:800;opacity:.92}
-.lcard .lb{flex:1;min-width:0;padding-right:40px;display:flex;flex-direction:column;justify-content:center}
-.lcard .ln{font-size:14.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.lcard .la{margin-top:2px;font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.lcard .la span,.lcard .la{min-width:0}
-.lcard .lm{margin-top:5px;font-size:12px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.lcard .lm .price{color:var(--gold-deep);font-weight:800}.lcard .lm .sep{opacity:.4;color:var(--muted)}
-.newpill{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;font-size:9px;font-weight:800;letter-spacing:.05em;padding:2px 6px;border-radius:6px;margin-right:6px;vertical-align:middle}
-.lcard .lo{margin-top:5px;font-size:12px;font-weight:800}.lcard .lo.o{color:#0c7a45}.lcard .lo.c{color:#9aa8a0}
-.heart{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#b9c9c0;background:rgba(255,255,255,.6)}
+.lcard .lp .ph-init{position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:28px;font-weight:800;opacity:.92}
+.lcard .lb{flex:1;min-width:0;padding-right:34px;height:68px;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.lcard .ln{font-size:14.5px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.18}
+.lcard .la{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:4px;min-height:14px;line-height:1.1}
+.lcard .la svg{flex:0 0 auto;opacity:.85}
+.lcard .la-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.lcard .lm{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+.lcard .lm .price{color:var(--gold-deep);font-weight:800}.lcard .lm .sep{opacity:.38;color:var(--muted)}
+.lcard .ostat{font-weight:800}.lcard .ostat.o{color:#0c7a45}.lcard .ostat.c{color:#9aa8a0}
+.newpill{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;font-size:9px;font-weight:800;letter-spacing:.05em;padding:2px 6px;border-radius:6px;margin-right:6px;vertical-align:middle;box-shadow:0 2px 6px rgba(198,161,91,.4)}
+.heart{position:absolute;top:9px;right:9px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#b9c9c0;background:rgba(255,255,255,.65);transition:transform .12s}
+.heart:active{transform:scale(1.18)}
 .heart.on{color:#e5484d}
 .skead{height:120px;border-radius:20px;margin:0 18px 13px;background:linear-gradient(100deg,#dcece2 30%,#eef7f1 50%,#dcece2 70%);background-size:200% 100%;animation:sh 1.2s infinite}
 .skead.wide{width:228px;height:196px;margin:0;flex:0 0 auto;display:inline-block}
@@ -330,6 +333,149 @@ img{display:block}a{color:inherit;text-decoration:none}
 .loadwrap .bar i{display:block;height:100%;width:40%;background:var(--mint-300);border-radius:3px;animation:load 1.1s ease-in-out infinite}
 @keyframes load{0%{transform:translateX(-120%)}100%{transform:translateX(340%)}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.08s!important}}
+
+/* ===== Gold polish & responsive density ===== */
+.profile-card{position:relative}
+.profile-card::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 0 0 0 1px rgba(198,161,91,.4);pointer-events:none}
+.search{border:1px solid transparent;transition:box-shadow .2s,border-color .2s}
+.search:focus-within{border-color:var(--gold-line);box-shadow:0 8px 22px rgba(198,161,91,.22)}
+.sec-h .count{color:var(--gold-deep)}
+.badge{box-shadow:0 4px 12px rgba(244,180,60,.26),inset 0 0 0 1px rgba(198,161,91,.35)}
+.cat .ic{transition:transform .12s,box-shadow .2s}
+.cat:active .ic{transform:scale(.92)}
+.prow{transition:transform .12s,box-shadow .2s}
+.prow:active{transform:scale(.99)}
+.bigbtn{position:relative;overflow:hidden;box-shadow:0 12px 26px rgba(10,79,58,.34),inset 0 0 0 1px rgba(198,161,91,.42);transition:transform .12s}
+.bigbtn:active{transform:scale(.98)}
+.bigbtn::after{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(198,161,91,.75),transparent)}
+.step{transition:transform .12s,box-shadow .2s}
+.step:active{transform:scale(.99)}
+.step .n{background:linear-gradient(150deg,var(--mint-100),var(--gold-soft));box-shadow:inset 0 0 0 1px rgba(198,161,91,.35)}
+#app{min-height:100svh}
+@media (max-height:730px){
+  .dhead{padding-top:calc(env(safe-area-inset-top,0px) + 10px)}
+  .name{font-size:21px}
+  .search{margin:9px 16px 2px;padding:11px 14px}
+  .cats{min-height:70px}
+  .cat .ic{width:44px;height:44px;font-size:20px}
+  .sec-h{margin:11px 16px 7px}
+  .home-feed{padding-bottom:118px}
+  .lcard{height:80px}
+  .lcard .lp{width:64px;flex:0 0 64px;height:64px}
+  .lcard .lb{height:64px}
+}
+@media (max-height:640px){
+  .cats{min-height:62px;padding-bottom:0}
+  .cat .lb{display:none}
+  .lcard{height:76px;margin-bottom:7px}
+  .homefilters{padding-bottom:4px}
+}
+
+/* ===== LOGIN ===== */
+#login{position:absolute;inset:0;z-index:180;background:radial-gradient(120% 80% at 50% 0%,#0F6B4F 0%,var(--green-900) 55%,var(--green-950) 100%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:34px 28px calc(env(safe-area-inset-bottom,0px) + 30px);text-align:center;color:#fff;opacity:0;transition:opacity .4s}
+#login.show{display:flex;opacity:1}
+#login .brandmark{width:104px;height:104px;border-radius:30px;background:linear-gradient(160deg,#0d5c43,#08321f);display:grid;place-items:center;box-shadow:0 20px 46px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.06);animation:floaty 3.4s ease-in-out infinite}
+#login .brandmark svg{width:72px;height:72px}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+#login h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:26px 0 0}
+#login .sub{color:var(--mint-300);font-weight:600;font-size:15px;line-height:1.5;margin:10px 0 0;max-width:300px}
+#login .authbtns{width:100%;max-width:340px;margin-top:34px;display:flex;flex-direction:column;gap:12px}
+.authbtn{display:flex;align-items:center;justify-content:center;gap:11px;width:100%;padding:15px 18px;border-radius:16px;font-family:inherit;font-weight:800;font-size:15.5px;box-shadow:0 10px 24px rgba(0,0,0,.24);transition:transform .12s}
+.authbtn:active{transform:scale(.975)}
+.authbtn.google{background:#fff;color:#1f2937}
+.authbtn.apple{background:#000;color:#fff}
+.authbtn svg{width:20px;height:20px;flex:0 0 auto}
+#login .legal{margin-top:22px;font-size:11.5px;color:rgba(210,236,220,.65);font-weight:500;line-height:1.5;max-width:280px}
+#login .legal a{color:var(--mint-300);text-decoration:underline}
+
+/* ===== AUTH SHEET (name + email) ===== */
+#authModal{position:absolute;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center}
+#authModal.show{display:flex}
+#authModal .back{position:absolute;inset:0;background:rgba(5,32,24,.55);backdrop-filter:blur(3px)}
+#authModal .card{position:relative;width:100%;max-width:440px;background:var(--card);border-radius:26px 26px 0 0;padding:22px 22px calc(env(safe-area-inset-bottom,0px) + 22px);box-shadow:0 -12px 40px rgba(6,46,34,.3);animation:sheetup .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheetup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#authModal .grip{width:40px;height:5px;border-radius:3px;background:#d6e4db;margin:0 auto 14px}
+#authModal .prov{display:flex;align-items:center;gap:9px;font-weight:800;font-size:13px;color:var(--muted);margin-bottom:14px}
+#authModal .prov .dotp{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--card-soft)}
+#authModal h3{margin:0 0 4px;font-size:20px;font-weight:800;letter-spacing:-.01em}
+#authModal .hint{margin:0 0 16px;color:var(--muted);font-weight:600;font-size:13.5px}
+#authModal .fld{background:var(--card-soft);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;margin-bottom:11px}
+#authModal .fld.bad{border-color:#e0655b;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+#authModal .fld label{display:block;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+#authModal .fld input{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:15.5px;font-weight:700;color:var(--ink);margin-top:2px}
+#authModal .go{width:100%;margin-top:6px;background:var(--green-800);color:#fff;font-weight:800;font-size:16px;padding:15px;border-radius:16px}
+
+/* ===== WELCOME / DANCING PANDA ===== */
+#welcome{position:absolute;inset:0;z-index:220;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(120% 90% at 50% 25%,#12855F 0%,var(--green-800) 45%,var(--green-950) 100%);color:#fff;overflow:hidden}
+#welcome.show{display:flex}
+#welcome .stage{position:relative;width:220px;height:210px;display:grid;place-items:center}
+#welcome .floor{position:absolute;bottom:20px;width:120px;height:16px;border-radius:50%;background:rgba(0,0,0,.28);filter:blur(3px);animation:floor 1s ease-in-out infinite}
+@keyframes floor{0%,100%{transform:scaleX(1);opacity:.28}50%{transform:scaleX(.8);opacity:.18}}
+.dancer{width:170px;height:190px;transform-origin:50% 92%;animation:dance 1s ease-in-out infinite}
+@keyframes dance{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(4deg)}}
+.dancer .armL{transform-origin:52px 96px;animation:armL 1s ease-in-out infinite}
+.dancer .armR{transform-origin:118px 96px;animation:armR 1s ease-in-out infinite}
+@keyframes armL{0%,100%{transform:rotate(24deg)}50%{transform:rotate(-42deg)}}
+@keyframes armR{0%,100%{transform:rotate(-42deg)}50%{transform:rotate(24deg)}}
+.dancer .legL{transform-origin:66px 150px;animation:legL 1s ease-in-out infinite}
+.dancer .legR{transform-origin:104px 150px;animation:legR 1s ease-in-out infinite}
+@keyframes legL{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(10deg)}}
+@keyframes legR{0%,100%{transform:rotate(10deg)}50%{transform:rotate(-8deg)}}
+.dancer .head{transform-origin:85px 66px;animation:headbob 1s ease-in-out infinite}
+@keyframes headbob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+#welcome .note{position:absolute;font-size:22px;opacity:0;animation:notefloat 2.2s ease-in-out infinite}
+#welcome .note.n1{left:24px;top:60px;animation-delay:.1s}
+#welcome .note.n2{right:26px;top:44px;animation-delay:.7s}
+#welcome .note.n3{right:44px;top:96px;animation-delay:1.3s}
+@keyframes notefloat{0%{opacity:0;transform:translateY(10px) scale(.7)}30%{opacity:1}100%{opacity:0;transform:translateY(-34px) scale(1)}}
+#welcome h2{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;text-align:center;padding:0 24px}
+#welcome p{margin:4px 0 0;color:var(--mint-300);font-weight:600;font-size:15px}
+
+/* ===== SETTINGS ===== */
+#settings{position:absolute;inset:0;z-index:210;display:none;align-items:flex-end;justify-content:center}
+#settings.show{display:flex}
+#settings .back{position:absolute;inset:0;background:rgba(5,32,24,.5);backdrop-filter:blur(3px)}
+#settings .panel{position:relative;width:100%;max-width:440px;max-height:86%;overflow-y:auto;background:var(--app-bg);border-radius:26px 26px 0 0;box-shadow:0 -12px 40px rgba(6,46,34,.3);animation:sheetup .34s cubic-bezier(.2,.8,.2,1);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px)}
+#settings .shead{position:sticky;top:0;background:var(--app-bg);display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px;z-index:2}
+#settings .shead b{font-size:20px;font-weight:800;letter-spacing:-.01em}
+#settings .sx{width:34px;height:34px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;font-size:17px;font-weight:800;color:var(--ink)}
+.slabel{font-size:11.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:10px 22px 8px}
+.srow{display:flex;align-items:center;gap:13px;margin:0 18px 10px;background:var(--card);border-radius:16px;padding:14px 15px;box-shadow:var(--shadow);font-weight:700;font-size:15px;width:calc(100% - 36px)}
+.srow .sic{width:38px;height:38px;flex:0 0 38px;border-radius:11px;display:grid;place-items:center;background:var(--mint-100);color:var(--green-800)}
+.srow .stx{flex:1;min-width:0;text-align:left}
+.srow .stx small{display:block;font-weight:600;font-size:12.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .arrow{margin-left:auto;color:#b9c9c0}
+.srow.wa .sic{background:#25D366;color:#fff}
+.srow.logout{color:#c0483f}.srow.logout .sic{background:#fbe4e1;color:#c0483f}
+.switch{margin-left:auto;width:46px;height:27px;border-radius:999px;background:#cddbd2;position:relative;transition:.2s;flex:0 0 auto}
+.switch.on{background:var(--green-600)}
+.switch i{position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.2);transition:.2s}
+.switch.on i{left:22px}
+.setver{text-align:center;color:var(--muted);font-size:12px;font-weight:600;margin:14px 0 4px}
+
+/* ===== CREDIT CARD REDESIGN ===== */
+.cardwrap{margin:14px 18px 6px;perspective:1000px}
+.paycard{position:relative;border-radius:22px;padding:20px;color:#fff;overflow:hidden;background:linear-gradient(135deg,#0F6B4F 0%,var(--green-800) 55%,var(--green-950) 100%);box-shadow:0 20px 40px rgba(10,79,58,.4),inset 0 0 0 1px rgba(255,255,255,.07);aspect-ratio:1.585/1;display:flex;flex-direction:column;justify-content:space-between}
+.paycard::before{content:"";position:absolute;right:-30px;top:-40px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%)}
+.paycard::after{content:"";position:absolute;left:-50px;bottom:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(26,160,110,.35),transparent 70%)}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1}
+.pc-brand{font-size:19px;font-weight:800;letter-spacing:.02em}
+.pc-brand span{color:var(--honey)}
+.pc-net{width:52px;height:32px}
+.pc-chip{width:44px;height:33px;border-radius:7px;background:linear-gradient(135deg,#f4d68a,#c6a15b);position:relative;z-index:1;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+.pc-chip::before{content:"";position:absolute;inset:6px 4px;border:1px solid rgba(0,0,0,.22);border-radius:3px}
+.pc-mid{position:relative;z-index:1}
+.pc-lbl{display:block;font-size:10px;font-weight:800;letter-spacing:.16em;color:var(--mint-300)}
+.pc-amt{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1;margin-top:3px}
+.pc-foot{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;font-size:10.5px;font-weight:800;letter-spacing:.1em;color:rgba(255,255,255,.82)}
+.pc-note{margin:10px 22px 2px;text-align:center;font-size:12px;font-weight:600;color:var(--muted)}
+.pc-note b{color:var(--green-700)}
+.steps.compact{margin:8px 18px}
+.steps.compact .step{padding:13px 14px;margin-bottom:9px;border-radius:16px}
+.steps.compact .step b{font-size:14.5px}
+.steps.compact .step span{font-size:13px}
+
 /* install / add-to-home-screen banner */
 #a2hs{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:300;display:none;align-items:center;gap:12px;padding:12px 12px 12px 14px;background:var(--green-800);color:#fff;border-radius:20px;box-shadow:0 18px 40px rgba(6,46,34,.42);max-width:420px;margin:0 auto;transform:translateY(140%);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
 #a2hs.show{display:flex;transform:translateY(0)}
@@ -389,15 +535,30 @@ img{display:block}a{color:inherit;text-decoration:none}
   <!-- CREDIT -->
   <section id="s-credit" class="screen" hidden>
     <div class="screen-head"><h1>Panda Credit</h1></div>
-    <div class="credit-hero"><div class="lbl">YOUR PANDA CREDIT</div><div class="amt">£300</div><p>Spend at restaurants, bars and nights out — then pay it back in three easy monthly instalments.</p></div>
+    <div class="cardwrap">
+      <div class="paycard">
+        <div class="pc-top">
+          <span class="pc-brand">PAND<span>A</span></span>
+          <svg class="pc-net" viewBox="0 0 52 32" aria-label="Mastercard">
+            <circle cx="20" cy="16" r="12" fill="#EB001B"/>
+            <circle cx="32" cy="16" r="12" fill="#F79E1B"/>
+            <path d="M26 6.6a12 12 0 0 1 0 18.8 12 12 0 0 1 0-18.8z" fill="#FF5F00"/>
+          </svg>
+        </div>
+        <div class="pc-chip"></div>
+        <div class="pc-mid"><span class="pc-lbl">CREDIT LIMIT</span><div class="pc-amt">£300</div></div>
+        <div class="pc-foot"><span>HOSPITALITY ONLY</span><span>VIRTUAL CARD</span></div>
+      </div>
+    </div>
+    <div class="pc-note">A <b>Mastercard®</b> virtual card, issued through our banking partners.</div>
     <div class="sec-h"><h2>How it works</h2></div>
-    <div class="steps">
+    <div class="steps compact">
       <div class="step"><div class="n">1</div><div><b>Get £300 to spend</b><span>Use it at hospitality spots across London — food, drinks, nights out.</span></div></div>
       <div class="step"><div class="n">2</div><div><b>Pay back over 3 months</b><span>Three equal monthly instalments of £100. Simple and predictable.</span></div></div>
       <div class="step"><div class="n">3</div><div><b>Hospitality-only, no surprises</b><span>One flat fee shown upfront before you agree. No hidden costs.</span></div></div>
     </div>
-    <button class="bigbtn" id="creditApply">Apply in 60 seconds</button>
-    <div class="finenote">Panda Credit is subject to eligibility and approval. Full terms and the total cost are shown before you agree.</div>
+    <button class="bigbtn" id="creditApply">Join the waiting list</button>
+    <div class="finenote">Panda Credit is subject to eligibility and approval. Full terms and the total cost are shown before you agree. Mastercard is a registered trademark of Mastercard International Incorporated.</div>
   </section>
 
   <!-- PROFILE -->
@@ -412,6 +573,7 @@ img{display:block}a{color:inherit;text-decoration:none}
     <div class="field"><label>Email</label><input id="dEmail" type="email" placeholder="you@email.com" /></div>
     <div class="field"><label>Phone</label><input id="dPhone" type="tel" placeholder="07…" /></div>
     <div class="prow cta" id="profApply"><span class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7H4V5h11"/></svg></span>Complete your Panda application<span class="arrow">→</span></div>
+    <div class="prow" id="openSettings"><span class="pic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>Settings<span class="arrow">→</span></div>
     <div class="sec-h"><h2>Saved</h2><span class="count" id="savedCount"></span></div>
     <div id="savedList"></div>
   </section>
@@ -457,6 +619,91 @@ img{display:block}a{color:inherit;text-decoration:none}
 
   <div class="modal" id="formModal"><div class="box"><div class="em">🐼</div><h3>Help us make Panda yours</h3><p>You've been with us a little while now — please take 60 seconds to complete your details so we can get your account ready.</p><a class="go" id="formGo" target="_blank" rel="noopener">Complete now</a><button class="later" id="formLater">I've already done this</button></div></div>
 
+  <!-- LOGIN -->
+  <div id="login">
+    <div class="brandmark">
+      <svg viewBox="0 0 120 120"><circle cx="34" cy="36" r="16" fill="#071A14"/><circle cx="86" cy="36" r="16" fill="#071A14"/><circle cx="60" cy="64" r="37" fill="#fff"/><ellipse cx="46" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(-18 46 60)"/><ellipse cx="74" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(18 74 60)"/><circle cx="48" cy="62" r="2.9" fill="#fff"/><circle cx="72" cy="62" r="2.9" fill="#fff"/><ellipse cx="60" cy="78" rx="5.4" ry="3.6" fill="#071A14"/><path d="M60 82 q-6 6 -12 3 M60 82 q6 6 12 3" stroke="#071A14" stroke-width="2.8" fill="none" stroke-linecap="round"/></svg>
+    </div>
+    <h1>Welcome to Panda</h1>
+    <p class="sub">Your London night-out concierge. Find the best places to eat, drink and go out.</p>
+    <div class="authbtns">
+      <button class="authbtn google" data-prov="Google">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+        Continue with Google
+      </button>
+      <button class="authbtn apple" data-prov="Apple">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.05 12.54c-.02-2.02 1.65-2.99 1.72-3.04-0.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1 8 .67.96 1.46 2.04 2.5 2 1-.04 1.38-.65 2.59-.65 1.2 0 1.55.65 2.6.63 1.08-.02 1.76-.98 2.42-1.95.76-1.11 1.07-2.19 1.09-2.24-.02-.01-2.09-.8-2.11-3.18zM15.09 6.3c.55-.67.92-1.6.82-2.53-.79.03-1.75.53-2.32 1.19-.51.59-.96 1.54-.84 2.44.88.07 1.79-.45 2.34-1.1z"/></svg>
+        Continue with Apple
+      </button>
+    </div>
+    <p class="legal">By continuing you agree to Panda's <a href="https://pandaindustry.co" target="_blank" rel="noopener">Terms</a> &amp; <a href="https://pandaindustry.co" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+  </div>
+
+  <!-- AUTH SHEET -->
+  <div id="authModal" aria-hidden="true">
+    <div class="back" id="authBack"></div>
+    <div class="card">
+      <div class="grip"></div>
+      <div class="prov"><span class="dotp" id="authProvIcon"></span><span>Continue with <span id="authProvName">Google</span></span></div>
+      <h3>Almost there</h3>
+      <p class="hint">Confirm your details to set up your Panda account.</p>
+      <div class="fld" id="fldName"><label>Full name</label><input id="authName" type="text" autocomplete="name" placeholder="Your name" /></div>
+      <div class="fld" id="fldEmail"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@email.com" /></div>
+      <button class="go" id="authGo">Continue</button>
+    </div>
+  </div>
+
+  <!-- WELCOME / DANCING PANDA -->
+  <div id="welcome">
+    <span class="note n1">🎵</span><span class="note n2">🎶</span><span class="note n3">🎵</span>
+    <div class="stage">
+      <div class="floor"></div>
+      <svg class="dancer" viewBox="0 0 170 190">
+        <!-- legs -->
+        <g class="legL"><rect x="58" y="140" width="16" height="34" rx="8" fill="#071A14"/><ellipse cx="66" cy="176" rx="12" ry="7" fill="#071A14"/></g>
+        <g class="legR"><rect x="96" y="140" width="16" height="34" rx="8" fill="#071A14"/><ellipse cx="104" cy="176" rx="12" ry="7" fill="#071A14"/></g>
+        <!-- body -->
+        <ellipse cx="85" cy="115" rx="42" ry="44" fill="#fff"/>
+        <ellipse cx="85" cy="120" rx="26" ry="28" fill="#eef6f0"/>
+        <!-- arms -->
+        <g class="armL"><rect x="30" y="88" width="18" height="42" rx="9" fill="#071A14" transform="rotate(18 39 96)"/><circle cx="34" cy="128" r="9" fill="#071A14"/></g>
+        <g class="armR"><rect x="122" y="88" width="18" height="42" rx="9" fill="#071A14" transform="rotate(-18 131 96)"/><circle cx="136" cy="128" r="9" fill="#071A14"/></g>
+        <!-- head -->
+        <g class="head">
+          <circle cx="52" cy="40" r="17" fill="#071A14"/><circle cx="118" cy="40" r="17" fill="#071A14"/>
+          <circle cx="85" cy="66" r="40" fill="#fff"/>
+          <ellipse cx="69" cy="62" rx="11" ry="14" fill="#071A14" transform="rotate(-18 69 62)"/>
+          <ellipse cx="101" cy="62" rx="11" ry="14" fill="#071A14" transform="rotate(18 101 62)"/>
+          <circle cx="71" cy="64" r="3.2" fill="#fff"/><circle cx="99" cy="64" r="3.2" fill="#fff"/>
+          <ellipse cx="60" cy="80" rx="7" ry="4.5" fill="#ffb3c1" opacity=".75"/>
+          <ellipse cx="110" cy="80" rx="7" ry="4.5" fill="#ffb3c1" opacity=".75"/>
+          <ellipse cx="85" cy="82" rx="6" ry="4" fill="#071A14"/>
+          <path d="M85 86 q-7 7 -14 3 M85 86 q7 7 14 3" stroke="#071A14" stroke-width="3" fill="none" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+    <h2 id="welcomeTitle">Welcome to Panda!</h2>
+    <p>Let's find you somewhere good 🐼</p>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="settings" aria-hidden="true">
+    <div class="back" id="settingsBack"></div>
+    <div class="panel">
+      <div class="shead"><b>Settings</b><button class="sx" id="settingsClose" aria-label="Close">×</button></div>
+      <div class="slabel">Account</div>
+      <div class="srow"><span class="sic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 14.5-4 16 0"/></svg></span><div class="stx" id="setAccount">Your account<small id="setEmail"></small></div></div>
+      <div class="slabel">Preferences</div>
+      <div class="srow" id="rowNotif"><span class="sic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></span><div class="stx">Notifications</div><span class="switch on" id="swNotif"><i></i></span></div>
+      <div class="srow" id="rowInstall"><span class="sic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M5 21h14"/></svg></span><div class="stx">Add Panda to home screen<small>Opens fullscreen, like an app</small></div><span class="arrow">→</span></div>
+      <div class="slabel">Share</div>
+      <div class="srow wa" id="rowShare"><span class="sic"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3 0-.5l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.8.8-.9 1.9-.5 3a8 8 0 0 0 3.3 3.6c1.6.9 2.3.9 3.1.8.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1z"/></svg></span><div class="stx">Share Panda on WhatsApp</div><span class="arrow">→</span></div>
+      <div class="slabel">Account</div>
+      <div class="srow logout" id="rowLogout"><span class="sic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></span><div class="stx">Log out</div></div>
+      <div class="setver">Panda · v1.0</div>
+    </div>
+  </div>
+
 </div></div>
 
 <div id="loader"><div class="loadwrap">
@@ -469,6 +716,9 @@ img{display:block}a{color:inherit;text-decoration:none}
 /* ===== CONFIG ===== */
 const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";  /* leave as-is if the app already works */
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
+const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform"; /* Credit "Join the waiting list" -> swap for your waitlist form if separate */
+const SHARE_URL = "https://pandaindustry.co";
+const SHARE_TEXT = "Check out Panda \uD83D\uDC3C — discover the best restaurants, bars & nights out in London.";
 const FORCE_FORM_AFTER_DAYS = 48;   /* lower this (e.g. 2) to capture details sooner */
 const RESERVATIONS_URL = "./venues.json"; /* file your Apify/GitHub Action writes */
 /* ================= */
@@ -509,7 +759,7 @@ function meta(v){const b=[];if(v.rating)b.push('<span class="star">★ '+v.ratin
 function openTxt(v){return v.openNow===true?'<div class="vopen o">Open now</div>':v.openNow===false?'<div class="vopen c">Closed now</div>':'';}
 function railCard(v,i,src){return '<button class="vcard" data-i="'+i+'" data-src="'+src+'"><div class="vphoto">'+ph(v)+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
 function isNew(v){return v.ratingCount!=null&&v.ratingCount>0&&v.ratingCount<40;}
-function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const bits=[fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');const o=v.openNow===true?'<div class="lo o">Open now</div>':v.openNow===false?'<div class="lo c">Closed now</div>':'';return '<button class="lcard" data-i="'+i+'" data-src="'+src+'"><div class="lp">'+ph(v)+'</div><div class="lb"><div class="ln">'+esc(v.name)+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>'+esc(v.address)+'</div>':'')+'<div class="lm">'+(isNew(v)?'<span class="newpill">NEW</span>':'')+line+'</div>'+o+'</div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
+function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const o=v.openNow===true?'<span class="ostat o">Open</span>':v.openNow===false?'<span class="ostat c">Closed</span>':'';const bits=[o,fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');return '<button class="lcard" data-i="'+i+'" data-src="'+src+'"><div class="lp">'+ph(v)+'</div><div class="lb"><div class="ln">'+(isNew(v)?'<span class="newpill">NEW</span>':'')+esc(v.name)+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="la-t">'+esc(v.address)+'</span></div>':'<div class="la"></div>')+'<div class="lm">'+line+'</div></div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
 
 let DATA={home:[],trend:[],map:[],saved:[]};
 async function fetchVenues(q){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:COORDS})});if(!r.ok)return[];return (await r.json()).venues||[];}catch(e){return[]}}
@@ -550,6 +800,64 @@ function showScreen(n){Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCR
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
+function joinWaitlist(){window.open(WAITLIST_URL,"_blank","noopener");store.setFlag("form_done");}
+
+/* ===== AUTH / LOGIN ===== */
+let AUTH_PROVIDER="Google";
+function isAuthed(){const a=store.lget("panda_auth");return !!(a&&a.email);}
+function initAuth(){ if(isAuthed()){window.__authed=true;return;} showLogin(); }
+function showLogin(){ $("#login").classList.add("show"); }
+function hideLogin(){ $("#login").classList.remove("show"); }
+function openAuth(prov){
+  AUTH_PROVIDER=prov;
+  $("#authProvName").textContent=prov;
+  $("#authProvIcon").innerHTML = prov==="Apple"
+    ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="#000"><path d="M17.05 12.54c-.02-2.02 1.65-2.99 1.72-3.04-.94-1.37-2.4-1.56-2.92-1.58-1.24-.13-2.42.73-3.05.73-.63 0-1.6-.71-2.63-.69-1.35.02-2.6.79-3.29 2-1.4 2.43-.36 6.02 1 8 .67.96 1.46 2.04 2.5 2 1-.04 1.38-.65 2.59-.65 1.2 0 1.55.65 2.6.63 1.08-.02 1.76-.98 2.42-1.95.76-1.11 1.07-2.19 1.09-2.24-.02-.01-2.09-.8-2.11-3.18z"/></svg>'
+    : '<svg width="12" height="12" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>';
+  const p=store.lget("panda_profile")||{};
+  $("#authName").value=p.name||""; $("#authEmail").value=p.email||"";
+  $("#authModal").classList.add("show");
+  setTimeout(()=>$("#authName").focus(),260);
+}
+function closeAuth(){ $("#authModal").classList.remove("show"); }
+function doAuth(){
+  const name=$("#authName").value.trim(), email=$("#authEmail").value.trim();
+  const okEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if(!okEmail){ $("#fldEmail").classList.add("bad"); setTimeout(()=>$("#fldEmail").classList.remove("bad"),400); $("#authEmail").focus(); return; }
+  store.lset("panda_auth",{name:name,email:email,provider:AUTH_PROVIDER,ts:Date.now()});
+  const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; store.lset("panda_profile",p);
+  window.__authed=true; loadProfile();
+  closeAuth(); hideLogin();
+  showWelcome(name);
+  if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
+}
+function showWelcome(name){
+  const first=(name||"").trim().split(" ")[0];
+  $("#welcomeTitle").textContent=first?("Welcome, "+first+"!"):"Welcome to Panda!";
+  const w=$("#welcome"); w.classList.add("show");
+  setTimeout(()=>{ w.style.transition="opacity .5s"; w.style.opacity="0"; },2400);
+  setTimeout(()=>{ w.classList.remove("show"); w.style.opacity=""; w.style.transition=""; },2950);
+}
+function logout(){ try{localStorage.removeItem("panda_auth");}catch(e){} window.__authed=false; closeSettings(); showScreen("home"); showLogin(); }
+
+/* ===== SETTINGS ===== */
+function openSettings(){
+  const a=store.lget("panda_auth")||store.lget("panda_profile")||{};
+  $("#setAccount").firstChild.textContent=a.name||"Your account";
+  $("#setEmail").textContent=a.email||"";
+  $("#settings").classList.add("show");
+}
+function closeSettings(){ $("#settings").classList.remove("show"); }
+
+/* ===== SHARE ===== */
+function shareWhatsApp(){
+  const msg=SHARE_TEXT+" "+SHARE_URL;
+  window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank","noopener");
+}
+function sharePanda(){
+  if(navigator.share){ navigator.share({title:"Panda",text:SHARE_TEXT,url:SHARE_URL}).catch(()=>{}); }
+  else { shareWhatsApp(); }
+}
 
 function loadProfile(){const p=store.lget("panda_profile")||{};$("#dName").value=p.name||"";$("#dEmail").value=p.email||"";$("#dPhone").value=p.phone||"";const first=(p.name||"").trim().split(" ")[0];$("#homeName").textContent=first||"there";$("#pName").textContent=p.name||"Welcome";$("#pfpInitial").textContent=((p.name||"P")[0]||"P").toUpperCase();const img=store.lget("panda_pfp");if(img){$("#pfp").innerHTML='<img src="'+img+'" alt="you"/><span class="cam"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg></span>';}}
 function saveProfile(){const p={name:$("#dName").value.trim(),email:$("#dEmail").value.trim(),phone:$("#dPhone").value.trim()};store.lset("panda_profile",p);loadProfile();}
@@ -623,8 +931,19 @@ function boot(){
   $("#chatInput").addEventListener("keydown",e=>{if(e.key==="Enter"){sendMessage(e.target.value);e.target.value=""}});
   $("#clearChat").addEventListener("click",()=>{history=[];store.del("panda_chat");greeting();});
   $("#badge").addEventListener("click",()=>{openChat();sendMessage("What's good near me right now?");});
-  $("#creditApply").addEventListener("click",applyNow);
+  $("#creditApply").addEventListener("click",joinWaitlist);
   $("#profApply").addEventListener("click",applyNow);
+  $("#openSettings").addEventListener("click",openSettings);
+  $$("#login .authbtn").forEach(b=>b.addEventListener("click",()=>openAuth(b.dataset.prov)));
+  $("#authGo").addEventListener("click",doAuth);
+  $("#authBack").addEventListener("click",closeAuth);
+  $("#authEmail").addEventListener("keydown",e=>{if(e.key==="Enter")doAuth();});
+  $("#settingsClose").addEventListener("click",closeSettings);
+  $("#settingsBack").addEventListener("click",closeSettings);
+  $("#rowShare").addEventListener("click",shareWhatsApp);
+  $("#rowLogout").addEventListener("click",logout);
+  $("#rowInstall").addEventListener("click",()=>{ if(window.__pandaInstall)window.__pandaInstall(); });
+  $("#swNotif").addEventListener("click",function(){this.classList.toggle("on");});
   ["fCuisine","fBudget","fHours"].forEach(id=>$("#"+id).addEventListener("change",loadMapVenues));
   wireDropdown("ddBudget",applyHomeFilters);wireDropdown("ddSort",applyHomeFilters);
   var _mx=$("#mapX");if(_mx)_mx.addEventListener("click",()=>showScreen("home"));
@@ -658,7 +977,7 @@ function boot(){
   $("#planShuffle").addEventListener("click",()=>buildPlan(planMode));
   $("#planMap").addEventListener("click",showPlanOnMap);
   $("#planModes").addEventListener("click",e=>{const b=e.target.closest("button");if(b)buildPlan(b.dataset.mode);});
-  renderSaved();refreshHome();getLocation();checkFormGate();
+  renderSaved();refreshHome();getLocation();checkFormGate();initAuth();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
 }
 document.addEventListener("DOMContentLoaded",boot);
@@ -696,6 +1015,15 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   function show(){ banner.classList.add("show"); }
   function hide(){ banner.classList.remove("show"); }
+  function authed(){ try{ return !!JSON.parse(localStorage.getItem("panda_auth")||"null"); }catch(e){ return false; } }
+  function maybeShow(){ if(!dismissed() && !isStandalone() && authed()) show(); }
+  window.__a2hsRetry = maybeShow;
+  /* Manual trigger from Settings → Add to home screen */
+  window.__pandaInstall = function(){
+    if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){ deferred=null; hide(); }); }
+    else if(isiOS()){ banner.classList.contains("ios")||buildIos(); show(); }
+    else { show(); }
+  };
 
   if(clBtn) clBtn.addEventListener("click", function(){ hide(); remember(); });
 
@@ -706,7 +1034,7 @@ document.addEventListener("DOMContentLoaded",boot);
   window.addEventListener("beforeinstallprompt", function(e){
     e.preventDefault();
     deferred=e;
-    setTimeout(show, 2600);           // let the app load first
+    setTimeout(maybeShow, 2600);       // only after login
   });
 
   if(goBtn) goBtn.addEventListener("click", function(){
@@ -717,8 +1045,7 @@ document.addEventListener("DOMContentLoaded",boot);
 
   window.addEventListener("appinstalled", function(){ hide(); remember(); });
 
-  /* iOS Safari: no install API — show the Share → Add to Home Screen hint. */
-  if(isiOS() && !isStandalone()){
+  function buildIos(){
     banner.classList.add("ios");
     banner.innerHTML =
       '<div class="row">'+
@@ -729,7 +1056,11 @@ document.addEventListener("DOMContentLoaded",boot);
       '<div class="hint">Tap the <b>Share</b> icon, then <b>Add to Home Screen</b>.</div>';
     var ic=document.getElementById("a2hsCloseIos");
     if(ic) ic.addEventListener("click", function(){ hide(); remember(); });
-    setTimeout(show, 3000);
+  }
+  /* iOS Safari: no install API — show the Share → Add to Home Screen hint. */
+  if(isiOS() && !isStandalone()){
+    buildIos();
+    setTimeout(maybeShow, 3000);
   }
 
   /* Register the service worker (needed for a clean, reliable install). */
