@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -254,6 +255,13 @@ img{display:block}a{color:inherit;text-decoration:none}
 .rail-sm .vmeta{font-size:11px;margin-top:3px}
 .rail-sm .vopen{font-size:11px;margin-top:5px}
 .panda-fab.fab-hide{opacity:0;pointer-events:none;transform:scale(.8)}
+/* panda shuffle */
+.shuffle-tab{position:absolute;right:0;top:40%;z-index:60;background:linear-gradient(160deg,var(--gold),var(--gold-deep));color:#fff;padding:14px 8px;border-radius:14px 0 0 14px;writing-mode:vertical-rl;text-orientation:mixed;font-weight:800;font-size:12px;letter-spacing:.14em;box-shadow:-4px 4px 14px rgba(0,0,0,.22);display:flex;align-items:center;gap:7px}
+.shuffle-tab:active{transform:translateX(2px)}
+.shuffle-tab .si{font-size:15px;writing-mode:horizontal-tb}
+.plan-modes{display:flex;gap:8px;padding:2px 18px 8px}
+.plan-modes button{flex:1;padding:9px 4px;border-radius:11px;font-weight:800;font-size:12px;background:var(--card-soft);color:var(--muted);border:1px solid var(--line)}
+.plan-modes button.on{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent}
 /* plan my night */
 .plan-cta{display:flex;align-items:center;justify-content:center;gap:9px;margin:8px 18px 2px;padding:12px;border-radius:16px;background:linear-gradient(120deg,var(--green-700),var(--green-600));color:#fff;font-weight:800;font-size:14.5px;box-shadow:0 8px 20px rgba(10,79,58,.28)}
 .plan-cta:active{transform:scale(.98)}
@@ -305,7 +313,6 @@ img{display:block}a{color:inherit;text-decoration:none}
         <button class="badge" id="badge"><span class="dot"></span><span id="badgeText">Lunch spots</span></button>
       </div></div>
       <div class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="search" enterkeyhint="search" placeholder="Search places, cuisines, a spot by name" /></div>
-      <button class="plan-cta" id="planBtn"><span class="em">🌙</span> Plan my night out <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       <div class="sec-h"><h2>Top categories</h2></div>
       <div class="cats" id="cats"></div>
       <div class="homefilters">
@@ -393,9 +400,11 @@ img{display:block}a{color:inherit;text-decoration:none}
     <div class="composer"><input id="chatInput" type="text" enterkeyhint="send" placeholder="Ask Panda anything…" autocomplete="off" /><button class="send" id="sendBtn" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button></div>
   </div>
 
+  <button class="shuffle-tab" id="shuffleTab" aria-label="Panda Shuffle"><span class="si">🔀</span> SHUFFLE</button>
   <div class="plan" id="planSheet" aria-hidden="true">
     <div class="grip"></div>
-    <div class="plan-head"><div><b>Your night out</b><small id="planWhen">Dinner · drinks · late night</small></div><button class="x" id="planClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="plan-head"><div><b>Panda Shuffle</b><small id="planWhen">Pick a plan</small></div><button class="x" id="planClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="plan-modes" id="planModes"><button data-mode="morning">🌅 Morning</button><button data-mode="lunch">🍽️ Lunch</button><button data-mode="night">🌙 Night</button></div>
     <div class="plan-body" id="planBody"></div>
     <div class="plan-actions"><button class="shuf" id="planShuffle">Shuffle 🔀</button><button class="mapb" id="planMap">View route on map</button></div>
   </div>
@@ -469,7 +478,7 @@ async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.l
 async function loadMoreHome(){if(homeLoading||!homeToken||homeRaw.length>=200)return;homeLoading=true;const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,homeToken);const seen=new Set(homeRaw.map(x=>x.id));venues.forEach(v=>{if(!seen.has(v.id))homeRaw.push(v);});homeToken=nextPageToken;applyHomeFilters();homeLoading=false;}
 
 /* MAP */
-let map=null,markers=null;
+let map=null,markers=null,pendingPlanRoute=false;
 function pinIcon(txt){return L.divIcon({className:"",html:'<div class="pin"><b>'+txt+'</b></div>',iconSize:[34,34],iconAnchor:[17,34]});}
 function initMap(){if(map)return;map=L.map('map-canvas',{zoomControl:false}).setView([COORDS?COORDS.lat:51.5074,COORDS?COORDS.lng:-0.1278],14);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);markers=L.layerGroup().addTo(map);setTimeout(()=>map.invalidateSize(),200);}
 async function loadMapVenues(){initMap();const cui=$("#fCuisine").value;const q=cui||(discovery().q||"restaurants");let v=await fetchVenues(q);const bud=$("#fBudget").value;const hrs=$("#fHours").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);if(hrs==="open")v=v.filter(x=>x.openNow===true);DATA.map=v;markers.clearLayers();const pts=[];v.forEach((x)=>{if(x.lat==null)return;const mk=L.marker([x.lat,x.lng],{icon:pinIcon(x.price||"•")}).addTo(markers);mk.on("click",()=>showMapCard(x));pts.push([x.lat,x.lng]);});if(pts.length){try{map.fitBounds(pts,{padding:[50,50],maxZoom:15});}catch(e){}}$("#mapCard").classList.remove("show");}
@@ -483,7 +492,7 @@ function buildCats(){const order=[0].concat(catOrder());$("#cats").innerHTML=ord
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
-function showScreen(n){Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();loadMapVenues();},60);}if(n==="profile")renderSaved();}
+function showScreen(n){Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
@@ -523,39 +532,37 @@ function pickTop(list,n){return list.slice().sort((a,b)=>planScore(b)-planScore(
 function nearestTo(from,list,exclude){exclude=[].concat(exclude);let best=null,bd=Infinity;for(const v of list){if(exclude.indexOf(v.id)>=0)continue;const d=haversine(from.lat,from.lng,v.lat,v.lng);if(d<bd){bd=d;best=v;}}return best;}
 function openPlan(){$("#planBody").innerHTML='<div class="plan-loading">\uD83D\uDC3C Panda is planning your night...</div>';$("#scrim").classList.add("show");$("#planSheet").classList.add("open");}
 function closePlan(){$("#planSheet").classList.remove("open");$("#scrim").classList.remove("show");}
-async function buildNight(){
-  openPlan();
-  const h=new Date().getHours();
-  const lateQ=h>=22?"nightclubs late night bars":"late night bars pubs";
-  const [d,dr,lt]=await Promise.all([fetchVenues("dinner restaurants"),fetchVenues("cocktail bars"),fetchVenues(lateQ)]);
-  const D=d.filter(v=>v.lat!=null),DR=dr.filter(v=>v.lat!=null),LT=lt.filter(v=>v.lat!=null);
-  if(!D.length||!DR.length||!LT.length){$("#planBody").innerHTML='<div class="plan-loading">Could not find enough nearby spots right now - try again shortly.</div>';return;}
-  const topD=pickTop(D,6);
-  const stop1=topD[Math.floor(Math.random()*Math.min(topD.length,4))];
-  const stop2=nearestTo(stop1,pickTop(DR,8),[stop1.id])||pickTop(DR,1)[0];
-  const stop3=nearestTo(stop2||stop1,pickTop(LT,8),[stop1.id,stop2&&stop2.id])||pickTop(LT,1)[0];
-  DATA.plan=[stop1,stop2,stop3].filter(Boolean);
-  renderPlan();fetchPlanIntro();
+const PLAN_MODES={
+  morning:{title:"Plan my morning",stops:[["☕","Coffee","coffee shops"],["🍳","Breakfast","breakfast"],["🥐","Brunch","brunch spots"]]},
+  lunch:{title:"Plan my lunch",stops:[["🥗","Lunch","lunch restaurants"],["☕","Coffee","coffee shops"],["🍰","Something sweet","dessert cafe"]]},
+  night:{title:"Plan my night",stops:[["🍽️","Dinner","dinner restaurants"],["🍸","Drinks","cocktail bars"],["🌙","Late night","late night bars"]]}
+};
+let planMode="night";
+function defaultMode(){const h=new Date().getHours();return h<11?"morning":h<16?"lunch":"night";}
+function updateModeChips(){$$("#planModes button").forEach(b=>b.classList.toggle("on",b.dataset.mode===planMode));}
+async function buildPlan(mode){
+  planMode=PLAN_MODES[mode]?mode:defaultMode();openPlan();updateModeChips();
+  const cfg=PLAN_MODES[planMode];
+  const lists=await Promise.all(cfg.stops.map(st=>fetchVenues(st[2])));
+  const F=lists.map(l=>l.filter(v=>v.lat!=null));
+  if(F.some(l=>!l.length)){$("#planBody").innerHTML='<div class="plan-loading">Could not find enough nearby spots right now - try again shortly.</div>';return;}
+  const topFirst=pickTop(F[0],6);const chosen=[topFirst[Math.floor(Math.random()*Math.min(topFirst.length,4))]];
+  for(let k=1;k<F.length;k++){const ex=chosen.map(c=>c&&c.id);chosen.push(nearestTo(chosen[k-1]||chosen[0],pickTop(F[k],8),ex)||pickTop(F[k],1)[0]);}
+  DATA.plan=chosen.filter(Boolean);
+  renderPlan(cfg);fetchPlanIntro(cfg);
 }
-function renderPlan(){
-  const labels=[["\uD83C\uDF7D\uFE0F","Dinner"],["\uD83C\uDF78","Drinks"],["\uD83C\uDF19","Late night"]];
-  let html='<div class="plan-intro" id="planIntro">Your night, sorted \uD83D\uDC3C</div>';
-  DATA.plan.forEach((v,i)=>{
-    html+='<div class="stop-badge">'+(labels[i]?labels[i][0]+" "+labels[i][1]:"Stop "+(i+1))+'</div>'+listCard(v,i,"plan");
-    if(i<DATA.plan.length-1){html+='<div class="plan-walk">\u2193 '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}
-  });
-  $("#planBody").innerHTML=html;
-}
-async function fetchPlanIntro(){
+function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;$("#planWhen").textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">Sorted 🐼</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan");if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
+async function fetchPlanIntro(cfg){
   const n=DATA.plan.map(v=>v.name);
-  try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty London night-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this night-out plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
+  try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty London night-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
 }
-function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();showScreen("map");initMap();setTimeout(()=>{map.invalidateSize();markers.clearLayers();const pts=DATA.plan.map(v=>[v.lat,v.lng]);DATA.plan.forEach((v,i)=>{const mk=L.marker([v.lat,v.lng],{icon:pinIcon(String(i+1))}).addTo(markers);mk.on("click",()=>showMapCard(v));});L.polyline(pts,{color:"#0F6B4F",weight:4,opacity:.85,dashArray:"1 9"}).addTo(markers);try{map.fitBounds(pts,{padding:[70,70],maxZoom:15});}catch(e){}},90);}
+function drawPlanRoute(){if(!DATA.plan||!DATA.plan.length)return;markers.clearLayers();const pts=[];DATA.plan.forEach((v,i)=>{if(v.lat==null)return;const mk=L.marker([v.lat,v.lng],{icon:pinIcon(String(i+1))}).addTo(markers);mk.on("click",()=>showMapCard(v));pts.push([v.lat,v.lng]);});if(pts.length>1)L.polyline(pts,{color:"#0F6B4F",weight:4,opacity:.85,dashArray:"1 9"}).addTo(markers);if(pts.length){try{map.fitBounds(pts,{padding:[70,70],maxZoom:15});}catch(e){}}}
+function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();pendingPlanRoute=true;showScreen("map");}
 
 function boot(){
   buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();
   $("#fCuisine").innerHTML=CATEGORIES.map((c,i)=>'<option value="'+esc(c.q)+'">'+(i===0?"All cuisines":c.label)+'</option>').join('');
-  $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;if(b.classList.contains("plan-chip")){buildNight();return;}sendMessage(b.textContent)});
+  $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;if(b.classList.contains("plan-chip")){buildPlan(defaultMode());return;}sendMessage(b.textContent)});
   $("#closeChat").addEventListener("click",closeChat);
   $("#scrim").addEventListener("click",function(){closeSheet();closePlan();});
   $("#sendBtn").addEventListener("click",()=>{const i=$("#chatInput");sendMessage(i.value);i.value=""});
@@ -586,10 +593,11 @@ function boot(){
     h.addEventListener("touchend",()=>{drag=false;setTimeout(()=>moved=false,50);});
   })();
   const si=$("#searchInput");si.addEventListener("keydown",e=>{if(e.key==="Enter"&&si.value.trim()){const q=si.value.trim();si.value="";openChat();sendMessage(q);}});
-  $("#planBtn").addEventListener("click",buildNight);
+  $("#shuffleTab").addEventListener("click",()=>buildPlan(defaultMode()));
   $("#planClose").addEventListener("click",closePlan);
-  $("#planShuffle").addEventListener("click",buildNight);
+  $("#planShuffle").addEventListener("click",()=>buildPlan(planMode));
   $("#planMap").addEventListener("click",showPlanOnMap);
+  $("#planModes").addEventListener("click",e=>{const b=e.target.closest("button");if(b)buildPlan(b.dataset.mode);});
   renderSaved();refreshHome();getLocation();checkFormGate();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
 }
