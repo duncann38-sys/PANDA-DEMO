@@ -256,9 +256,9 @@ img{display:block}a{color:inherit;text-decoration:none}
 .rail-sm .vopen{font-size:11px;margin-top:5px}
 .panda-fab.fab-hide{opacity:0;pointer-events:none;transform:scale(.8)}
 /* panda shuffle */
-.shuffle-tab{position:absolute;right:0;top:40%;z-index:60;background:linear-gradient(160deg,var(--gold),var(--gold-deep));color:#fff;padding:14px 8px;border-radius:14px 0 0 14px;writing-mode:vertical-rl;text-orientation:mixed;font-weight:800;font-size:12px;letter-spacing:.14em;box-shadow:-4px 4px 14px rgba(0,0,0,.22);display:flex;align-items:center;gap:7px}
-.shuffle-tab:active{transform:translateX(2px)}
-.shuffle-tab .si{font-size:15px;writing-mode:horizontal-tb}
+.shuffle-handle{position:absolute;left:0;top:44%;z-index:60;width:44px;height:58px;background:linear-gradient(160deg,var(--gold),var(--gold-deep));border-radius:0 18px 18px 0;box-shadow:4px 4px 14px rgba(0,0,0,.24);display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;transform:translateX(-22px);transition:transform .24s cubic-bezier(.2,.8,.2,1);animation:shpeek 2.6s ease-in-out infinite}
+.shuffle-handle:active{transform:translateX(0);animation:none}
+@keyframes shpeek{0%,100%{transform:translateX(-22px)}50%{transform:translateX(-14px)}}
 .plan-modes{display:flex;gap:8px;padding:2px 18px 8px}
 .plan-modes button{flex:1;padding:9px 4px;border-radius:11px;font-weight:800;font-size:12px;background:var(--card-soft);color:var(--muted);border:1px solid var(--line)}
 .plan-modes button.on{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent}
@@ -400,13 +400,13 @@ img{display:block}a{color:inherit;text-decoration:none}
     <div class="composer"><input id="chatInput" type="text" enterkeyhint="send" placeholder="Ask Panda anything…" autocomplete="off" /><button class="send" id="sendBtn" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button></div>
   </div>
 
-  <button class="shuffle-tab" id="shuffleTab" aria-label="Panda Shuffle"><span class="si">🔀</span> SHUFFLE</button>
+  <button class="shuffle-handle" id="shuffleTab" aria-label="Open Panda Shuffle (swipe right)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
   <div class="plan" id="planSheet" aria-hidden="true">
     <div class="grip"></div>
-    <div class="plan-head"><div><b>Panda Shuffle</b><small id="planWhen">Pick a plan</small></div><button class="x" id="planClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="plan-head"><div><b id="planTitle">Plan my night</b><small id="planWhen">Tap a stop · re-roll with Panda Shuffle</small></div><button class="x" id="planClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="plan-modes" id="planModes"><button data-mode="morning">🌅 Morning</button><button data-mode="lunch">🍽️ Lunch</button><button data-mode="night">🌙 Night</button></div>
     <div class="plan-body" id="planBody"></div>
-    <div class="plan-actions"><button class="shuf" id="planShuffle">Shuffle 🔀</button><button class="mapb" id="planMap">View route on map</button></div>
+    <div class="plan-actions"><button class="shuf" id="planShuffle">🔀 Panda Shuffle</button><button class="mapb" id="planMap">View route on map</button></div>
   </div>
   <div class="scrim" id="scrim"></div>
   <div class="sheet" id="sheet" aria-hidden="true"></div>
@@ -551,7 +551,7 @@ async function buildPlan(mode){
   DATA.plan=chosen.filter(Boolean);
   renderPlan(cfg);fetchPlanIntro(cfg);
 }
-function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;$("#planWhen").textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">Sorted 🐼</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan");if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
+function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;var _pt=$("#planTitle");if(_pt)_pt.textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">Sorted 🐼</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan");if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
 async function fetchPlanIntro(cfg){
   const n=DATA.plan.map(v=>v.name);
   try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty London night-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
@@ -593,7 +593,12 @@ function boot(){
     h.addEventListener("touchend",()=>{drag=false;setTimeout(()=>moved=false,50);});
   })();
   const si=$("#searchInput");si.addEventListener("keydown",e=>{if(e.key==="Enter"&&si.value.trim()){const q=si.value.trim();si.value="";openChat();sendMessage(q);}});
-  $("#shuffleTab").addEventListener("click",()=>buildPlan(defaultMode()));
+  (function(){var st=$("#shuffleTab");if(!st)return;var sx=null;
+    st.addEventListener("touchstart",function(e){sx=e.touches[0].clientX;},{passive:true});
+    st.addEventListener("touchmove",function(e){if(sx!=null&&e.touches[0].clientX-sx>34){sx=null;buildPlan(defaultMode());}},{passive:true});
+    st.addEventListener("touchend",function(){sx=null;});
+    st.addEventListener("click",function(){buildPlan(defaultMode());});
+  })();
   $("#planClose").addEventListener("click",closePlan);
   $("#planShuffle").addEventListener("click",()=>buildPlan(planMode));
   $("#planMap").addEventListener("click",showPlanOnMap);
