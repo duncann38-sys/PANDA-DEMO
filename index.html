@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -55,6 +56,13 @@ img{display:block}a{color:inherit;text-decoration:none}
 .home-feed .feed-divider{scroll-snap-align:start}
 .homefilters{display:flex;gap:8px;padding:0 18px 8px;overflow-x:auto;scrollbar-width:none}
 .homefilters::-webkit-scrollbar{display:none}
+/* compact, secondary filters that sit in the Suggestions header */
+.sug-h{gap:8px}
+.homefilters.mini{padding:0;gap:6px;margin-left:auto;flex:0 0 auto;overflow:visible}
+.homefilters.mini .dd-btn{font-size:11px;font-weight:700;padding:5px 9px;gap:3px;border-radius:999px;box-shadow:0 2px 8px rgba(6,46,34,.08);color:var(--muted)}
+.homefilters.mini .dd-btn svg{width:11px;height:11px}
+.homefilters.mini .dd.open .dd-btn{color:var(--green-800)}
+.homefilters.mini .dd-menu{right:0;left:auto;min-width:128px}
 .homefilters select{flex:0 0 auto;appearance:none;-webkit-appearance:none;background:var(--card);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-weight:700;font-size:13px;padding:9px 28px 9px 13px;border-radius:999px;box-shadow:var(--shadow);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230F6B4F' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
 .dhead{padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 2px}
 .dhead-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
@@ -498,19 +506,20 @@ img{display:block}a{color:inherit;text-decoration:none}
   <section id="s-home" class="screen home">
     <div class="home-top">
       <div class="dhead"><div class="dhead-row">
-        <div><div class="hello">Welcome back</div><div class="name">Hi, <span id="homeName">there</span> <span aria-hidden="true">👋</span></div></div>
+        <div><div class="hello" id="hello">Welcome back</div><div class="name">Hi, <span id="homeName">there</span> <span aria-hidden="true">👋</span></div></div>
         <button class="badge" id="badge"><span class="dot"></span><span id="badgeText">Lunch spots</span></button>
       </div></div>
       <div class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="search" enterkeyhint="search" placeholder="Search places, cuisines, a spot by name" /></div>
       <div class="sec-h"><h2>Top categories</h2></div>
       <div class="cats" id="cats"></div>
-      <div class="homefilters">
-        <div class="dd" id="ddBudget" data-val=""><button class="dd-btn" type="button">Any price <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-menu"><button type="button" data-v="" class="sel">Any price</button><button type="button" data-v="1">£</button><button type="button" data-v="2">££</button><button type="button" data-v="3">£££</button></div></div>
-        <div class="dd" id="ddSort" data-val="dist"><button class="dd-btn" type="button">Nearest first <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-menu"><button type="button" data-v="dist" class="sel">Nearest first</button><button type="button" data-v="rating">Top rated</button></div></div>
-      </div>
     </div>
     <div class="home-feed">
-      <div class="sec-h"><h2 id="sugHead">Suggestions</h2><span class="count" id="sugCount"></span></div>
+      <div class="sec-h sug-h"><h2 id="sugHead">Suggestions</h2><span class="count" id="sugCount"></span>
+        <div class="homefilters mini">
+          <div class="dd" id="ddBudget" data-val=""><button class="dd-btn" type="button">Any price <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-menu"><button type="button" data-v="" class="sel">Any price</button><button type="button" data-v="1">£</button><button type="button" data-v="2">££</button><button type="button" data-v="3">£££</button></div></div>
+          <div class="dd" id="ddSort" data-val="dist"><button class="dd-btn" type="button">Nearest <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-menu"><button type="button" data-v="dist" class="sel">Nearest</button><button type="button" data-v="rating">Top rated</button></div></div>
+        </div>
+      </div>
       <div id="sugList"></div>
     </div>
   </section>
@@ -553,7 +562,7 @@ img{display:block}a{color:inherit;text-decoration:none}
     <div class="pc-note">A <b>Mastercard®</b> virtual card, issued through our banking partners.</div>
     <div class="sec-h"><h2>How it works</h2></div>
     <div class="steps compact">
-      <div class="step"><div class="n">1</div><div><b>Get £300 to spend</b><span>Use it at hospitality spots across London — food, drinks, nights out.</span></div></div>
+      <div class="step"><div class="n">1</div><div><b>Get £300 to spend</b><span>Use it at hospitality spots wherever you are — food, drinks, nights out.</span></div></div>
       <div class="step"><div class="n">2</div><div><b>Pay back over 3 months</b><span>Three equal monthly instalments of £100. Simple and predictable.</span></div></div>
       <div class="step"><div class="n">3</div><div><b>Hospitality-only, no surprises</b><span>One flat fee shown upfront before you agree. No hidden costs.</span></div></div>
     </div>
@@ -600,7 +609,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 
   <!-- CHAT -->
   <div class="chat" id="chat" aria-hidden="true">
-    <div class="chat-head"><div class="avatar"><svg viewBox="0 0 120 120"><circle cx="34" cy="36" r="15" fill="#071A14"/><circle cx="86" cy="36" r="15" fill="#071A14"/><circle cx="60" cy="64" r="36" fill="#fff"/><ellipse cx="46" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(-18 46 60)"/><ellipse cx="74" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(18 74 60)"/><circle cx="48" cy="62" r="2.7" fill="#fff"/><circle cx="72" cy="62" r="2.7" fill="#fff"/><ellipse cx="60" cy="78" rx="5" ry="3.4" fill="#071A14"/></svg></div><div class="who"><b>Panda AI</b><small>Your London night-out concierge</small></div><button class="icon-btn" id="clearChat" aria-label="Clear chat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button><button class="icon-btn" id="closeChat" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="chat-head"><div class="avatar"><svg viewBox="0 0 120 120"><circle cx="34" cy="36" r="15" fill="#071A14"/><circle cx="86" cy="36" r="15" fill="#071A14"/><circle cx="60" cy="64" r="36" fill="#fff"/><ellipse cx="46" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(-18 46 60)"/><ellipse cx="74" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(18 74 60)"/><circle cx="48" cy="62" r="2.7" fill="#fff"/><circle cx="72" cy="62" r="2.7" fill="#fff"/><ellipse cx="60" cy="78" rx="5" ry="3.4" fill="#071A14"/></svg></div><div class="who"><b>Panda AI</b><small>Your night-out concierge</small></div><button class="icon-btn" id="clearChat" aria-label="Clear chat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></button><button class="icon-btn" id="closeChat" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="msgs" id="msgs"></div>
     <div class="suggests" id="suggests"></div>
     <div class="composer"><input id="chatInput" type="text" enterkeyhint="send" placeholder="Ask Panda anything…" autocomplete="off" /><button class="send" id="sendBtn" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button></div>
@@ -625,7 +634,7 @@ img{display:block}a{color:inherit;text-decoration:none}
       <svg viewBox="0 0 120 120"><circle cx="34" cy="36" r="16" fill="#071A14"/><circle cx="86" cy="36" r="16" fill="#071A14"/><circle cx="60" cy="64" r="37" fill="#fff"/><ellipse cx="46" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(-18 46 60)"/><ellipse cx="74" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(18 74 60)"/><circle cx="48" cy="62" r="2.9" fill="#fff"/><circle cx="72" cy="62" r="2.9" fill="#fff"/><ellipse cx="60" cy="78" rx="5.4" ry="3.6" fill="#071A14"/><path d="M60 82 q-6 6 -12 3 M60 82 q6 6 12 3" stroke="#071A14" stroke-width="2.8" fill="none" stroke-linecap="round"/></svg>
     </div>
     <h1>Welcome to Panda</h1>
-    <p class="sub">Your London night-out concierge. Find the best places to eat, drink and go out.</p>
+    <p class="sub">Find the best places to eat, drink and go out — wherever you are.</p>
     <div class="authbtns">
       <button class="authbtn google" data-prov="Google">
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
@@ -718,14 +727,14 @@ const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";  /* leave as-is if t
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
 const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform"; /* Credit "Join the waiting list" -> swap for your waitlist form if separate */
 const SHARE_URL = "https://pandaindustry.co";
-const SHARE_TEXT = "Check out Panda \uD83D\uDC3C — discover the best restaurants, bars & nights out in London.";
+const SHARE_TEXT = "Check out Panda \uD83D\uDC3C — discover the best restaurants, bars & nights out, wherever you are.";
 const FORCE_FORM_AFTER_DAYS = 48;   /* lower this (e.g. 2) to capture details sooner */
 const RESERVATIONS_URL = "./venues.json"; /* file your Apify/GitHub Action writes */
 /* ================= */
 
 const AI_URL=PANDA_API_BASE+"/api/panda-ai";
 const PHOTO_URL=(n,m)=>PANDA_API_BASE+"/api/place-photo?name="+encodeURIComponent(n)+"&max="+(m||700);
-const SYSTEM_PROMPT="You are Panda — a cheeky, funny, quick-witted London night-out concierge for people in their twenties. Personality: playful and a little sassy, warm, never rude; crack the odd joke and now and then drop a short fun one-liner or quote. Handle ANY going-out intent broadly and literally: budget meals (e.g. where can I spend 20 pounds for lunch -> solid affordable spots), specific drinks (where can I drink rose -> wine bars), a particular wine, date night, cheap eats, brunch, and activities like where can I watch football (sports bars showing the game). CRITICAL: stay strictly on-subject — every venue you name must genuinely fit what they asked (if they said football, only suggest places to watch football). If the user names a SPECIFIC venue, dish or wine (e.g. Monterre, a nice Malbec), search for it by name and show what you find - never say you cannot look up specific places. Only recommend from the REAL NEARBY VENUES you are given; never invent a place, address or rating. Give a good spread (up to ~20 options when it fits). Silently fix typos and slang; never comment on spelling. Keep the reply to a punchy line or two of banter, then let the cards do the talking. Point to each card for details and booking. Food delivery is coming soon — you can tease it but do not take orders. One or two emoji max. Discovery only: never discuss payments or credit.";
+const SYSTEM_PROMPT="You are Panda — a cheeky, quick-witted going-out concierge with seriously good taste. Talk like a fun, in-the-know friend: warm, a little sassy, full of banter, never rude, never corporate. Crack the odd joke, keep it human, and actually have a conversation — ask ONE quick follow-up when it genuinely helps you nail it, but never leave someone empty-handed. You work ANYWHERE in the world: use the user's real location and only the venues you are given, never assume a city or mention one unless it is in the data. Be a real concierge who understands what people actually mean. BUDGETS: if someone says 'a meal for 2 for under £40', 'somewhere I can eat for a tenner', 'cheap', 'blowout', do the maths per person and only suggest places whose price level realistically fits — call it out ('these two keep you under 40 easy'). VIBE & DRESS CODE: read the occasion — 'chinos', 'casual', 'chilled' means relaxed easy spots; 'fancy pants', 'date night', 'impress someone', 'anniversary', 'celebrating' means smarter, special, dress-up places; match the energy every time. Handle any going-out intent literally and precisely: cheap eats, brunch, coffee, a specific cuisine, a particular dish or wine, cocktails, wine bars, rooftops, live sport ('where can I watch the football' -> bars showing it), late-night, dog-friendly, big groups, solo. If they name a specific venue, dish or wine, look it up by name and show what you find — never say you can't. CRITICAL: only ever recommend from the REAL NEARBY VENUES you are given; never invent a place, address, rating or price. Every venue you name must genuinely match the ask; if nothing truly fits, say so honestly and offer the closest good alternative. Silently fix typos and slang; never comment on spelling. Keep replies to a punchy line or two of proper banter, then let the venue cards do the talking — point them to the cards for details and booking. Food delivery is coming soon: tease it, but don't take orders. Discovery only — never discuss payments, credit or the card. One or two emoji max.";
 
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const store={get(k){try{return JSON.parse(sessionStorage.getItem(k))}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}},
@@ -746,7 +755,18 @@ function isSaved(id){return !!SAVED[id]}
 function toggleSave(v){if(SAVED[v.id])delete SAVED[v.id];else SAVED[v.id]=v;store.lset("panda_saved",SAVED);renderSaved();}
 
 let COORDS=null;
-function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
+let CITY=null;
+function resolveCity(c){
+  if(!c)return;
+  fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude="+c.lat+"&longitude="+c.lng+"&localityLanguage=en")
+    .then(r=>r.ok?r.json():null)
+    .then(d=>{
+      if(!d)return;
+      CITY=d.city||d.locality||d.principalSubdivision||d.countryName||null;
+      if(CITY){var hl=$("#hello");if(hl)hl.textContent="Welcome back · "+CITY;}
+    }).catch(function(){});
+}
+function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};resolveCity(COORDS);refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
 
 function discovery(){const h=new Date().getHours();if(h<11)return{label:"Breakfast time",q:"breakfast"};if(h<16)return{label:"Lunch spots",q:"lunch"};if(h<23)return{label:"Dinner & drinks",q:"dinner restaurants bars"};return{label:"Out out",q:"nightlife bars clubs"};}
 const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Spanish",em:"🥘",q:"spanish tapas"},{label:"French",em:"🥖",q:"french restaurants"},{label:"British",em:"🥧",q:"modern british restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Mexican",em:"🌮",q:"mexican restaurants"},{label:"Turkish",em:"🥙",q:"turkish restaurants"},{label:"Pub Food",em:"🍺",q:"gastropub pub food"},{label:"American",em:"🌭",q:"american diner"},{label:"Lebanese",em:"🧆",q:"lebanese middle eastern"},{label:"Thai",em:"🍜",q:"thai restaurants"},{label:"Chicken",em:"🍗",q:"fried chicken"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Dessert",em:"🍰",q:"dessert"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Breakfast",em:"🍳",q:"breakfast"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Brunch",em:"🥐",q:"brunch"},{label:"Bottomless",em:"🍾",q:"bottomless brunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Sports",em:"⚽",q:"sports bars showing live football"},{label:"Live Music",em:"🎵",q:"live music venues bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"}];
@@ -875,7 +895,7 @@ function renderMsgs(){const box=$("#msgs");box.innerHTML=history.map((m,mi)=>{if
 function greeting(){if(!history.length){const p=store.lget("panda_profile")||{};const nm=(p.name||"").trim().split(" ")[0];history=[{role:"ai",text:"Hey"+(nm?" "+nm:"")+"! I'm Panda 🐼 — tell me what you fancy (breakfast, a cheeky cocktail, dinner…) and I'll find the best spots right by you."}];store.set("panda_chat",history);}renderMsgs();}
 function toContents(){return history.filter(m=>m.text).map(m=>({role:m.role==="me"?"user":"model",parts:[{text:m.text}]}));}
 let sending=false;
-async function sendMessage(text){text=(text||"").trim();if(!text||sending)return;sending=true;history.push({role:"me",text});store.set("panda_chat",history);renderMsgs();const box=$("#msgs");box.insertAdjacentHTML("beforeend",'<div class="row ai" id="typing"><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>');box.scrollTop=box.scrollHeight;try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT+" Right now in London it is about "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+" ("+discovery().label+"), so bias suggestions to what suits this time of day."}]},contents:toContents(),generationConfig:{temperature:0.85,maxOutputTokens:700},location:COORDS})});const d=await r.json();$("#typing")?.remove();if(!r.ok)history.push({role:"ai",text:"Hmm, I tripped over my own paws there — give that another go in a sec."});else history.push({role:"ai",text:(d.text||"").trim()||"Not sure I caught that — try rephrasing?",venues:d.venues||[]});}catch(e){$("#typing")?.remove();history.push({role:"ai",text:"I couldn't reach the kitchen just now — check your connection and try again."});}store.set("panda_chat",history);renderMsgs();sending=false;}
+async function sendMessage(text){text=(text||"").trim();if(!text||sending)return;sending=true;history.push({role:"me",text});store.set("panda_chat",history);renderMsgs();const box=$("#msgs");box.insertAdjacentHTML("beforeend",'<div class="row ai" id="typing"><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>');box.scrollTop=box.scrollHeight;try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT+(CITY?(" The user is in "+CITY+". Refer to "+CITY+" by name when it naturally fits (e.g. 'best spots in "+CITY+" right now')."):"")+" Right now it is about "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+" ("+discovery().label+"), so bias suggestions to what suits this time of day."}]},contents:toContents(),generationConfig:{temperature:0.85,maxOutputTokens:700},location:COORDS})});const d=await r.json();$("#typing")?.remove();if(!r.ok)history.push({role:"ai",text:"Hmm, I tripped over my own paws there — give that another go in a sec."});else history.push({role:"ai",text:(d.text||"").trim()||"Not sure I caught that — try rephrasing?",venues:d.venues||[]});}catch(e){$("#typing")?.remove();history.push({role:"ai",text:"I couldn't reach the kitchen just now — check your connection and try again."});}store.set("panda_chat",history);renderMsgs();sending=false;}
 function openChat(){var dm=defaultMode();var DL={morning:["🌅","Plan my morning"],lunch:["🍽️","Plan my lunch"],night:["🌙","Plan my night"]}[dm];$("#suggests").innerHTML='<button class="chip plan-chip">'+DL[0]+' '+DL[1]+'</button>'+suggestChips().map(s=>'<button class="chip">'+s+'</button>').join('');var _h=new Date().getHours();$("#chat").classList.toggle("day",(_h>=5&&_h<19));$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
 function closeChat(){$("#chat").classList.remove("open");history=[];store.del("panda_chat");showScreen("home");}
 
@@ -916,7 +936,7 @@ async function buildPlan(mode){
 function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;var _pt=$("#planTitle");if(_pt)_pt.textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">Sorted 🐼</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan");if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
 async function fetchPlanIntro(cfg){
   const n=DATA.plan.map(v=>v.name);
-  try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty London night-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
+  try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty going-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
 }
 function drawPlanRoute(){if(!DATA.plan||!DATA.plan.length)return;markers.clearLayers();const pts=[];DATA.plan.forEach((v,i)=>{if(v.lat==null)return;const mk=L.marker([v.lat,v.lng],{icon:pinIcon(String(i+1))}).addTo(markers);mk.on("click",()=>showMapCard(v));pts.push([v.lat,v.lng]);});if(pts.length>1)L.polyline(pts,{color:"#0F6B4F",weight:4,opacity:.85,dashArray:"1 9"}).addTo(markers);if(pts.length){try{map.fitBounds(pts,{padding:[70,70],maxZoom:15});}catch(e){}}}
 function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();var _c=$("#chat");if(_c)_c.classList.remove("open");pendingPlanRoute=true;showScreen("map");}
