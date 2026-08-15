@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -596,7 +597,7 @@ async function fetchPlanIntro(cfg){
   try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty London night-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
 }
 function drawPlanRoute(){if(!DATA.plan||!DATA.plan.length)return;markers.clearLayers();const pts=[];DATA.plan.forEach((v,i)=>{if(v.lat==null)return;const mk=L.marker([v.lat,v.lng],{icon:pinIcon(String(i+1))}).addTo(markers);mk.on("click",()=>showMapCard(v));pts.push([v.lat,v.lng]);});if(pts.length>1)L.polyline(pts,{color:"#0F6B4F",weight:4,opacity:.85,dashArray:"1 9"}).addTo(markers);if(pts.length){try{map.fitBounds(pts,{padding:[70,70],maxZoom:15});}catch(e){}}}
-function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();pendingPlanRoute=true;showScreen("map");}
+function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();var _c=$("#chat");if(_c)_c.classList.remove("open");pendingPlanRoute=true;showScreen("map");}
 
 function boot(){
   buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();
