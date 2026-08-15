@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -96,7 +95,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .lcard .la span,.lcard .la{min-width:0}
 .lcard .lm{margin-top:5px;font-size:12px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .lcard .lm .price{color:var(--gold-deep);font-weight:800}.lcard .lm .sep{opacity:.4;color:var(--muted)}
-.newbadge{position:absolute;top:6px;left:6px;z-index:2;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.05em;padding:3px 7px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.28)}
+.newpill{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;font-size:9px;font-weight:800;letter-spacing:.05em;padding:2px 6px;border-radius:6px;margin-right:6px;vertical-align:middle}
 .lcard .lo{margin-top:5px;font-size:12px;font-weight:800}.lcard .lo.o{color:#0c7a45}.lcard .lo.c{color:#9aa8a0}
 .heart{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#b9c9c0;background:rgba(255,255,255,.6)}
 .heart.on{color:#e5484d}
@@ -203,7 +202,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 /* sheet + scrim + modal */
 .scrim{position:absolute;inset:0;z-index:80;background:rgba(4,18,13,.55);opacity:0;pointer-events:none;transition:opacity .28s;backdrop-filter:blur(2px)}
 .scrim.show{opacity:1;pointer-events:auto}
-.sheet{position:absolute;left:0;right:0;bottom:0;z-index:81;background:var(--card);border-radius:28px 28px 0 0;transform:translateY(101%);transition:transform .34s cubic-bezier(.2,.8,.2,1);max-height:92%;overflow-y:auto;overflow-x:hidden;box-shadow:var(--shadow-lg)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:90;background:var(--card);border-radius:28px 28px 0 0;transform:translateY(101%);transition:transform .34s cubic-bezier(.2,.8,.2,1);max-height:92%;overflow-y:auto;overflow-x:hidden;box-shadow:var(--shadow-lg)}
 .sheet.open{transform:translateY(0)}
 .sheet .hero{position:relative;height:224px;background:linear-gradient(135deg,var(--green-700),var(--green-500))}
 .sheet .hero img{width:100%;height:100%;object-fit:cover}
@@ -255,6 +254,29 @@ img{display:block}a{color:inherit;text-decoration:none}
 .rail-sm .vmeta{font-size:11px;margin-top:3px}
 .rail-sm .vopen{font-size:11px;margin-top:5px}
 .panda-fab.fab-hide{opacity:0;pointer-events:none;transform:scale(.8)}
+/* plan my night */
+.plan-cta{display:flex;align-items:center;justify-content:center;gap:9px;margin:8px 18px 2px;padding:12px;border-radius:16px;background:linear-gradient(120deg,var(--green-700),var(--green-600));color:#fff;font-weight:800;font-size:14.5px;box-shadow:0 8px 20px rgba(10,79,58,.28)}
+.plan-cta:active{transform:scale(.98)}
+.plan-cta .em{font-size:17px}
+.plan-cta .gold{color:var(--gold-soft)}
+.plan{position:absolute;left:0;right:0;bottom:0;z-index:82;background:var(--app-bg);border-radius:26px 26px 0 0;transform:translateY(101%);transition:transform .34s cubic-bezier(.2,.8,.2,1);max-height:94%;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.plan.open{transform:translateY(0)}
+.plan .grip{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:42px;height:5px;border-radius:3px;background:#c3d8cb}
+.plan-head{display:flex;align-items:center;gap:12px;padding:18px 20px 8px}
+.plan-head b{font-size:20px;font-weight:800;letter-spacing:-.02em;display:block}
+.plan-head small{color:var(--muted);font-weight:600;font-size:13px}
+.plan-head .x{margin-left:auto;width:36px;height:36px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center}
+.plan-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0 8px}
+.plan-intro{margin:4px 18px 12px;font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.4;background:var(--card-soft);border-radius:14px;padding:12px 14px;border-left:3px solid var(--gold)}
+.plan-loading{padding:44px 24px;text-align:center;color:var(--muted);font-weight:700;line-height:1.5}
+.stop-badge{margin:8px 18px 6px;font-size:12.5px;font-weight:800;color:var(--green-700);letter-spacing:.02em}
+.plan-walk{margin:2px 18px 8px;font-size:12px;font-weight:700;color:var(--muted);text-align:center}
+.plan-actions{display:flex;gap:10px;padding:10px 18px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid var(--line);background:var(--app-bg)}
+.plan-actions button{flex:1;padding:14px;border-radius:14px;font-weight:800;font-size:14px}
+.plan-actions .shuf{background:var(--mint-100);color:var(--green-800)}
+.plan-actions .mapb{background:var(--green-800);color:#fff}
+.plan-actions button:active{transform:scale(.98)}
+.chip.plan-chip{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent;font-weight:800}
 /* loader */
 #loader{position:fixed;inset:0;z-index:200;background:linear-gradient(180deg,var(--green-800),var(--green-950));display:grid;place-items:center;transition:opacity .5s}
 #loader.gone{opacity:0;pointer-events:none}
@@ -283,6 +305,7 @@ img{display:block}a{color:inherit;text-decoration:none}
         <button class="badge" id="badge"><span class="dot"></span><span id="badgeText">Lunch spots</span></button>
       </div></div>
       <div class="search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="searchInput" type="search" enterkeyhint="search" placeholder="Search places, cuisines, a spot by name" /></div>
+      <button class="plan-cta" id="planBtn"><span class="em">🌙</span> Plan my night out <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
       <div class="sec-h"><h2>Top categories</h2></div>
       <div class="cats" id="cats"></div>
       <div class="homefilters">
@@ -370,6 +393,12 @@ img{display:block}a{color:inherit;text-decoration:none}
     <div class="composer"><input id="chatInput" type="text" enterkeyhint="send" placeholder="Ask Panda anything…" autocomplete="off" /><button class="send" id="sendBtn" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l16-8-6 16-3-6-7-2z"/></svg></button></div>
   </div>
 
+  <div class="plan" id="planSheet" aria-hidden="true">
+    <div class="grip"></div>
+    <div class="plan-head"><div><b>Your night out</b><small id="planWhen">Dinner · drinks · late night</small></div><button class="x" id="planClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="plan-body" id="planBody"></div>
+    <div class="plan-actions"><button class="shuf" id="planShuffle">Shuffle 🔀</button><button class="mapb" id="planMap">View route on map</button></div>
+  </div>
   <div class="scrim" id="scrim"></div>
   <div class="sheet" id="sheet" aria-hidden="true"></div>
 
@@ -393,7 +422,7 @@ const RESERVATIONS_URL = "./venues.json"; /* file your Apify/GitHub Action write
 
 const AI_URL=PANDA_API_BASE+"/api/panda-ai";
 const PHOTO_URL=(n,m)=>PANDA_API_BASE+"/api/place-photo?name="+encodeURIComponent(n)+"&max="+(m||700);
-const SYSTEM_PROMPT="You are Panda AI, the concierge inside the Panda app — a warm, witty and impeccably polite guide to eating, drinking and going out in London for people in their twenties. Be friendly and a little playful, quick with a light joke, but always genuinely useful and never cheesy. Understand messy input gracefully: silently fix typos, spelling and slang and never comment on anyone's spelling. Only recommend venues from the REAL NEARBY VENUES list you are given — never invent a place, address, rating or detail. If nothing fits, say so cheerfully and suggest a broader search. When someone asks for a menu or details you don't have, mention each place has a 'View official website & menu' button on its card. Keep replies short and scannable — a friendly line or two, then your picks by name. Use at most one emoji. You are for discovery only: never discuss payments, credit or paying later.";
+const SYSTEM_PROMPT="You are Panda — a cheeky, funny, quick-witted London night-out concierge for people in their twenties. Personality: playful and a little sassy, warm, never rude; crack the odd joke and now and then drop a short fun one-liner or quote. Handle ANY going-out intent broadly and literally: budget meals (e.g. where can I spend 20 pounds for lunch -> solid affordable spots), specific drinks (where can I drink rose -> wine bars), a particular wine, date night, cheap eats, brunch, and activities like where can I watch football (sports bars showing the game). CRITICAL: stay strictly on-subject — every venue you name must genuinely fit what they asked (if they said football, only suggest places to watch football). If the user names a SPECIFIC venue, dish or wine (e.g. Monterre, a nice Malbec), search for it by name and show what you find - never say you cannot look up specific places. Only recommend from the REAL NEARBY VENUES you are given; never invent a place, address or rating. Give a good spread (up to ~20 options when it fits). Silently fix typos and slang; never comment on spelling. Keep the reply to a punchy line or two of banter, then let the cards do the talking. Point to each card for details and booking. Food delivery is coming soon — you can tease it but do not take orders. One or two emoji max. Discovery only: never discuss payments or credit.";
 
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const store={get(k){try{return JSON.parse(sessionStorage.getItem(k))}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{sessionStorage.removeItem(k)}catch(e){}},
@@ -417,15 +446,17 @@ let COORDS=null;
 function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
 
 function discovery(){const h=new Date().getHours();if(h<11)return{label:"Breakfast time",q:"breakfast"};if(h<16)return{label:"Lunch spots",q:"lunch"};if(h<23)return{label:"Dinner & drinks",q:"dinner restaurants bars"};return{label:"Out out",q:"nightlife bars clubs"};}
-const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Spanish",em:"🥘",q:"spanish tapas"},{label:"French",em:"🥖",q:"french restaurants"},{label:"British",em:"🥧",q:"modern british restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Mexican",em:"🌮",q:"mexican restaurants"},{label:"Turkish",em:"🥙",q:"turkish restaurants"},{label:"Pub Food",em:"🍺",q:"gastropub pub food"},{label:"American",em:"🌭",q:"american diner"},{label:"Lebanese",em:"🧆",q:"lebanese middle eastern"},{label:"Thai",em:"🍜",q:"thai restaurants"},{label:"Chicken",em:"🍗",q:"fried chicken"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Dessert",em:"🍰",q:"dessert"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Breakfast",em:"🍳",q:"breakfast"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Brunch",em:"🥐",q:"brunch"},{label:"Bottomless",em:"🍾",q:"bottomless brunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"}];
+const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Spanish",em:"🥘",q:"spanish tapas"},{label:"French",em:"🥖",q:"french restaurants"},{label:"British",em:"🥧",q:"modern british restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Mexican",em:"🌮",q:"mexican restaurants"},{label:"Turkish",em:"🥙",q:"turkish restaurants"},{label:"Pub Food",em:"🍺",q:"gastropub pub food"},{label:"American",em:"🌭",q:"american diner"},{label:"Lebanese",em:"🧆",q:"lebanese middle eastern"},{label:"Thai",em:"🍜",q:"thai restaurants"},{label:"Chicken",em:"🍗",q:"fried chicken"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Dessert",em:"🍰",q:"dessert"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Breakfast",em:"🍳",q:"breakfast"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Brunch",em:"🥐",q:"brunch"},{label:"Bottomless",em:"🍾",q:"bottomless brunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Sports",em:"⚽",q:"sports bars showing live football"},{label:"Live Music",em:"🎵",q:"live music venues bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"}];
 let activeCat=0;
+const CAT_TIME={morning:["Breakfast","Brunch","Coffee","Bottomless","Lunch"],midday:["Lunch","Brunch","Bottomless","Coffee","Dinner"],evening:["Dinner","Drinks","Sports","Live Music","Nightlife"],late:["Nightlife","Drinks","Sports","Live Music"]};
+function catOrder(){const h=new Date().getHours();const key=h<11?"morning":h<16?"midday":h<23?"evening":"late";const pri=CAT_TIME[key];const rank=i=>{const p=pri.indexOf(CATEGORIES[i].label);return p<0?999:p;};return CATEGORIES.map((c,i)=>i).slice(1).sort((a,b)=>{const ra=rank(a),rb=rank(b);return ra!==rb?ra-rb:a-b;});}
 
 function ph(v,cls){return v.photoName?'<img loading="lazy" decoding="async" src="'+PHOTO_URL(v.photoName,cls==="hero"?1200:600)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>';}
 function meta(v){const b=[];if(v.rating)b.push('<span class="star">★ '+v.rating+'</span>');if(v.type)b.push(esc(v.type));if(v.price)b.push('<span class="price">'+esc(v.price)+'</span>');return b.join('<span class="sep">•</span>');}
 function openTxt(v){return v.openNow===true?'<div class="vopen o">Open now</div>':v.openNow===false?'<div class="vopen c">Closed now</div>':'';}
 function railCard(v,i,src){return '<button class="vcard" data-i="'+i+'" data-src="'+src+'"><div class="vphoto">'+ph(v)+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
 function isNew(v){return v.ratingCount!=null&&v.ratingCount>0&&v.ratingCount<40;}
-function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const bits=[fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');const o=v.openNow===true?'<div class="lo o">Open now</div>':v.openNow===false?'<div class="lo c">Closed now</div>':'';return '<button class="lcard" data-i="'+i+'" data-src="'+src+'"><div class="lp">'+ph(v)+(isNew(v)?'<span class="newbadge">NEW</span>':'')+'</div><div class="lb"><div class="ln">'+esc(v.name)+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>'+esc(v.address)+'</div>':'')+'<div class="lm">'+line+'</div>'+o+'</div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
+function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const bits=[fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');const o=v.openNow===true?'<div class="lo o">Open now</div>':v.openNow===false?'<div class="lo c">Closed now</div>':'';return '<button class="lcard" data-i="'+i+'" data-src="'+src+'"><div class="lp">'+ph(v)+'</div><div class="lb"><div class="ln">'+esc(v.name)+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>'+esc(v.address)+'</div>':'')+'<div class="lm">'+(isNew(v)?'<span class="newpill">NEW</span>':'')+line+'</div>'+o+'</div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
 
 let DATA={home:[],trend:[],map:[],saved:[]};
 async function fetchVenues(q){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:COORDS})});if(!r.ok)return[];return (await r.json()).venues||[];}catch(e){return[]}}
@@ -446,9 +477,9 @@ let mapCardVenue=null;
 function showMapCard(v){mapCardVenue=v;$("#mcPhoto").innerHTML=ph(v);$("#mcName").textContent=v.name;$("#mcMeta").textContent=[fmtDist(v.distanceMeters),fmtWalk(v.distanceMeters),v.price,v.type].filter(Boolean).join(" · ");$("#mapCard").classList.add("show");}
 
 function renderSaved(){const arr=Object.values(SAVED);DATA.saved=arr;$("#savedCount").textContent=arr.length?arr.length+" saved":"";$("#savedList").innerHTML=arr.length?arr.map((x,i)=>listCard(x,i,"saved")).join(''):'<div class="empty">Tap the ♥ on any spot to save it here.</div>';}
-function srcArr(s){return s==="home"?DATA.home:s==="trend"?DATA.trend:s==="map"?DATA.map:DATA.saved}
+function srcArr(s){return s==="home"?DATA.home:s==="trend"?DATA.trend:s==="map"?DATA.map:s==="plan"?DATA.plan:DATA.saved}
 
-function buildCats(){$("#cats").innerHTML=CATEGORIES.map((c,i)=>'<button class="cat'+(i===activeCat?' on':'')+'" data-cat="'+i+'"><span class="ic">'+c.em+'</span><span class="lb">'+c.label+'</span></button>').join('');$("#cats").addEventListener("click",e=>{const b=e.target.closest(".cat");if(!b)return;activeCat=+b.dataset.cat;$$(".cat").forEach(x=>x.classList.toggle("on",+x.dataset.cat===activeCat));refreshHome();});}
+function buildCats(){const order=[0].concat(catOrder());$("#cats").innerHTML=order.map(i=>'<button class="cat'+(i===activeCat?' on':'')+'" data-cat="'+i+'"><span class="ic">'+CATEGORIES[i].em+'</span><span class="lb">'+CATEGORIES[i].label+'</span></button>').join('');$("#cats").addEventListener("click",e=>{const b=e.target.closest(".cat");if(!b)return;activeCat=+b.dataset.cat;$$(".cat").forEach(x=>x.classList.toggle("on",+x.dataset.cat===activeCat));refreshHome();});}
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
@@ -469,12 +500,12 @@ function suggestChips(){const h=new Date().getHours();
  if(h<23)return["What's open now?","Dinner tonight","Cocktails nearby","Date-night dinner"];
  return["What's open now?","Late-night eats","Cocktails nearby","Bars still open"];}
 let history=store.get("panda_chat")||[];
-function renderMsgs(){const box=$("#msgs");box.innerHTML=history.map((m,mi)=>{if(m.role==="me")return '<div class="row me"><div class="bubble">'+esc(m.text)+'</div></div>';let cards="";if(m.venues&&m.venues.length){cards='<div class="chat-rail" data-mi="'+mi+'">'+m.venues.slice(0,8).map((v,i)=>'<button class="cvcard" data-v="'+i+'"><div class="vphoto">'+ph(v)+'</div><div class="cvb"><div class="cvn">'+esc(v.name)+'</div><div class="cvm">'+(v.rating?'★ '+v.rating:'')+(v.distanceMeters!=null?' · '+fmtDist(v.distanceMeters):'')+'</div></div></button>').join('')+'</div>';}return '<div class="row ai"><div style="max-width:100%"><div class="bubble">'+esc(m.text)+'</div>'+cards+'</div></div>';}).join('');$$(".chat-rail").forEach(rail=>{const mi=+rail.dataset.mi;rail.addEventListener("click",e=>{const b=e.target.closest(".cvcard");if(b)openSheet(history[mi].venues[+b.dataset.v]);});});box.scrollTop=box.scrollHeight;}
+function renderMsgs(){const box=$("#msgs");box.innerHTML=history.map((m,mi)=>{if(m.role==="me")return '<div class="row me"><div class="bubble">'+esc(m.text)+'</div></div>';let cards="";if(m.venues&&m.venues.length){cards='<div class="chat-rail" data-mi="'+mi+'">'+m.venues.slice(0,20).map((v,i)=>'<button class="cvcard" data-v="'+i+'"><div class="vphoto">'+ph(v)+'</div><div class="cvb"><div class="cvn">'+esc(v.name)+'</div><div class="cvm">'+(v.rating?'★ '+v.rating:'')+(v.distanceMeters!=null?' · '+fmtDist(v.distanceMeters):'')+'</div></div></button>').join('')+'</div>';}return '<div class="row ai"><div style="max-width:100%"><div class="bubble">'+esc(m.text)+'</div>'+cards+'</div></div>';}).join('');$$(".chat-rail").forEach(rail=>{const mi=+rail.dataset.mi;rail.addEventListener("click",e=>{const b=e.target.closest(".cvcard");if(b)openSheet(history[mi].venues[+b.dataset.v]);});});box.scrollTop=box.scrollHeight;}
 function greeting(){if(!history.length){const p=store.lget("panda_profile")||{};const nm=(p.name||"").trim().split(" ")[0];history=[{role:"ai",text:"Hey"+(nm?" "+nm:"")+"! I'm Panda 🐼 — tell me what you fancy (breakfast, a cheeky cocktail, dinner…) and I'll find the best spots right by you."}];store.set("panda_chat",history);}renderMsgs();}
 function toContents(){return history.filter(m=>m.text).map(m=>({role:m.role==="me"?"user":"model",parts:[{text:m.text}]}));}
 let sending=false;
 async function sendMessage(text){text=(text||"").trim();if(!text||sending)return;sending=true;history.push({role:"me",text});store.set("panda_chat",history);renderMsgs();const box=$("#msgs");box.insertAdjacentHTML("beforeend",'<div class="row ai" id="typing"><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>');box.scrollTop=box.scrollHeight;try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT+" Right now in London it is about "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+" ("+discovery().label+"), so bias suggestions to what suits this time of day."}]},contents:toContents(),generationConfig:{temperature:0.85,maxOutputTokens:700},location:COORDS})});const d=await r.json();$("#typing")?.remove();if(!r.ok)history.push({role:"ai",text:"Hmm, I tripped over my own paws there — give that another go in a sec."});else history.push({role:"ai",text:(d.text||"").trim()||"Not sure I caught that — try rephrasing?",venues:d.venues||[]});}catch(e){$("#typing")?.remove();history.push({role:"ai",text:"I couldn't reach the kitchen just now — check your connection and try again."});}store.set("panda_chat",history);renderMsgs();sending=false;}
-function openChat(){$("#suggests").innerHTML=suggestChips().map(s=>'<button class="chip">'+s+'</button>').join('');$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
+function openChat(){$("#suggests").innerHTML='<button class="chip plan-chip">🌙 Plan my night</button>'+suggestChips().map(s=>'<button class="chip">'+s+'</button>').join('');$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
 function closeChat(){$("#chat").classList.remove("open");history=[];store.del("panda_chat");showScreen("home");}
 
 function makeDraggable(el){let sx,sy,ox,oy,moved,dragging=false;const saved=store.get("fabpos");if(saved){el.style.left=saved.x+"px";el.style.top=saved.y+"px";el.style.right="auto";el.style.bottom="auto";}
@@ -485,12 +516,48 @@ function makeDraggable(el){let sx,sy,ox,oy,moved,dragging=false;const saved=stor
 
 function checkFormGate(){let first=store.lget("first_use");if(!first){first=Date.now();store.lset("first_use",first);}if(store.flag("form_done"))return;const days=(Date.now()-first)/86400000;if(days>=FORCE_FORM_AFTER_DAYS){$("#formGo").href=FORM_URL;$("#formModal").classList.add("show");}}
 
+/* ===== Plan my night ===== */
+function haversine(aLat,aLng,bLat,bLng){const R=6371000,tr=x=>x*Math.PI/180;const dLat=tr(bLat-aLat),dLng=tr(bLng-aLng);const q=Math.sin(dLat/2)**2+Math.cos(tr(aLat))*Math.cos(tr(bLat))*Math.sin(dLng/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(q)));}
+function planScore(v){return (v.rating||3.5)*Math.log((v.ratingCount||5)+10);}
+function pickTop(list,n){return list.slice().sort((a,b)=>planScore(b)-planScore(a)).slice(0,n);}
+function nearestTo(from,list,exclude){exclude=[].concat(exclude);let best=null,bd=Infinity;for(const v of list){if(exclude.indexOf(v.id)>=0)continue;const d=haversine(from.lat,from.lng,v.lat,v.lng);if(d<bd){bd=d;best=v;}}return best;}
+function openPlan(){$("#planBody").innerHTML='<div class="plan-loading">\uD83D\uDC3C Panda is planning your night...</div>';$("#scrim").classList.add("show");$("#planSheet").classList.add("open");}
+function closePlan(){$("#planSheet").classList.remove("open");$("#scrim").classList.remove("show");}
+async function buildNight(){
+  openPlan();
+  const h=new Date().getHours();
+  const lateQ=h>=22?"nightclubs late night bars":"late night bars pubs";
+  const [d,dr,lt]=await Promise.all([fetchVenues("dinner restaurants"),fetchVenues("cocktail bars"),fetchVenues(lateQ)]);
+  const D=d.filter(v=>v.lat!=null),DR=dr.filter(v=>v.lat!=null),LT=lt.filter(v=>v.lat!=null);
+  if(!D.length||!DR.length||!LT.length){$("#planBody").innerHTML='<div class="plan-loading">Could not find enough nearby spots right now - try again shortly.</div>';return;}
+  const topD=pickTop(D,6);
+  const stop1=topD[Math.floor(Math.random()*Math.min(topD.length,4))];
+  const stop2=nearestTo(stop1,pickTop(DR,8),[stop1.id])||pickTop(DR,1)[0];
+  const stop3=nearestTo(stop2||stop1,pickTop(LT,8),[stop1.id,stop2&&stop2.id])||pickTop(LT,1)[0];
+  DATA.plan=[stop1,stop2,stop3].filter(Boolean);
+  renderPlan();fetchPlanIntro();
+}
+function renderPlan(){
+  const labels=[["\uD83C\uDF7D\uFE0F","Dinner"],["\uD83C\uDF78","Drinks"],["\uD83C\uDF19","Late night"]];
+  let html='<div class="plan-intro" id="planIntro">Your night, sorted \uD83D\uDC3C</div>';
+  DATA.plan.forEach((v,i)=>{
+    html+='<div class="stop-badge">'+(labels[i]?labels[i][0]+" "+labels[i][1]:"Stop "+(i+1))+'</div>'+listCard(v,i,"plan");
+    if(i<DATA.plan.length-1){html+='<div class="plan-walk">\u2193 '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}
+  });
+  $("#planBody").innerHTML=html;
+}
+async function fetchPlanIntro(){
+  const n=DATA.plan.map(v=>v.name);
+  try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty London night-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this night-out plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
+}
+function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();showScreen("map");initMap();setTimeout(()=>{map.invalidateSize();markers.clearLayers();const pts=DATA.plan.map(v=>[v.lat,v.lng]);DATA.plan.forEach((v,i)=>{const mk=L.marker([v.lat,v.lng],{icon:pinIcon(String(i+1))}).addTo(markers);mk.on("click",()=>showMapCard(v));});L.polyline(pts,{color:"#0F6B4F",weight:4,opacity:.85,dashArray:"1 9"}).addTo(markers);try{map.fitBounds(pts,{padding:[70,70],maxZoom:15});}catch(e){}},90);}
+
 function boot(){
   buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();
   $("#fCuisine").innerHTML=CATEGORIES.map((c,i)=>'<option value="'+esc(c.q)+'">'+(i===0?"All cuisines":c.label)+'</option>').join('');
-  $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(b)sendMessage(b.textContent)});
+  $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;if(b.classList.contains("plan-chip")){buildNight();return;}sendMessage(b.textContent)});
   $("#closeChat").addEventListener("click",closeChat);
-  $("#scrim").addEventListener("click",closeSheet);
+  $("#scrim").addEventListener("click",function(){closeSheet();closePlan();});
   $("#sendBtn").addEventListener("click",()=>{const i=$("#chatInput");sendMessage(i.value);i.value=""});
   $("#chatInput").addEventListener("keydown",e=>{if(e.key==="Enter"){sendMessage(e.target.value);e.target.value=""}});
   $("#clearChat").addEventListener("click",()=>{history=[];store.del("panda_chat");greeting();});
@@ -519,6 +586,10 @@ function boot(){
     h.addEventListener("touchend",()=>{drag=false;setTimeout(()=>moved=false,50);});
   })();
   const si=$("#searchInput");si.addEventListener("keydown",e=>{if(e.key==="Enter"&&si.value.trim()){const q=si.value.trim();si.value="";openChat();sendMessage(q);}});
+  $("#planBtn").addEventListener("click",buildNight);
+  $("#planClose").addEventListener("click",closePlan);
+  $("#planShuffle").addEventListener("click",buildNight);
+  $("#planMap").addEventListener("click",showPlanOnMap);
   renderSaved();refreshHome();getLocation();checkFormGate();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
 }
