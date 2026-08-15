@@ -11,6 +11,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Panda" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Panda" />
 <link rel="manifest" href="./manifest.json" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='28' fill='%230A4F3A'/%3E%3Ccircle cx='60' cy='66' r='34' fill='%23fff'/%3E%3Cellipse cx='47' cy='62' rx='9' ry='12' fill='%23071A14'/%3E%3Cellipse cx='73' cy='62' rx='9' ry='12' fill='%23071A14'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -255,6 +259,31 @@ img{display:block}a{color:inherit;text-decoration:none}
 .rail-sm .vmeta{font-size:11px;margin-top:3px}
 .rail-sm .vopen{font-size:11px;margin-top:5px}
 .panda-fab.fab-hide{opacity:0;pointer-events:none;transform:scale(.8)}
+/* compact dropdowns */
+.dd{position:relative}
+.dd-btn{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;padding:9px 13px;border-radius:999px;box-shadow:var(--shadow)}
+.dd-btn svg{width:15px;height:15px;opacity:.55}
+.dd.open .dd-btn{border-color:var(--gold)}
+.dd-menu{position:absolute;top:calc(100% + 6px);left:0;min-width:160px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);padding:6px;z-index:55;display:none}
+.dd.open .dd-menu{display:block}
+.dd-menu button{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:10px;font-weight:700;font-size:14px;color:var(--ink);background:none}
+.dd-menu button.sel{background:var(--mint-100);color:var(--green-800)}
+.dd-menu button:active{background:var(--card-soft)}
+/* map close */
+.map-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:45;width:38px;height:38px;border-radius:50%;background:var(--card);box-shadow:var(--shadow-lg);display:grid;place-items:center;font-size:16px;font-weight:800;color:var(--ink)}
+.map-x:active{transform:scale(.94)}
+/* panda AI day (chill) theme 5am-7pm */
+.chat.day{background:#EEF4EE}
+.chat.day .chat-head{background:linear-gradient(180deg,var(--green-700),var(--green-600));color:#fff;border-bottom:none}
+.chat.day .chat-head .who small{color:rgba(255,255,255,.82)}
+.chat.day .msgs{background:#EEF4EE}
+.chat.day .row.ai .bubble{background:#fff;color:#12241d;box-shadow:0 2px 8px rgba(6,46,34,.06)}
+.chat.day .row.me .bubble{background:var(--green-600);color:#fff}
+.chat.day .suggests{background:#EEF4EE}
+.chat.day .chip{background:#fff;color:var(--green-800);border:1px solid var(--line)}
+.chat.day .chip.plan-chip{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent}
+.chat.day .composer{background:#EEF4EE;border-top:1px solid var(--line)}
+.chat.day #chatInput{background:#fff;color:#12241d}
 /* panda shuffle */
 .shuffle-handle{position:absolute;left:0;top:44%;z-index:60;width:44px;height:58px;background:linear-gradient(160deg,var(--gold),var(--gold-deep));border-radius:0 18px 18px 0;box-shadow:4px 4px 14px rgba(0,0,0,.24);display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;transform:translateX(-22px);transition:transform .24s cubic-bezier(.2,.8,.2,1);animation:shpeek 2.6s ease-in-out infinite}
 .shuffle-handle:active{transform:translateX(0);animation:none}
@@ -316,8 +345,8 @@ img{display:block}a{color:inherit;text-decoration:none}
       <div class="sec-h"><h2>Top categories</h2></div>
       <div class="cats" id="cats"></div>
       <div class="homefilters">
-        <select id="hBudget"><option value="">Any price</option><option value="1">£</option><option value="2">££</option><option value="3">£££</option></select>
-        <select id="hSort"><option value="dist">Nearest first</option><option value="rating">Top rated</option></select>
+        <div class="dd" id="ddBudget" data-val=""><button class="dd-btn" type="button">Any price <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-menu"><button type="button" data-v="" class="sel">Any price</button><button type="button" data-v="1">£</button><button type="button" data-v="2">££</button><button type="button" data-v="3">£££</button></div></div>
+        <div class="dd" id="ddSort" data-val="dist"><button class="dd-btn" type="button">Nearest first <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-menu"><button type="button" data-v="dist" class="sel">Nearest first</button><button type="button" data-v="rating">Top rated</button></div></div>
       </div>
     </div>
     <div class="home-feed">
@@ -334,6 +363,7 @@ img{display:block}a{color:inherit;text-decoration:none}
       <select id="fHours"><option value="">Any time</option><option value="open">Open now</option></select>
     </div>
     <div id="map-canvas"></div>
+    <button class="map-x" id="mapX" aria-label="Close map">✕</button>
     <div class="mapcard" id="mapCard">
       <div class="mp" id="mcPhoto"></div>
       <div class="mb" id="mcOpen"><div class="mn" id="mcName"></div><div class="mm" id="mcMeta"></div></div>
@@ -473,7 +503,9 @@ async function fetchVenuesPaged(q,token){try{const r=await fetch(AI_URL,{method:
 function sk(el,n,wide){el.innerHTML=Array.from({length:n}).map(()=>'<div class="skead'+(wide?' wide':'')+'"></div>').join(wide?'':'')}
 
 let homeQuery="",homeToken=null,homeLoading=false,homeRaw=[];
-function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#hBudget").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#hSort").value;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';}
+function wireDropdown(id,cb){const dd=$("#"+id);if(!dd)return;const btn=dd.querySelector(".dd-btn");btn.addEventListener("click",e=>{e.stopPropagation();document.querySelectorAll(".dd.open").forEach(o=>{if(o!==dd)o.classList.remove("open");});dd.classList.toggle("open");});dd.querySelectorAll(".dd-menu button").forEach(b=>{b.addEventListener("click",e=>{e.stopPropagation();dd.dataset.val=b.dataset.v;btn.firstChild.textContent=b.textContent+" ";dd.querySelectorAll(".dd-menu button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");dd.classList.remove("open");cb&&cb();});});}
+document.addEventListener("click",()=>{document.querySelectorAll(".dd.open").forEach(o=>o.classList.remove("open"));});
+function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';}
 async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!DATA.trend.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));DATA.trend=t;$("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('')}}
 async function loadMoreHome(){if(homeLoading||!homeToken||homeRaw.length>=200)return;homeLoading=true;const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,homeToken);const seen=new Set(homeRaw.map(x=>x.id));venues.forEach(v=>{if(!seen.has(v.id))homeRaw.push(v);});homeToken=nextPageToken;applyHomeFilters();homeLoading=false;}
 
@@ -514,7 +546,7 @@ function greeting(){if(!history.length){const p=store.lget("panda_profile")||{};
 function toContents(){return history.filter(m=>m.text).map(m=>({role:m.role==="me"?"user":"model",parts:[{text:m.text}]}));}
 let sending=false;
 async function sendMessage(text){text=(text||"").trim();if(!text||sending)return;sending=true;history.push({role:"me",text});store.set("panda_chat",history);renderMsgs();const box=$("#msgs");box.insertAdjacentHTML("beforeend",'<div class="row ai" id="typing"><div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div></div>');box.scrollTop=box.scrollHeight;try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT+" Right now in London it is about "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+" ("+discovery().label+"), so bias suggestions to what suits this time of day."}]},contents:toContents(),generationConfig:{temperature:0.85,maxOutputTokens:700},location:COORDS})});const d=await r.json();$("#typing")?.remove();if(!r.ok)history.push({role:"ai",text:"Hmm, I tripped over my own paws there — give that another go in a sec."});else history.push({role:"ai",text:(d.text||"").trim()||"Not sure I caught that — try rephrasing?",venues:d.venues||[]});}catch(e){$("#typing")?.remove();history.push({role:"ai",text:"I couldn't reach the kitchen just now — check your connection and try again."});}store.set("panda_chat",history);renderMsgs();sending=false;}
-function openChat(){$("#suggests").innerHTML='<button class="chip plan-chip">🌙 Plan my night</button>'+suggestChips().map(s=>'<button class="chip">'+s+'</button>').join('');$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
+function openChat(){var dm=defaultMode();var DL={morning:["🌅","Plan my morning"],lunch:["🍽️","Plan my lunch"],night:["🌙","Plan my night"]}[dm];$("#suggests").innerHTML='<button class="chip plan-chip">'+DL[0]+' '+DL[1]+'</button>'+suggestChips().map(s=>'<button class="chip">'+s+'</button>').join('');var _h=new Date().getHours();$("#chat").classList.toggle("day",(_h>=5&&_h<19));$("#chat").classList.add("open");$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");store.setFlag("panda_used");greeting();setTimeout(()=>$("#chatInput").focus(),350);}
 function closeChat(){$("#chat").classList.remove("open");history=[];store.del("panda_chat");showScreen("home");}
 
 function makeDraggable(el){let sx,sy,ox,oy,moved,dragging=false;const saved=store.get("fabpos");if(saved){el.style.left=saved.x+"px";el.style.top=saved.y+"px";el.style.right="auto";el.style.bottom="auto";}
@@ -538,7 +570,7 @@ const PLAN_MODES={
   night:{title:"Plan my night",stops:[["🍽️","Dinner","dinner restaurants"],["🍸","Drinks","cocktail bars"],["🌙","Late night","late night bars"]]}
 };
 let planMode="night";
-function defaultMode(){const h=new Date().getHours();return h<11?"morning":h<16?"lunch":"night";}
+function defaultMode(){const h=new Date().getHours();if(h>=5&&h<11)return"morning";if(h>=11&&h<16)return"lunch";return"night";}
 function updateModeChips(){$$("#planModes button").forEach(b=>b.classList.toggle("on",b.dataset.mode===planMode));}
 async function buildPlan(mode){
   planMode=PLAN_MODES[mode]?mode:defaultMode();openPlan();updateModeChips();
@@ -572,7 +604,8 @@ function boot(){
   $("#creditApply").addEventListener("click",applyNow);
   $("#profApply").addEventListener("click",applyNow);
   ["fCuisine","fBudget","fHours"].forEach(id=>$("#"+id).addEventListener("change",loadMapVenues));
-  ["hBudget","hSort"].forEach(id=>$("#"+id).addEventListener("change",applyHomeFilters));
+  wireDropdown("ddBudget",applyHomeFilters);wireDropdown("ddSort",applyHomeFilters);
+  var _mx=$("#mapX");if(_mx)_mx.addEventListener("click",()=>showScreen("home"));
   $(".home-feed").addEventListener("scroll",function(){if(this.scrollTop+this.clientHeight>=this.scrollHeight-520)loadMoreHome();});
   $("#mcOpen").addEventListener("click",()=>{if(mapCardVenue)openSheet(mapCardVenue);});
   $("#mcGo").addEventListener("click",()=>{if(mapCardVenue)openSheet(mapCardVenue);});
