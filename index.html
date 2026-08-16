@@ -115,6 +115,12 @@ img{display:block}a{color:inherit;text-decoration:none}
 .lcard .lm .price{color:var(--gold-deep);font-weight:800}.lcard .lm .sep{opacity:.38;color:var(--muted)}
 .lcard .ostat{font-weight:800}.lcard .ostat.o{color:#0c7a45}.lcard .ostat.c{color:#9aa8a0}
 .newpill{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;font-size:9px;font-weight:800;letter-spacing:.05em;padding:2px 6px;border-radius:6px;margin-right:6px;vertical-align:middle;box-shadow:0 2px 6px rgba(198,161,91,.4)}
+.promoted{display:inline-block;background:var(--gold-soft,rgba(198,161,91,.16));color:var(--gold-deep);font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border-radius:5px;margin-right:6px;vertical-align:middle}
+.promoted-card{border-color:var(--gold-line);box-shadow:0 3px 14px rgba(198,161,91,.16),inset 3px 0 0 var(--gold)}
+.promoted-card .lp::after{box-shadow:inset 0 0 0 1px rgba(198,161,91,.5)}
+.vpromo{position:absolute;top:8px;left:8px;z-index:2;background:rgba(20,32,26,.82);color:var(--gold2,#E4C77E);backdrop-filter:blur(4px)}
+.vcard.promoted-card{border-color:var(--gold-line);box-shadow:0 6px 18px rgba(198,161,91,.2)}
+.vcard .vphoto{position:relative}
 .heart{position:absolute;top:9px;right:9px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#b9c9c0;background:rgba(255,255,255,.65);transition:transform .12s}
 .heart:active{transform:scale(1.18)}
 .heart.on{color:#e5484d}
@@ -732,7 +738,33 @@ const SHARE_URL = "https://pandaindustry.co";
 const SHARE_TEXT = "Check out Panda \uD83D\uDC3C — discover the best restaurants, bars & nights out, wherever you are.";
 const FORCE_FORM_AFTER_DAYS = 48;   /* lower this (e.g. 2) to capture details sooner */
 const RESERVATIONS_URL = "./venues.json"; /* file your Apify/GitHub Action writes */
+/* Sponsored venues: a single cached list the app reads. Today a JSON file in the
+   repo (hand-edit for your first partners); later swap SPONSORED_URL to a Firestore
+   endpoint — only loadSponsored() changes, nothing else. */
+const SPONSORED_URL = "./sponsored.json";
+const SPONSORED_TTL_MIN = 8;   /* cache for 8 minutes */
 /* ================= */
+
+let SPONSORED={}, SPONSORED_BYNAME={};
+function sponsorTier(v){ if(!v)return null; return SPONSORED[v.id] || (v.name&&SPONSORED_BYNAME[String(v.name).toLowerCase().trim()]) || null; }
+function applySponsored(data){
+  SPONSORED={};SPONSORED_BYNAME={};
+  const list=Array.isArray(data)?data:(data&&data.venues?data.venues:[]);
+  list.forEach(o=>{ if(!o)return; const tier=(o.tier||o.sponsor_tier||"discovery"); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[String(o.name).toLowerCase().trim()]=tier; });
+  if(typeof homeRaw!=="undefined" && homeRaw && homeRaw.length) applyHomeFilters();
+  if(typeof TREND_ORGANIC!=="undefined" && TREND_ORGANIC.length) renderTrend();
+}
+async function loadSponsored(){
+  try{
+    const c=store.lget("panda_sponsored_cache");
+    if(c && (Date.now()-c.ts)<SPONSORED_TTL_MIN*60000){ applySponsored(c.data); return; }
+    const r=await fetch(SPONSORED_URL,{cache:"no-store"});
+    if(!r.ok) return;
+    const data=await r.json();
+    store.lset("panda_sponsored_cache",{ts:Date.now(),data});
+    applySponsored(data);
+  }catch(e){}
+}
 
 const AI_URL=PANDA_API_BASE+"/api/panda-ai";
 const PHOTO_URL=(n,m)=>PANDA_API_BASE+"/api/place-photo?name="+encodeURIComponent(n)+"&max="+(m||700);
@@ -779,9 +811,9 @@ function catOrder(){const h=new Date().getHours();const key=h<11?"morning":h<16?
 function ph(v,size){size=size||600;return v.photoName?'<img loading="lazy" decoding="async" src="'+PHOTO_URL(v.photoName,size)+'" alt="'+esc(v.name)+'" onload="this.classList.add(\'ph-on\')" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>';}
 function meta(v){const b=[];if(v.rating)b.push('<span class="star">★ '+v.rating+'</span>');if(v.type)b.push(esc(v.type));if(v.price)b.push('<span class="price">'+esc(v.price)+'</span>');return b.join('<span class="sep">•</span>');}
 function openTxt(v){return v.openNow===true?'<div class="vopen o">Open now</div>':v.openNow===false?'<div class="vopen c">Closed now</div>':'';}
-function railCard(v,i,src){return '<button class="vcard" data-i="'+i+'" data-src="'+src+'"><div class="vphoto">'+ph(v,400)+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
+function railCard(v,i,src){return '<button class="vcard'+(v.__sponsor?' promoted-card':'')+'" data-i="'+i+'" data-src="'+src+'"><div class="vphoto">'+ph(v,400)+(v.__sponsor?'<span class="promoted vpromo">Promoted</span>':'')+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
 function isNew(v){return v.ratingCount!=null&&v.ratingCount>0&&v.ratingCount<40;}
-function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const o=v.openNow===true?'<span class="ostat o">Open</span>':v.openNow===false?'<span class="ostat c">Closed</span>':'';const bits=[o,fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');return '<button class="lcard" data-i="'+i+'" data-src="'+src+'"><div class="lp">'+ph(v,160)+'</div><div class="lb"><div class="ln">'+(isNew(v)?'<span class="newpill">NEW</span>':'')+esc(v.name)+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="la-t">'+esc(v.address)+'</span></div>':'<div class="la"></div>')+'<div class="lm">'+line+'</div></div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
+function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const o=v.openNow===true?'<span class="ostat o">Open</span>':v.openNow===false?'<span class="ostat c">Closed</span>':'';const bits=[o,fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');return '<button class="lcard'+(v.__sponsor?' promoted-card':'')+'" data-i="'+i+'" data-src="'+src+'"><div class="lp">'+ph(v,160)+'</div><div class="lb"><div class="ln">'+(v.__sponsor?'<span class="promoted">Promoted</span>':'')+(isNew(v)?'<span class="newpill">NEW</span>':'')+esc(v.name)+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="la-t">'+esc(v.address)+'</span></div>':'<div class="la"></div>')+'<div class="lm">'+line+'</div></div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
 
 let DATA={home:[],trend:[],map:[],saved:[]};
 async function fetchVenues(q){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:COORDS})});if(!r.ok)return[];return (await r.json()).venues||[];}catch(e){return[]}}
@@ -791,8 +823,32 @@ function sk(el,n,wide){el.innerHTML=Array.from({length:n}).map(()=>'<div class="
 let homeQuery="",homeToken=null,homeLoading=false,homeRaw=[];
 function wireDropdown(id,cb){const dd=$("#"+id);if(!dd)return;const btn=dd.querySelector(".dd-btn");btn.addEventListener("click",e=>{e.stopPropagation();document.querySelectorAll(".dd.open").forEach(o=>{if(o!==dd)o.classList.remove("open");});dd.classList.toggle("open");});dd.querySelectorAll(".dd-menu button").forEach(b=>{b.addEventListener("click",e=>{e.stopPropagation();dd.dataset.val=b.dataset.v;btn.firstChild.textContent=b.textContent+" ";dd.querySelectorAll(".dd-menu button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");dd.classList.remove("open");cb&&cb();});});}
 document.addEventListener("click",()=>{document.querySelectorAll(".dd.open").forEach(o=>o.classList.remove("open"));});
-function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';}
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!DATA.trend.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));DATA.trend=t;$("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('')}}
+function interleaveSponsored(list){
+  // Pull sponsored out, then drop them back in at every 5th slot (5,10,15…)
+  const spon=[],organic=[];
+  list.forEach(x=>{const t=sponsorTier(x);x.__sponsor=t;(t?spon:organic).push(x);});
+  if(!spon.length) return organic;
+  const out=[];let si=0;
+  for(let i=0;i<organic.length;i++){
+    // before filling position 5,10,15… (0-indexed 4,9,14) insert a sponsored one
+    if(out.length>0 && out.length%5===4 && si<spon.length){ out.push(spon[si++]); }
+    out.push(organic[i]);
+  }
+  while(si<spon.length) out.push(spon[si++]); // any remaining sponsored go at the end
+  return out;
+}
+function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';}
+async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
+let TREND_ORGANIC=[];
+function renderTrend(){
+  let t=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
+  // insert paid top-tier (Banging) venues into the trending row for double visibility
+  const bang=(homeRaw||[]).filter(x=>sponsorTier(x)==="banging");
+  if(bang.length){const out=[];let bi=0;for(let i=0;i<t.length;i++){if(out.length>0&&out.length%5===2&&bi<bang.length){out.push(bang[bi++]);}out.push(t[i]);}while(bi<bang.length)out.push(bang[bi++]);t=out;}
+  t.forEach(x=>x.__sponsor=sponsorTier(x));
+  DATA.trend=t;
+  $("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('');
+}
 let ringStage=0;const RING_KM=[1.6,3.2,4.8];
 function ringCenters(km){const c=[];if(!COORDS)return c;const dLat=km/111;const dLng=km/(111*Math.cos(COORDS.lat*Math.PI/180));for(let a=0;a<360;a+=60){const r=a*Math.PI/180;c.push({lat:COORDS.lat+dLat*Math.sin(r),lng:COORDS.lng+dLng*Math.cos(r)});}return c;}
 async function fetchVenuesAt(q,lat,lng){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:{lat,lng}})});if(!r.ok)return[];const d=await r.json();return d.venues||[];}catch(e){return[];}}
@@ -1007,7 +1063,7 @@ function boot(){
   $("#planShuffle").addEventListener("click",()=>buildPlan(planMode));
   $("#planMap").addEventListener("click",showPlanOnMap);
   $("#planModes").addEventListener("click",e=>{const b=e.target.closest("button");if(b)buildPlan(b.dataset.mode);});
-  renderSaved();refreshHome();getLocation();checkFormGate();initAuth();
+  renderSaved();refreshHome();getLocation();checkFormGate();initAuth();loadSponsored();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
 }
 document.addEventListener("DOMContentLoaded",boot);
