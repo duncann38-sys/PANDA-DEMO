@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-16T16:34:02.095Z",
+  "updated": "2026-08-16T16:34:03.071Z",
   "note": "Sponsored venues. Match by exact 'name' (as shown in the app) or 'place_id'. tier 'discovery' = promoted in the Suggestions feed (every 5th slot). tier 'banging' = promoted in Suggestions AND inserted into the Banging trending row (double visibility, premium price). 'banging' here is the paid tier that buys placement in the Banging section — it is not a badge shown on cards.",
   "venues": [
     {
@@ -11,6 +11,11 @@
       "name": "Dishoom",
       "place_id": "",
       "tier": "banging"
+    },
+    {
+      "name": "",
+      "place_id": "",
+      "tier": "discovery"
     }
   ]
 }
