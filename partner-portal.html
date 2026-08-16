@@ -190,6 +190,22 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   .nav{display:none}
   .content{padding:24px 16px 80px}
 }
+/* add-location modal */
+.al-back{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(3,8,6,.72);backdrop-filter:blur(6px)}
+.al-back.show{display:flex}
+.al-card{width:100%;max-width:440px;background:linear-gradient(180deg,var(--surf),var(--bg2));border:1px solid var(--line);
+  border-radius:20px;padding:22px;box-shadow:var(--shadow);max-height:90vh;overflow-y:auto}
+.al-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.al-head b{font-family:'Space Grotesk';font-size:19px;font-weight:700}
+.al-x{width:32px;height:32px;border-radius:50%;background:var(--surf2);color:var(--text);font-size:20px;line-height:1}
+.al-sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.al-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:6px 0 8px}
+.al-tiers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.al-tier{text-align:left;padding:13px 14px;border-radius:13px;border:1.5px solid var(--line);background:var(--bg2);transition:.15s}
+.al-tier b{display:block;font-weight:700;font-size:14px}
+.al-tier span{display:block;color:var(--faint);font-size:11.5px;margin-top:2px}
+.al-tier.sel{border-color:var(--gold);box-shadow:0 0 0 3px var(--goldsoft)}
 </style>
 </head>
 <body>
@@ -296,6 +312,22 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   <div class="content" id="content"></div>
 </div>
 
+<!-- Add location modal -->
+<div id="addModal" class="al-back">
+  <div class="al-card">
+    <div class="al-head"><b>Add a location</b><button id="alClose" class="al-x" aria-label="Close">&times;</button></div>
+    <p class="al-sub">Each location is its own listing and its own subscription. Add as many as you run.</p>
+    <div class="field vsearch"><label>Find the venue</label><input id="alInput" type="text" placeholder="Search name & city" autocomplete="off" /><div id="alHit" style="display:none"></div></div>
+    <div class="field" id="alAddrWrap" style="display:none"><label>Confirm the address customers will see</label><input id="alAddr" type="text" /></div>
+    <label class="al-label">Tier</label>
+    <div class="al-tiers">
+      <button class="al-tier sel" data-tier="discovery"><b>Discovery</b><span>£99/mo · Suggestions</span></button>
+      <button class="al-tier" data-tier="banging"><b>Banging</b><span>£250/mo · double visibility</span></button>
+    </div>
+    <button class="btn gold" id="alGo" disabled>Add &amp; start 7-day trial</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -307,6 +339,8 @@ const CONFIG = {
   PORTAL_ENDPOINT:   "https://panda-partners-api.vercel.app/api/create-portal-session",
   // Venue search reuses your existing app proxy (no key exposed in this page):
   PLACES_ENDPOINT:   "https://panda-ai-proxy.vercel.app/api/panda-ai",
+  // Real dashboard numbers (Firestore-backed) — falls back to demo until events flow:
+  ANALYTICS_READ:    "https://panda-partners-api.vercel.app/api/analytics",
   // Optional: Google Maps key enables real venue autocomplete (leave "" for manual entry):
   MAPS_KEY: "",
   // Optional: Google OAuth client id (leave "" to use email sign-up in demo mode):
@@ -474,21 +508,22 @@ function renderPage(page){
     const vals=[42,55,38,61,80,96,72];
     const max=Math.max(...vals);
     C.innerHTML=
-      '<div class="page-head"><div><h2>Dashboard</h2><p>How '+esc(venue)+' is performing on Panda.</p></div>'
+      '<div class="page-head"><div><h2>Dashboard</h2><p>Your funnel on Panda: seen by people nearby → opened → acted. Real intent, not just reach.</p></div>'
       +'<span class="venue-pill"><span class="dot"></span>'+esc(venue)+' · <span class="tag '+tier+'">'+tierName+'</span></span></div>'
       +'<div class="grid3">'
-        +statCard("Total impressions","eye","12,480","+18% vs last week")
-        +statCard("Directional taps","map","1,942","+9% vs last week")
-        +statCard("Conversion actions","link","864","menu & booking clicks")
+        +statCard("Seen","eye","12,480","times shown to people nearby")
+        +statCard("Opened","map","1,942","tapped to view your listing")
+        +statCard("Acted","link","864","tapped to book / get directions")
       +'</div>'
-      +'<div class="panel"><h3>Impressions this week</h3><div class="sub">Views of your venue detail page.</div>'
+      +'<div class="panel"><h3>Times shown this week</h3><div class="sub">How often you appeared to people deciding where to go out nearby.</div>'
         +'<div class="bars">'+vals.map((v,i)=>'<div class="bar" style="height:'+(v/max*100)+'%"><span>'+days[i]+'</span></div>').join('')+'</div>'
         +'<div style="height:22px"></div></div>'
       +'<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3>Your locations</h3><button class="rowbtn" id="addLoc">+ Add location</button></div>'
         +'<div class="sub">Each location is billed as its own subscription. Discounts apply on 5+.</div>'
-        +locRow(venue,(sub.venue&&sub.venue.address)||"Primary location",tier,tierName)
+        +getLocations().map(l=>locRow(l.name,l.address||"Primary location",l.tier||"discovery",(l.tier==="banging"?"Banging 🔥":"Discovery"))).join('')
       +'</div>';
-    $("#addLoc")&&$("#addLoc").addEventListener("click",()=>toast("Add-location flow: reuse venue search + a new Stripe subscription."));
+    $("#addLoc")&&$("#addLoc").addEventListener("click",openAddLocation);
+    liveAnalytics(sub);
   }
   else if(page==="billing"){
     const sub2=store.g("panda_sub")||state;
@@ -549,10 +584,38 @@ async function openPortal(){
   }catch(e){ toast("Connect the Stripe billing portal endpoint to manage the subscription."); }
 }
 
+/* ---------- locations (multi-venue) ---------- */
+function getLocations(){
+  let locs=store.g("panda_locations");
+  if(!locs){ const s=store.g("panda_sub"); locs=(s&&s.venue)?[{name:s.venue.name,address:s.venue.address,placeId:s.venue.placeId||"",tier:s.tier||"discovery",interval:s.interval||"6_month",status:s.status||"trialing"}]:[]; store.s("panda_locations",locs); }
+  return locs;
+}
+function addLocationRec(loc){ const locs=getLocations(); locs.push(loc); store.s("panda_locations",locs); }
+
+/* ---------- add-location modal ---------- */
+let AL={venue:null,tier:"discovery"}, alT=null;
+function openAddLocation(){ AL={venue:null,tier:"discovery"}; $("#alInput").value=""; $("#alHit").style.display="none"; $("#alAddrWrap").style.display="none"; document.querySelectorAll(".al-tier").forEach((b,i)=>b.classList.toggle("sel",i===0)); $("#alGo").disabled=true; $("#addModal").classList.add("show"); setTimeout(()=>$("#alInput").focus(),150); }
+function closeAddLocation(){ $("#addModal").classList.remove("show"); }
+$("#alClose").addEventListener("click",closeAddLocation);
+$("#addModal").addEventListener("click",e=>{ if(e.target.id==="addModal") closeAddLocation(); });
+document.querySelectorAll(".al-tier").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll(".al-tier").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); AL.tier=b.dataset.tier; }));
+$("#alInput").addEventListener("input",()=>{ const q=$("#alInput").value.trim(); const hit=$("#alHit"); AL.venue=null; $("#alGo").disabled=true; $("#alAddrWrap").style.display="none"; if(q.length<3){hit.style.display="none";return;} clearTimeout(alT); hit.style.display="block"; hit.innerHTML='<div class="vhit"><span class="pin">'+PIN+'</span><div><b>Searching…</b></div></div>'; alT=setTimeout(()=>alSearch(q),340); });
+async function alSearch(q){ const hit=$("#alHit"); try{ const r=await fetch(CONFIG.PLACES_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q,location:PORTAL_COORDS||undefined})}); if(!r.ok)throw 0; const d=await r.json(); const list=(d.venues||[]).slice(0,6); if(!list.length){ hit.innerHTML='<div class="vhit pick" id="alUse"><span class="pin">'+PIN+'</span><div><b>Use "'+esc(q)+'"</b><span>No match — tap to use what you typed.</span></div></div>'; const u=$("#alUse"); if(u)u.addEventListener("click",()=>alPick({name:q.split(",")[0],address:q})); return; } hit.innerHTML=list.map((v,i)=>'<div class="vhit pick" data-ai="'+i+'"><span class="pin">'+PIN+'</span><div><b>'+esc(v.name)+'</b><span>'+esc(v.address||"")+'</span></div></div>').join(''); hit.querySelectorAll("[data-ai]").forEach(el=>el.addEventListener("click",()=>alPick(list[+el.dataset.ai]))); }catch(e){ hit.innerHTML='<div class="vhit"><div><b>Search unavailable</b><span>Type the full name & address.</span></div></div>'; } }
+function alPick(v){ AL.venue={name:v.name,address:v.address||v.fullAddress||"",placeId:v.id||"",lat:v.lat,lng:v.lng}; $("#alInput").value=v.name; $("#alHit").innerHTML='<div class="vhit sel"><span class="pin" style="color:var(--gold2)">'+CHK+'</span><div><b>'+esc(v.name)+'</b><span>Selected — check the address</span></div></div>'; $("#alAddr").value=AL.venue.address||""; $("#alAddrWrap").style.display="block"; $("#alGo").disabled=false; }
+$("#alGo").addEventListener("click",()=>{ if(!AL.venue)return; const addr=$("#alAddr").value.trim(); if(addr)AL.venue.address=addr; const loc={name:AL.venue.name,address:AL.venue.address,placeId:AL.venue.placeId||"",tier:AL.tier,interval:(store.g("panda_sub")||{}).interval||"6_month",status:"trialing"};
+  if(CONFIG.CHECKOUT_ENDPOINT && CONFIG.CHECKOUT_ENDPOINT.indexOf("panda-partners-api")>-1){ store.s("panda_pending_loc",loc); startCheckoutFor(loc); }
+  else { addLocationRec(loc); closeAddLocation(); renderPage("dashboard"); toast("Location added — "+loc.name+" 🐼"); }
+});
+async function startCheckoutFor(loc){ try{ const res=await fetch(CONFIG.CHECKOUT_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({tier:loc.tier,interval:loc.interval,email:(store.g("panda_partner")||{}).email,venueName:loc.name,venueAddress:loc.address,placeId:loc.placeId,successUrl:location.origin+location.pathname+"?status=success",cancelUrl:location.origin+location.pathname+"?status=cancel"})}); const d=await res.json(); if(d.url){location.href=d.url;return;} throw 0; }catch(e){ addLocationRec(loc); store.d("panda_pending_loc"); closeAddLocation(); renderPage("dashboard"); toast("Location added (demo)"); } }
+
+/* ---------- live analytics (real numbers when events exist) ---------- */
+function liveAnalytics(sub){ const pid=(sub.venue&&sub.venue.placeId)||((getLocations()[0]||{}).placeId)||""; if(!pid||!CONFIG.ANALYTICS_READ)return; fetch(CONFIG.ANALYTICS_READ+"?venueId="+encodeURIComponent(pid)).then(r=>r.ok?r.json():null).then(a=>{ if(!a)return; const total=(a.impressions||0)+(a.taps||0)+(a.conversions||0); if(!total)return; const vs=document.querySelectorAll("#content .stat .v"); if(vs[0])vs[0].textContent=(a.impressions||0).toLocaleString(); if(vs[1])vs[1].textContent=(a.taps||0).toLocaleString(); if(vs[2])vs[2].textContent=(a.conversions||0).toLocaleString(); const ds=document.querySelectorAll("#content .stat .d"); if(ds[0])ds[0].textContent="times shown · last 7 days"; if(ds[1])ds[1].textContent="opened your listing"; if(ds[2])ds[2].textContent="tapped to book / get directions"; const days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],bd=a.byDay||{},max=Math.max(1,...days.map(d=>bd[d]||0)); document.querySelectorAll("#content .bars .bar").forEach((b,i)=>{b.style.height=((bd[days[i]]||0)/max*100)+"%";}); }).catch(()=>{}); }
+
 /* ---------- return from Stripe ---------- */
 (function(){
   const q=new URLSearchParams(location.search);
   if(q.get("status")==="success"){
+    const pend=store.g("panda_pending_loc"); if(pend){ addLocationRec(pend); store.d("panda_pending_loc"); }
     const sub=store.g("panda_sub")||state; sub.status="trialing"; store.s("panda_sub",sub);
     store.s("panda_partner",{email:(store.g("panda_partner")||{}).email||"owner@venue.com"});
     history.replaceState({},"",location.pathname);
