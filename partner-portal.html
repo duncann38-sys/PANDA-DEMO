@@ -112,6 +112,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .vhit{padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-top:8px;background:var(--bg2);
   display:flex;gap:10px;align-items:center}
 .vhit .pin{color:var(--green2)}
+.vhit.pick{cursor:pointer;transition:.14s;margin-top:8px}
+.vhit.pick:hover{border-color:var(--gold);background:var(--surf2)}
+.vhit.sel{border-color:var(--green)}
 .vhit b{font-weight:600}.vhit span{color:var(--faint);font-size:12.5px;display:block}
 
 /* plans */
@@ -222,6 +225,10 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
       <input id="venueInput" type="text" placeholder="e.g. Bentley's Oyster Bar, London" autocomplete="off" />
       <div id="venueHit" style="display:none"></div>
     </div>
+    <div class="field" id="venueAddrWrap" style="display:none">
+      <label>Confirm the address customers will see</label>
+      <input id="venueAddr" type="text" placeholder="Street, area, city, postcode" autocomplete="off" />
+    </div>
     <button class="btn primary" id="venueGo" disabled>Confirm venue</button>
     <div class="switch-line"><button id="venueBack">← Back</button></div>
   </div>
@@ -298,6 +305,8 @@ const CONFIG = {
   CHECKOUT_ENDPOINT: "https://panda-partners-api.vercel.app/api/create-checkout-session",
   // Your deployed Vercel function that opens the Stripe billing portal:
   PORTAL_ENDPOINT:   "https://panda-partners-api.vercel.app/api/create-portal-session",
+  // Venue search reuses your existing app proxy (no key exposed in this page):
+  PLACES_ENDPOINT:   "https://panda-ai-proxy.vercel.app/api/panda-ai",
   // Optional: Google Maps key enables real venue autocomplete (leave "" for manual entry):
   MAPS_KEY: "",
   // Optional: Google OAuth client id (leave "" to use email sign-up in demo mode):
@@ -346,22 +355,53 @@ function afterAuth(){
   show("v-venue");
 }
 
-/* ---------- VENUE ---------- */
+/* ---------- VENUE (real search via your proxy — no key in this page) ---------- */
 const vin=$("#venueInput");
+let PORTAL_COORDS=null, vsearchT=null;
+if(navigator.geolocation){ navigator.geolocation.getCurrentPosition(p=>{PORTAL_COORDS={lat:p.coords.latitude,lng:p.coords.longitude};},()=>{},{timeout:6000,maximumAge:300000}); }
+const PIN='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+const CHK='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
 vin.addEventListener("input",()=>{
-  const q=vin.value.trim();
-  const hit=$("#venueHit");
-  if(q.length<3){hit.style.display="none";$("#venueGo").disabled=true;return;}
-  // Manual/demo match. With CONFIG.MAPS_KEY set, wire google.maps.places.Autocomplete here.
-  const name=q.split(",")[0];
-  const addr=q.includes(",")?q.slice(q.indexOf(",")+1).trim():"Tap confirm to use this address";
-  hit.innerHTML='<div class="vhit"><span class="pin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div><b>'+esc(name)+'</b><span>'+esc(addr)+'</span></div></div>';
+  const q=vin.value.trim(); const hit=$("#venueHit");
+  state.venue=null; $("#venueGo").disabled=true;
+  const aw=$("#venueAddrWrap"); if(aw) aw.style.display="none";
+  if(q.length<3){ hit.style.display="none"; return; }
+  clearTimeout(vsearchT);
   hit.style.display="block";
-  state.venue={name:name,address:addr};
-  $("#venueGo").disabled=false;
+  hit.innerHTML='<div class="vhit"><span class="pin">'+PIN+'</span><div><b>Searching…</b><span>Finding your venue on Google</span></div></div>';
+  vsearchT=setTimeout(()=>runVenueSearch(q),340);
 });
-$("#venueGo").addEventListener("click",()=>{ if(state.venue){ refreshBill(); show("v-plan"); }});
-$("#venueBack").addEventListener("click",()=>show("v-auth"));
+async function runVenueSearch(q){
+  const hit=$("#venueHit");
+  try{
+    const r=await fetch(CONFIG.PLACES_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({venuesOnly:true,query:q,location:PORTAL_COORDS||undefined})});
+    if(!r.ok) throw new Error("places "+r.status);
+    const d=await r.json(); const list=(d.venues||[]).slice(0,6);
+    if(!list.length){ hit.innerHTML=noHit(q); bindManual(q); return; }
+    hit.innerHTML=list.map((v,i)=>'<div class="vhit pick" data-vi="'+i+'"><span class="pin">'+PIN+'</span><div><b>'+esc(v.name)+'</b><span>'+esc(v.address||v.fullAddress||"")+'</span></div></div>').join('');
+    hit.querySelectorAll("[data-vi]").forEach(el=>el.addEventListener("click",()=>selectVenue(list[+el.dataset.vi])));
+  }catch(e){ hit.innerHTML=noHit(q); bindManual(q); }
+}
+function noHit(q){return '<div class="vhit pick" id="useTyped"><span class="pin">'+PIN+'</span><div><b>Use "'+esc(q)+'"</b><span>No match found — tap to use what you typed.</span></div></div>';}
+function bindManual(q){const u=$("#useTyped"); if(u)u.addEventListener("click",()=>selectVenue({name:q.split(",")[0],address:q.includes(",")?q.slice(q.indexOf(",")+1).trim():""}));}
+function selectVenue(v){
+  state.venue={name:v.name,address:v.address||v.fullAddress||"",placeId:v.id||"",lat:v.lat,lng:v.lng};
+  vin.value=v.name;
+  $("#venueHit").innerHTML='<div class="vhit sel"><span class="pin" style="color:var(--gold2)">'+CHK+'</span><div><b>'+esc(v.name)+'</b><span>Selected — check the address below</span></div></div>';
+  const wrap=$("#venueAddrWrap"), af=$("#venueAddr");
+  af.value=state.venue.address||"";
+  wrap.style.display="block";
+  $("#venueGo").disabled=false;
+  af.focus();
+}
+$("#venueGo").addEventListener("click",()=>{
+  if(!state.venue) return;
+  const edited=$("#venueAddr").value.trim();
+  if(edited) state.venue.address=edited;   // owner's confirmed/edited address wins
+  refreshBill(); show("v-plan");
+});
+$("#venueBack").addEventListener("click",()=>{ $("#venueAddrWrap").style.display="none"; show("v-auth"); });
 
 /* ---------- PLAN ---------- */
 document.querySelectorAll(".plan").forEach(p=>p.addEventListener("click",()=>{
@@ -388,7 +428,7 @@ async function startCheckout(){
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         tier:state.tier, interval:state.interval, email:state.email,
-        venueName:state.venue.name, venueAddress:state.venue.address,
+        venueName:state.venue.name, venueAddress:state.venue.address, placeId:state.venue.placeId||"",
         successUrl:location.origin+location.pathname+"?status=success",
         cancelUrl: location.origin+location.pathname+"?status=cancel"
       })
