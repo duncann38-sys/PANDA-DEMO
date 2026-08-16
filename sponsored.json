@@ -1,0 +1,7 @@
+{
+  "updated": "2026-08-16",
+  "note": "Sponsored venues. Match by exact 'name' (as shown in the app) or 'place_id'. tier 'discovery' = promoted in the Suggestions feed (every 5th slot). tier 'banging' = promoted in Suggestions AND inserted into the Banging trending row (double visibility, premium price). 'banging' here is the paid tier that buys placement in the Banging section — it is not a badge shown on cards.",
+  "venues": [
+    { "name": "Example Venue Name", "tier": "discovery", "place_id": "" }
+  ]
+}
