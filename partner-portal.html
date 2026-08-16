@@ -256,8 +256,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
     <h1 style="text-align:center">Choose your visibility</h1>
     <p class="lede">Both tiers start with a <b style="color:var(--text)">7-day free trial</b>. Cancel anytime before it ends.</p>
     <div class="toggle" id="billToggle">
-      <button data-interval="6_month" class="on">6-month</button>
-      <button data-interval="annual">Annual <span class="save">save 2 months</span></button>
+      <button data-interval="monthly" class="on">Monthly</button>
+      <button data-interval="6_month">6 months <span class="save">save 10%</span></button>
+      <button data-interval="12_month">12 months <span class="save">save 20%</span></button>
     </div>
     <div class="plans">
       <div class="plan sel" data-tier="discovery">
@@ -347,16 +348,25 @@ const CONFIG = {
   GOOGLE_CLIENT_ID: "",
   // Price display (must match the amounts you set in Stripe):
   PRICES: {
-    discovery: { "6_month": "£594 every 6 months", annual: "£990 / year" },
-    banging:   { "6_month": "£1,500 every 6 months", annual: "£2,500 / year" }
-  }
+    discovery: {
+      monthly:  "£99/mo · billed monthly, cancel anytime",
+      "6_month":  "£89/mo · billed £534 every 6 months · save 10%",
+      "12_month": "£79/mo · billed £950 for the year · save 20%"
+    },
+    banging: {
+      monthly:  "£250/mo · billed monthly, cancel anytime",
+      "6_month":  "£225/mo · billed £1,350 every 6 months · save 10%",
+      "12_month": "£200/mo · billed £2,400 for the year · save 20%"
+    }
+  },
+  DEFAULT_INTERVAL: "monthly"
 };
 const PANDA_SVG='<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="34" cy="36" r="16" fill="#071A14"/><circle cx="86" cy="36" r="16" fill="#071A14"/><circle cx="60" cy="64" r="37" fill="#fff"/><ellipse cx="46" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(-18 46 60)"/><ellipse cx="74" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(18 74 60)"/><circle cx="48" cy="62" r="2.9" fill="#fff"/><circle cx="72" cy="62" r="2.9" fill="#fff"/><ellipse cx="60" cy="78" rx="5.4" ry="3.6" fill="#071A14"/></svg>';
 document.querySelectorAll('.mark').forEach(m=>{ if(m.textContent==='PANDA_SVG') m.innerHTML=PANDA_SVG; });
 
 const $=s=>document.querySelector(s);
 const store={g:k=>{try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},s:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),d:k=>localStorage.removeItem(k)};
-let mode="signup", state={ tier:"discovery", interval:"6_month", venue:null, email:null };
+let mode="signup", state={ tier:"discovery", interval:CONFIG.DEFAULT_INTERVAL||"monthly", venue:null, email:null };
 
 function toast(msg,err){const t=$("#toast");t.textContent=msg;t.className="toast show"+(err?" err":"");setTimeout(()=>t.className="toast",3200);}
 function show(id){["v-auth","v-venue","v-plan"].forEach(v=>$("#"+v).style.display=(v===id?"block":"none"));}
@@ -449,7 +459,7 @@ document.querySelectorAll("#billToggle button").forEach(b=>b.addEventListener("c
 function refreshBill(){
   ["discovery","banging"].forEach(t=>{
     const el=document.querySelector('[data-bill="'+t+'"]');
-    if(el) el.textContent="billed "+CONFIG.PRICES[t][state.interval].replace("£","£");
+    if(el) el.textContent=CONFIG.PRICES[t][state.interval];
   });
 }
 $("#planBack").addEventListener("click",()=>show("v-venue"));
@@ -527,14 +537,14 @@ function renderPage(page){
   }
   else if(page==="billing"){
     const sub2=store.g("panda_sub")||state;
-    const interval=(sub2.interval==="annual")?"Annual":"6-month";
+    const iv=sub2.interval||"monthly"; const interval=iv==="12_month"?"12-month":iv==="6_month"?"6-month":"Monthly";
     C.innerHTML=
       '<div class="page-head"><div><h2>Billing</h2><p>Your plan, trial status and payment method.</p></div>'
       +'<span class="badge-live"><span class="dot"></span>'+(sub2.status==="trialing"?"On free trial":"Active")+'</span></div>'
       +'<div class="panel"><h3>Current plan</h3><div class="sub">Manage everything securely in the Stripe billing portal.</div>'
         +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:16px">'
           +'<span class="tag '+tier+'" style="font-size:13px;padding:7px 12px">'+tierName+'</span>'
-          +'<span style="color:var(--muted);font-size:14px">'+interval+' commitment · '+esc(CONFIG.PRICES[tier][sub2.interval||"6_month"])+'</span>'
+          +'<span style="color:var(--muted);font-size:14px">'+interval+' commitment · '+esc(CONFIG.PRICES[tier][sub2.interval||"monthly"])+'</span>'
         +'</div>'
         +'<button class="btn gold" id="manageBtn" style="max-width:240px">Manage billing</button></div>'
       +'<div class="panel"><h3>Trial</h3><div class="sub">Your card is on file. First charge happens on day 7 unless you cancel.</div>'
