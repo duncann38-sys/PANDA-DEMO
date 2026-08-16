@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -144,6 +143,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .toggle button .save{color:var(--gold2);font-size:11px;margin-left:6px}
 .trial-note{display:flex;align-items:center;gap:10px;justify-content:center;background:var(--greensoft);
   border:1px solid rgba(46,158,99,.3);border-radius:12px;padding:11px;color:var(--green2);font-weight:600;font-size:13px;margin:16px 0}
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0 4px}
+@media (max-width:560px){.details-grid{grid-template-columns:1fr}}
 
 /* dashboard */
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
@@ -284,6 +285,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Exclusive "Banging" spotlight carousel</li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Premium card styling & top placement</li>
         </ul>
+      </div>
+    </div>
+    <div class="details-grid">
+      <div class="field"><label>Contact name</label><input id="dName" type="text" placeholder="Who runs this listing?" autocomplete="name" /></div>
+      <div class="field"><label>Phone</label><input id="dPhone" type="tel" placeholder="Best number to reach you" autocomplete="tel" /></div>
+      <div class="field"><label>Venue type / cuisine</label><input id="dType" type="text" placeholder="e.g. Italian restaurant, cocktail bar" /></div>
+      <div class="field"><label>How did you hear about Panda?</label>
+        <select id="dRef"><option value="">Select…</option><option>Instagram</option><option>TikTok</option><option>Word of mouth</option><option>Panda truck / event</option><option>Google search</option><option>A Panda rep contacted me</option><option>Other</option></select>
       </div>
     </div>
     <div class="trial-note">
@@ -466,6 +475,10 @@ $("#planBack").addEventListener("click",()=>show("v-venue"));
 $("#checkoutGo").addEventListener("click",startCheckout);
 
 async function startCheckout(){
+  const dName=($("#dName").value||"").trim(), dPhone=($("#dPhone").value||"").trim();
+  if(!dName){ toast("Add a contact name so we know who to reach.",true); $("#dName").focus(); return; }
+  if(!dPhone){ toast("Add a phone number for your account.",true); $("#dPhone").focus(); return; }
+  state.contact={ name:dName, phone:dPhone, venueType:($("#dType").value||"").trim(), referral:$("#dRef").value||"" };
   const btn=$("#checkoutGo"); btn.disabled=true; btn.textContent="Redirecting to secure checkout…";
   try{
     const res=await fetch(CONFIG.CHECKOUT_ENDPOINT,{
@@ -473,6 +486,7 @@ async function startCheckout(){
       body:JSON.stringify({
         tier:state.tier, interval:state.interval, email:state.email,
         venueName:state.venue.name, venueAddress:state.venue.address, placeId:state.venue.placeId||"",
+        contactName:state.contact.name, phone:state.contact.phone, venueType:state.contact.venueType, referral:state.contact.referral,
         successUrl:location.origin+location.pathname+"?status=success",
         cancelUrl: location.origin+location.pathname+"?status=cancel"
       })
