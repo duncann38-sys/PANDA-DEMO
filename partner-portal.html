@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Panda Partners</title>
+<meta name="theme-color" content="#07120E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ===== CONFIG: set these to go live =====
+   Replace CHECKOUT_ENDPOINT with your deployed Vercel function URL,
+   and (optionally) MAPS_KEY / GOOGLE_CLIENT_ID for real Places + OAuth. */
+</style>
+<style>
+:root{
+  --bg:#07120E;--bg2:#0A1A14;--surf:#0F231B;--surf2:#143026;
+  --line:#22392F;--line2:#2E4A3D;
+  --text:#EEF5F0;--muted:#93ACA0;--faint:#6E877B;
+  --gold:#C6A15B;--gold2:#E4C77E;--goldsoft:rgba(198,161,91,.12);
+  --green:#2E9E63;--green2:#38C77B;--greensoft:rgba(46,158,99,.12);
+  --danger:#E0655B;--radius:16px;
+  --shadow:0 20px 60px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  -webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
+}
+h1,h2,h3,.display{font-family:'Space Grotesk','Inter',sans-serif;letter-spacing:-.02em}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font-family:inherit}
+.mono{font-variant-numeric:tabular-nums}
+
+/* ambient glow */
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+   radial-gradient(60% 40% at 80% -5%,rgba(198,161,91,.10),transparent 60%),
+   radial-gradient(50% 40% at 0% 0%,rgba(46,158,99,.10),transparent 55%);}
+
+/* ===== top bar (app shell) ===== */
+.shell{display:none;position:relative;z-index:1}
+.shell.on{display:block}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:20px;
+  padding:14px 24px;background:rgba(7,18,14,.82);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Space Grotesk';font-weight:700;font-size:18px}
+.brand .mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(150deg,#0d5c43,#08321f);
+  display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(198,161,91,.3)}
+.brand .mark svg{width:22px;height:22px}
+.brand small{color:var(--gold);font-weight:600;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-family:'Inter'}
+.nav{display:flex;gap:4px;margin-left:8px}
+.nav button{padding:8px 14px;border-radius:10px;color:var(--muted);font-weight:600;font-size:14px;transition:.15s}
+.nav button:hover{color:var(--text)}
+.nav button.active{color:var(--text);background:var(--surf)}
+.spacer{flex:1}
+.acct{display:flex;align-items:center;gap:10px}
+.acct .who{text-align:right;font-size:12.5px;line-height:1.25}
+.acct .who b{font-weight:600}.acct .who span{color:var(--faint)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--surf2);display:grid;place-items:center;
+  font-weight:700;color:var(--gold2);border:1px solid var(--line2)}
+.content{max-width:1080px;margin:0 auto;padding:34px 24px 80px}
+
+/* ===== auth / onboarding (centered) ===== */
+.stage{position:relative;z-index:1;min-height:100dvh;display:grid;place-items:center;padding:28px}
+.card{width:100%;max-width:440px;background:linear-gradient(180deg,var(--surf),var(--bg2));
+  border:1px solid var(--line);border-radius:22px;padding:32px;box-shadow:var(--shadow)}
+.card.wide{max-width:920px}
+.logo-lg{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px}
+.logo-lg .mark{width:46px;height:46px;border-radius:12px;background:linear-gradient(150deg,#0d5c43,#08321f);
+  display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(198,161,91,.3)}
+.logo-lg .mark svg{width:30px;height:30px}
+.logo-lg b{font-family:'Space Grotesk';font-size:22px;font-weight:700}
+.eyebrow{text-align:center;color:var(--gold);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin:14px 0 6px}
+.card h1{text-align:center;font-size:26px;font-weight:700;margin-bottom:6px}
+.lede{text-align:center;color:var(--muted);font-size:14px;margin-bottom:22px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field input,.field select{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;
+  padding:13px 14px;color:var(--text);font-size:15px;outline:none;transition:.15s}
+.field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--goldsoft)}
+.field input::placeholder{color:var(--faint)}
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:14px;border-radius:13px;
+  font-weight:700;font-size:15px;transition:.15s}
+.btn.primary{background:linear-gradient(180deg,var(--green2),var(--green));color:#04170D;
+  box-shadow:0 10px 24px rgba(46,158,99,.28)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.gold{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#2A1D06;
+  box-shadow:0 10px 24px rgba(198,161,91,.3)}
+.btn.ghost{background:var(--surf);border:1px solid var(--line);color:var(--text)}
+.btn.ghost:hover{border-color:var(--line2)}
+.btn.oauth{background:#fff;color:#1f2937}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn svg{width:18px;height:18px}
+.divide{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:12px;margin:16px 0}
+.divide::before,.divide::after{content:"";flex:1;height:1px;background:var(--line)}
+.switch-line{text-align:center;color:var(--muted);font-size:13.5px;margin-top:18px}
+.switch-line button{color:var(--gold2);font-weight:600}
+.mini{font-size:11.5px;color:var(--faint);text-align:center;margin-top:16px;line-height:1.5}
+
+/* stepper */
+.steps{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:22px}
+.steps i{width:26px;height:4px;border-radius:2px;background:var(--line);transition:.2s}
+.steps i.on{background:var(--gold)}
+
+/* venue search */
+.vsearch{position:relative}
+.vhit{padding:12px 14px;border:1px solid var(--line);border-radius:12px;margin-top:8px;background:var(--bg2);
+  display:flex;gap:10px;align-items:center}
+.vhit .pin{color:var(--green2)}
+.vhit b{font-weight:600}.vhit span{color:var(--faint);font-size:12.5px;display:block}
+
+/* plans */
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px}
+.plan{position:relative;border:1px solid var(--line);border-radius:18px;padding:22px;background:var(--surf);
+  cursor:pointer;transition:.18s}
+.plan:hover{border-color:var(--line2)}
+.plan.sel{border-color:var(--gold);box-shadow:0 0 0 3px var(--goldsoft)}
+.plan.banging{background:linear-gradient(180deg,#12281d,#0c1f16)}
+.plan.banging::after{content:"";position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  box-shadow:inset 0 0 40px rgba(198,161,91,.12)}
+.plan .tier{font-family:'Space Grotesk';font-weight:700;font-size:19px;display:flex;align-items:center;gap:8px}
+.plan .spot{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.plan .price{margin:14px 0 2px;font-family:'Space Grotesk';font-weight:700;font-size:34px}
+.plan .price small{font-size:14px;color:var(--muted);font-weight:500}
+.plan .bill{font-size:12.5px;color:var(--faint)}
+.plan ul{list-style:none;margin:16px 0 0;display:grid;gap:9px}
+.plan li{display:flex;gap:9px;font-size:13.5px;color:var(--muted)}
+.plan li svg{width:16px;height:16px;color:var(--green2);flex:0 0 auto;margin-top:1px}
+.plan .radio{position:absolute;top:20px;right:20px;width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--line2);display:grid;place-items:center}
+.plan.sel .radio{border-color:var(--gold)}
+.plan.sel .radio::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--gold)}
+.toggle{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:4px;margin:0 auto 20px;width:max-content}
+.toggle button{padding:9px 18px;border-radius:999px;font-weight:600;font-size:13.5px;color:var(--muted)}
+.toggle button.on{background:var(--surf2);color:var(--text)}
+.toggle button .save{color:var(--gold2);font-size:11px;margin-left:6px}
+.trial-note{display:flex;align-items:center;gap:10px;justify-content:center;background:var(--greensoft);
+  border:1px solid rgba(46,158,99,.3);border-radius:12px;padding:11px;color:var(--green2);font-weight:600;font-size:13px;margin:16px 0}
+
+/* dashboard */
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.page-head h2{font-size:24px;font-weight:700}
+.page-head p{color:var(--muted);font-size:14px;margin-top:2px}
+.venue-pill{display:inline-flex;align-items:center;gap:8px;background:var(--surf);border:1px solid var(--line);
+  border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600}
+.venue-pill .dot{width:7px;height:7px;border-radius:50%;background:var(--green2)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:20px}
+.stat .k{color:var(--muted);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+.stat .k svg{width:16px;height:16px;color:var(--gold)}
+.stat .v{font-family:'Space Grotesk';font-weight:700;font-size:34px;margin-top:8px}
+.stat .d{font-size:12px;color:var(--green2);font-weight:600;margin-top:4px}
+.panel{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}
+.panel h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.panel .sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:10px}
+.bars .bar{flex:1;background:linear-gradient(180deg,var(--green2),var(--green));border-radius:8px 8px 3px 3px;
+  position:relative;min-height:6px;transition:height .6s cubic-bezier(.2,.8,.2,1)}
+.bars .bar span{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:11px;color:var(--faint)}
+.loc-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.loc-row:first-child{border-top:none}
+.loc-row .li{width:40px;height:40px;border-radius:11px;background:var(--surf2);display:grid;place-items:center;color:var(--gold2);font-weight:700}
+.loc-row .lt{flex:1}.loc-row .lt b{font-weight:600}.loc-row .lt span{color:var(--faint);font-size:12.5px;display:block}
+.tag{font-size:11px;font-weight:700;padding:4px 9px;border-radius:7px;letter-spacing:.03em}
+.tag.discovery{background:var(--goldsoft);color:var(--gold2)}
+.tag.banging{background:rgba(198,161,91,.2);color:var(--gold2)}
+.tag.trial{background:var(--greensoft);color:var(--green2)}
+.rowbtn{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-weight:600;font-size:13px}
+.rowbtn:hover{border-color:var(--line2)}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.badge-live{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--green2);
+  background:var(--greensoft);border:1px solid rgba(46,158,99,.3);padding:6px 11px;border-radius:999px}
+.badge-live .dot{width:7px;height:7px;border-radius:50%;background:var(--green2);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);z-index:60;
+  background:var(--surf2);border:1px solid var(--line2);border-radius:12px;padding:13px 18px;font-weight:600;font-size:14px;
+  box-shadow:var(--shadow);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:var(--danger);color:#ffbdb6}
+@media (max-width:720px){
+  .plans,.grid3,.settings-grid{grid-template-columns:1fr}
+  .nav{display:none}
+  .content{padding:24px 16px 80px}
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= ONBOARDING / AUTH ======================= -->
+<div class="stage" id="stage">
+  <!-- AUTH -->
+  <div class="card" id="v-auth">
+    <div class="logo-lg"><div class="mark">PANDA_SVG</div><b>Panda</b></div>
+    <div class="eyebrow">Partner Portal</div>
+    <h1 id="authTitle">Grow your covers with Panda</h1>
+    <p class="lede" id="authLede">Put your venue in front of thousands of people deciding where to eat, drink and go out.</p>
+    <button class="btn oauth" id="googleBtn">
+      <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
+      Continue with Google
+    </button>
+    <div class="divide">or with email</div>
+    <div class="field"><label>Work email</label><input id="email" type="email" placeholder="you@yourvenue.com" autocomplete="email" /></div>
+    <div class="field"><label>Password</label><input id="password" type="password" placeholder="Create a password" autocomplete="new-password" /></div>
+    <button class="btn primary" id="authGo">Create account</button>
+    <div class="switch-line"><span id="switchTxt">Already a partner?</span> <button id="switchBtn">Sign in</button></div>
+    <p class="mini">By continuing you agree to Panda's Partner Terms & Privacy Policy.</p>
+  </div>
+
+  <!-- VENUE -->
+  <div class="card" id="v-venue" style="display:none">
+    <div class="steps"><i class="on"></i><i></i><i></i></div>
+    <div class="eyebrow">Step 1 of 3</div>
+    <h1>Find your venue</h1>
+    <p class="lede">Search your business so we map it to the exact listing customers see.</p>
+    <div class="field vsearch">
+      <label>Venue name & address</label>
+      <input id="venueInput" type="text" placeholder="e.g. Bentley's Oyster Bar, London" autocomplete="off" />
+      <div id="venueHit" style="display:none"></div>
+    </div>
+    <button class="btn primary" id="venueGo" disabled>Confirm venue</button>
+    <div class="switch-line"><button id="venueBack">← Back</button></div>
+  </div>
+
+  <!-- PLAN -->
+  <div class="card wide" id="v-plan" style="display:none">
+    <div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+    <div class="eyebrow" style="text-align:center">Step 2 of 3</div>
+    <h1 style="text-align:center">Choose your visibility</h1>
+    <p class="lede">Both tiers start with a <b style="color:var(--text)">7-day free trial</b>. Cancel anytime before it ends.</p>
+    <div class="toggle" id="billToggle">
+      <button data-interval="6_month" class="on">6-month</button>
+      <button data-interval="annual">Annual <span class="save">save 2 months</span></button>
+    </div>
+    <div class="plans">
+      <div class="plan sel" data-tier="discovery">
+        <div class="radio"></div>
+        <div class="tier">Discovery</div>
+        <div class="spot">Priority ranking</div>
+        <div class="price">£99<small>/mo</small></div>
+        <div class="bill" data-bill="discovery">billed £594 every 6 months</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Priority ranking in category search</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Featured in directory listings</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Performance dashboard</li>
+        </ul>
+      </div>
+      <div class="plan banging" data-tier="banging">
+        <div class="radio"></div>
+        <div class="tier">Banging 🔥</div>
+        <div class="spot">Editorial spotlight</div>
+        <div class="price">£250<small>/mo</small></div>
+        <div class="bill" data-bill="banging">billed £1,500 every 6 months</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Everything in Discovery</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Exclusive "Banging" spotlight carousel</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Premium card styling & top placement</li>
+        </ul>
+      </div>
+    </div>
+    <div class="trial-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      7 days free — your card is saved now and first charged only on day 7.
+    </div>
+    <button class="btn gold" id="checkoutGo">Start 7-day free trial</button>
+    <div class="switch-line"><button id="planBack">← Back</button></div>
+  </div>
+</div>
+
+<!-- ======================= APP SHELL (dashboard) ======================= -->
+<div class="shell" id="shell">
+  <div class="topbar">
+    <div class="brand"><div class="mark">PANDA_SVG</div>Panda <small>Partners</small></div>
+    <div class="nav">
+      <button data-page="dashboard" class="active">Dashboard</button>
+      <button data-page="billing">Billing</button>
+      <button data-page="settings">Settings</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="acct">
+      <div class="who"><b id="acctVenue">Your venue</b><br /><span id="acctEmail">partner@email.com</span></div>
+      <div class="avatar" id="acctAv">P</div>
+    </div>
+  </div>
+  <div class="content" id="content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= CONFIG — set these to go live ================= */
+const CONFIG = {
+  // Your deployed Vercel function that creates Stripe Checkout Sessions:
+  CHECKOUT_ENDPOINT: "https://panda-partners-api.vercel.app/api/create-checkout-session",
+  // Your deployed Vercel function that opens the Stripe billing portal:
+  PORTAL_ENDPOINT:   "https://panda-partners-api.vercel.app/api/create-portal-session",
+  // Optional: Google Maps key enables real venue autocomplete (leave "" for manual entry):
+  MAPS_KEY: "",
+  // Optional: Google OAuth client id (leave "" to use email sign-up in demo mode):
+  GOOGLE_CLIENT_ID: "",
+  // Price display (must match the amounts you set in Stripe):
+  PRICES: {
+    discovery: { "6_month": "£594 every 6 months", annual: "£990 / year" },
+    banging:   { "6_month": "£1,500 every 6 months", annual: "£2,500 / year" }
+  }
+};
+const PANDA_SVG='<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="34" cy="36" r="16" fill="#071A14"/><circle cx="86" cy="36" r="16" fill="#071A14"/><circle cx="60" cy="64" r="37" fill="#fff"/><ellipse cx="46" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(-18 46 60)"/><ellipse cx="74" cy="60" rx="10" ry="13" fill="#071A14" transform="rotate(18 74 60)"/><circle cx="48" cy="62" r="2.9" fill="#fff"/><circle cx="72" cy="62" r="2.9" fill="#fff"/><ellipse cx="60" cy="78" rx="5.4" ry="3.6" fill="#071A14"/></svg>';
+document.querySelectorAll('.mark').forEach(m=>{ if(m.textContent==='PANDA_SVG') m.innerHTML=PANDA_SVG; });
+
+const $=s=>document.querySelector(s);
+const store={g:k=>{try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},s:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),d:k=>localStorage.removeItem(k)};
+let mode="signup", state={ tier:"discovery", interval:"6_month", venue:null, email:null };
+
+function toast(msg,err){const t=$("#toast");t.textContent=msg;t.className="toast show"+(err?" err":"");setTimeout(()=>t.className="toast",3200);}
+function show(id){["v-auth","v-venue","v-plan"].forEach(v=>$("#"+v).style.display=(v===id?"block":"none"));}
+
+/* ---------- AUTH ---------- */
+$("#switchBtn").addEventListener("click",()=>{
+  mode = mode==="signup"?"signin":"signup";
+  $("#authTitle").textContent = mode==="signup"?"Grow your covers with Panda":"Welcome back";
+  $("#authLede").textContent  = mode==="signup"?"Put your venue in front of thousands of people deciding where to eat, drink and go out.":"Sign in to manage your listing, plan and analytics.";
+  $("#authGo").textContent    = mode==="signup"?"Create account":"Sign in";
+  $("#switchTxt").textContent = mode==="signup"?"Already a partner?":"New to Panda?";
+  $("#switchBtn").textContent = mode==="signup"?"Sign in":"Create account";
+});
+$("#googleBtn").addEventListener("click",()=>{
+  if(CONFIG.GOOGLE_CLIENT_ID){ toast("Wire real Google OAuth with your client id."); }
+  // demo: proceed as a signed-in partner
+  state.email="owner@venue.com"; afterAuth();
+});
+$("#authGo").addEventListener("click",()=>{
+  const em=$("#email").value.trim(), pw=$("#password").value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){toast("Enter a valid work email.",true);return;}
+  if(pw.length<6){toast("Password needs at least 6 characters.",true);return;}
+  state.email=em; afterAuth();
+});
+function afterAuth(){
+  store.s("panda_partner",{email:state.email});
+  // returning partner with a live subscription -> straight to dashboard
+  const sub=store.g("panda_sub");
+  if(sub&&sub.venue){ state=Object.assign(state,sub); enterApp(); return; }
+  show("v-venue");
+}
+
+/* ---------- VENUE ---------- */
+const vin=$("#venueInput");
+vin.addEventListener("input",()=>{
+  const q=vin.value.trim();
+  const hit=$("#venueHit");
+  if(q.length<3){hit.style.display="none";$("#venueGo").disabled=true;return;}
+  // Manual/demo match. With CONFIG.MAPS_KEY set, wire google.maps.places.Autocomplete here.
+  const name=q.split(",")[0];
+  const addr=q.includes(",")?q.slice(q.indexOf(",")+1).trim():"Tap confirm to use this address";
+  hit.innerHTML='<div class="vhit"><span class="pin"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><div><b>'+esc(name)+'</b><span>'+esc(addr)+'</span></div></div>';
+  hit.style.display="block";
+  state.venue={name:name,address:addr};
+  $("#venueGo").disabled=false;
+});
+$("#venueGo").addEventListener("click",()=>{ if(state.venue){ refreshBill(); show("v-plan"); }});
+$("#venueBack").addEventListener("click",()=>show("v-auth"));
+
+/* ---------- PLAN ---------- */
+document.querySelectorAll(".plan").forEach(p=>p.addEventListener("click",()=>{
+  document.querySelectorAll(".plan").forEach(x=>x.classList.remove("sel"));
+  p.classList.add("sel"); state.tier=p.dataset.tier; refreshBill();
+}));
+document.querySelectorAll("#billToggle button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("#billToggle button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); state.interval=b.dataset.interval; refreshBill();
+}));
+function refreshBill(){
+  ["discovery","banging"].forEach(t=>{
+    const el=document.querySelector('[data-bill="'+t+'"]');
+    if(el) el.textContent="billed "+CONFIG.PRICES[t][state.interval].replace("£","£");
+  });
+}
+$("#planBack").addEventListener("click",()=>show("v-venue"));
+$("#checkoutGo").addEventListener("click",startCheckout);
+
+async function startCheckout(){
+  const btn=$("#checkoutGo"); btn.disabled=true; btn.textContent="Redirecting to secure checkout…";
+  try{
+    const res=await fetch(CONFIG.CHECKOUT_ENDPOINT,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        tier:state.tier, interval:state.interval, email:state.email,
+        venueName:state.venue.name, venueAddress:state.venue.address,
+        successUrl:location.origin+location.pathname+"?status=success",
+        cancelUrl: location.origin+location.pathname+"?status=cancel"
+      })
+    });
+    if(!res.ok) throw new Error("checkout "+res.status);
+    const data=await res.json();
+    if(data.url){ location.href=data.url; return; }
+    throw new Error("no url");
+  }catch(e){
+    // Demo fallback so the flow is fully clickable before the backend is deployed.
+    btn.disabled=false; btn.textContent="Start 7-day free trial";
+    toast("Demo mode: no live checkout endpoint yet — showing your dashboard.");
+    store.s("panda_sub",{tier:state.tier,interval:state.interval,venue:state.venue,status:"trialing"});
+    state.status="trialing"; enterApp();
+  }
+}
+
+/* ---------- APP / DASHBOARD ---------- */
+function enterApp(){
+  $("#stage").style.display="none";
+  $("#shell").classList.add("on");
+  const p=store.g("panda_partner")||{};
+  const sub=store.g("panda_sub")||{};
+  const v=(sub.venue&&sub.venue.name)||(state.venue&&state.venue.name)||"Your venue";
+  $("#acctVenue").textContent=v;
+  $("#acctEmail").textContent=p.email||state.email||"partner@email.com";
+  $("#acctAv").textContent=(v[0]||"P").toUpperCase();
+  renderPage("dashboard");
+}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); renderPage(b.dataset.page);
+}));
+
+function renderPage(page){
+  const sub=store.g("panda_sub")||state;
+  const tier=sub.tier||"discovery";
+  const tierName=tier==="banging"?"Banging 🔥":"Discovery";
+  const venue=(sub.venue&&sub.venue.name)||"Your venue";
+  const C=$("#content");
+  if(page==="dashboard"){
+    const days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+    const vals=[42,55,38,61,80,96,72];
+    const max=Math.max(...vals);
+    C.innerHTML=
+      '<div class="page-head"><div><h2>Dashboard</h2><p>How '+esc(venue)+' is performing on Panda.</p></div>'
+      +'<span class="venue-pill"><span class="dot"></span>'+esc(venue)+' · <span class="tag '+tier+'">'+tierName+'</span></span></div>'
+      +'<div class="grid3">'
+        +statCard("Total impressions","eye","12,480","+18% vs last week")
+        +statCard("Directional taps","map","1,942","+9% vs last week")
+        +statCard("Conversion actions","link","864","menu & booking clicks")
+      +'</div>'
+      +'<div class="panel"><h3>Impressions this week</h3><div class="sub">Views of your venue detail page.</div>'
+        +'<div class="bars">'+vals.map((v,i)=>'<div class="bar" style="height:'+(v/max*100)+'%"><span>'+days[i]+'</span></div>').join('')+'</div>'
+        +'<div style="height:22px"></div></div>'
+      +'<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3>Your locations</h3><button class="rowbtn" id="addLoc">+ Add location</button></div>'
+        +'<div class="sub">Each location is billed as its own subscription. Discounts apply on 5+.</div>'
+        +locRow(venue,(sub.venue&&sub.venue.address)||"Primary location",tier,tierName)
+      +'</div>';
+    $("#addLoc")&&$("#addLoc").addEventListener("click",()=>toast("Add-location flow: reuse venue search + a new Stripe subscription."));
+  }
+  else if(page==="billing"){
+    const sub2=store.g("panda_sub")||state;
+    const interval=(sub2.interval==="annual")?"Annual":"6-month";
+    C.innerHTML=
+      '<div class="page-head"><div><h2>Billing</h2><p>Your plan, trial status and payment method.</p></div>'
+      +'<span class="badge-live"><span class="dot"></span>'+(sub2.status==="trialing"?"On free trial":"Active")+'</span></div>'
+      +'<div class="panel"><h3>Current plan</h3><div class="sub">Manage everything securely in the Stripe billing portal.</div>'
+        +'<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:16px">'
+          +'<span class="tag '+tier+'" style="font-size:13px;padding:7px 12px">'+tierName+'</span>'
+          +'<span style="color:var(--muted);font-size:14px">'+interval+' commitment · '+esc(CONFIG.PRICES[tier][sub2.interval||"6_month"])+'</span>'
+        +'</div>'
+        +'<button class="btn gold" id="manageBtn" style="max-width:240px">Manage billing</button></div>'
+      +'<div class="panel"><h3>Trial</h3><div class="sub">Your card is on file. First charge happens on day 7 unless you cancel.</div>'
+        +'<span class="tag trial">7-day free trial active</span></div>';
+    $("#manageBtn").addEventListener("click",openPortal);
+  }
+  else if(page==="settings"){
+    const p=store.g("panda_partner")||{};
+    C.innerHTML=
+      '<div class="page-head"><div><h2>Settings</h2><p>Account, venue and contact details.</p></div></div>'
+      +'<div class="panel"><h3>Contact</h3><div class="sub">Where we send trial reminders and receipts.</div>'
+        +'<div class="settings-grid">'
+          +field("Contact email",p.email||"partner@email.com")
+          +field("Phone","Add a number")
+        +'</div></div>'
+      +'<div class="panel"><h3>Venue</h3><div class="sub">The listing customers see in the app.</div>'
+        +'<div class="settings-grid">'
+          +field("Venue name",venue)
+          +field("Address",(sub.venue&&sub.venue.address)||"—")
+        +'</div>'
+        +'<div style="margin-top:14px"><button class="rowbtn" id="swapV">Swap venue</button></div></div>'
+      +'<div class="panel"><h3>Session</h3><div class="sub">Sign out of the partner portal on this device.</div>'
+        +'<button class="rowbtn" id="logout" style="color:#ffbdb6;border-color:rgba(224,101,91,.4)">Log out</button></div>';
+    $("#swapV").addEventListener("click",()=>toast("Swap venue: reopen venue search to remap the listing."));
+    $("#logout").addEventListener("click",()=>{store.d("panda_sub");store.d("panda_partner");location.href=location.pathname;});
+  }
+  // animate bars
+  requestAnimationFrame(()=>document.querySelectorAll(".bar").forEach(b=>{const h=b.style.height;b.style.height="0";requestAnimationFrame(()=>b.style.height=h);}));
+}
+function statCard(k,icon,v,d){
+  const ic={eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+            map:'<path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>',
+            link:'<path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>'}[icon];
+  return '<div class="stat"><div class="k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ic+'</svg>'+k+'</div><div class="v mono">'+v+'</div><div class="d">'+d+'</div></div>';
+}
+function locRow(name,addr,tier,tierName){
+  return '<div class="loc-row"><div class="li">'+(name[0]||"V").toUpperCase()+'</div><div class="lt"><b>'+esc(name)+'</b><span>'+esc(addr)+'</span></div><span class="tag '+tier+'">'+tierName+'</span></div>';
+}
+function field(label,val){return '<div class="field"><label>'+label+'</label><input value="'+esc(val)+'" /></div>';}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+async function openPortal(){
+  try{
+    const res=await fetch(CONFIG.PORTAL_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({email:(store.g("panda_partner")||{}).email})});
+    const d=await res.json(); if(d.url){location.href=d.url;return;} throw 0;
+  }catch(e){ toast("Connect the Stripe billing portal endpoint to manage the subscription."); }
+}
+
+/* ---------- return from Stripe ---------- */
+(function(){
+  const q=new URLSearchParams(location.search);
+  if(q.get("status")==="success"){
+    const sub=store.g("panda_sub")||state; sub.status="trialing"; store.s("panda_sub",sub);
+    store.s("panda_partner",{email:(store.g("panda_partner")||{}).email||"owner@venue.com"});
+    history.replaceState({},"",location.pathname);
+    enterApp(); toast("You're in — 7-day free trial started 🐼");
+    return;
+  }
+  if(q.get("status")==="cancel"){ history.replaceState({},"",location.pathname); toast("Checkout cancelled — no charge made."); }
+  // auto-resume a live session
+  if(store.g("panda_sub")&&store.g("panda_partner")){ enterApp(); }
+})();
+</script>
+</body>
+</html>
