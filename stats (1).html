@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panda · User Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --panel:#141210;
+    --line:#2a2621;
+    --gold:#d9b45b;
+    --gold-bright:#f2d488;
+    --ink:#f4efe6;
+    --muted:#8b8377;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif}
+  body{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px 60px}
+
+  .brand{display:flex;align-items:center;gap:10px;margin:8px 0 4px;letter-spacing:.02em}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold)}
+  .brand span{font-family:'Fraunces',serif;font-weight:600;font-size:20px}
+  .sub{color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:36px}
+
+  /* Login */
+  .gate{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px 24px;margin-top:40px}
+  .gate h1{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:6px}
+  .gate p{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5}
+  .gate input{width:100%;background:#0c0b0a;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:15px;padding:12px 14px;outline:none}
+  .gate input:focus{border-color:var(--gold)}
+  .gate button{width:100%;margin-top:14px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:#1a1508;font-weight:600;font-size:15px;border:none;border-radius:10px;padding:12px;cursor:pointer}
+  .gate button:active{transform:translateY(1px)}
+  .err{color:#e08b7a;font-size:13px;margin-top:12px;min-height:16px}
+
+  /* Dashboard */
+  .dash{width:100%;max-width:720px;display:none}
+  .hero{text-align:center;padding:24px 0 8px}
+  .hero .label{color:var(--muted);font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+  .hero .big{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(72px,20vw,132px);line-height:.9;background:linear-gradient(180deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0}
+  .hero .mode{color:var(--muted);font-size:12px}
+  .hero .mode b{color:var(--gold)}
+
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:28px}
+  @media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card .n{font-family:'Fraunces',serif;font-weight:600;font-size:34px;color:var(--ink)}
+  .card .k{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-top:6px}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:26px;color:var(--muted);font-size:12px}
+  .foot .ts{font-family:'JetBrains Mono',monospace}
+  .foot button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
+  .foot button:hover{border-color:var(--gold);color:var(--gold)}
+  .spin{opacity:.5}
+</style>
+</head>
+<body>
+  <div class="brand"><span class="dot"></span><span>Panda</span></div>
+  <div class="sub">User Analytics</div>
+
+  <!-- Login gate -->
+  <div class="gate" id="gate">
+    <h1>Enter access key</h1>
+    <p>Private dashboard. Your key is stored on this device only — you won't need to type it again.</p>
+    <input id="key" type="password" placeholder="Access key" autocomplete="off" autocapitalize="none" spellcheck="false" />
+    <button id="go">View stats</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dash" id="dash">
+    <div class="hero">
+      <div class="label">Total users</div>
+      <div class="big" id="total">—</div>
+      <div class="mode" id="mode"></div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="n" id="activeToday">—</div><div class="k">Active today</div></div>
+      <div class="card"><div class="n" id="active7">—</div><div class="k">Active · 7 days</div></div>
+      <div class="card"><div class="n" id="appOpens">—</div><div class="k">App opens</div></div>
+      <div class="card"><div class="n" id="opensToday">—</div><div class="k">Opens today</div></div>
+      <div class="card"><div class="n" id="opens7">—</div><div class="k">Opens · 7 days</div></div>
+      <div class="card"><div class="n" id="totalEvents">—</div><div class="k">Total events</div></div>
+    </div>
+    <div class="foot">
+      <span class="ts" id="updated"></span>
+      <span>
+        <button id="refresh">Refresh</button>
+        <button id="logout">Sign out</button>
+      </span>
+    </div>
+  </div>
+
+<script>
+  var API = 'https://panda-partners-api.vercel.app/api/stats';
+  var LS_KEY = 'panda_stats_key';
+
+  var gate = document.getElementById('gate');
+  var dash = document.getElementById('dash');
+  var keyInput = document.getElementById('key');
+  var err = document.getElementById('err');
+
+  function fmt(n){ return (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString(); }
+
+  function paint(d){
+    document.getElementById('total').textContent = fmt(d.total);
+    document.getElementById('activeToday').textContent = fmt(d.activeToday);
+    document.getElementById('active7').textContent = fmt(d.activeLast7Days);
+    document.getElementById('appOpens').textContent = fmt(d.appOpens);
+    document.getElementById('opensToday').textContent = fmt(d.opensToday);
+    document.getElementById('opens7').textContent = fmt(d.opensLast7);
+    document.getElementById('totalEvents').textContent = fmt(d.totalEvents);
+    document.getElementById('mode').innerHTML = d.countingUniqueDevices
+      ? 'Counting <b>unique devices</b>'
+      : 'Counting <b>app opens</b>';
+    if(d.updatedAt){
+      var t = new Date(d.updatedAt);
+      document.getElementById('updated').textContent = 'Updated ' + t.toLocaleString();
+    }
+  }
+
+  function load(key, isRetry){
+    err.textContent = '';
+    dash.querySelector('.big').classList.add('spin');
+    return fetch(API + '?key=' + encodeURIComponent(key))
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, status:r.status, j:j}; }); })
+      .then(function(res){
+        if(res.status === 401 || (res.j && res.j.error === 'unauthorized')){
+          throw new Error('Key not recognised. Check for typos or extra spaces.');
+        }
+        if(res.j && res.j.error){ throw new Error(res.j.error); }
+        localStorage.setItem(LS_KEY, key);
+        gate.style.display = 'none';
+        dash.style.display = 'block';
+        dash.querySelector('.big').classList.remove('spin');
+        paint(res.j);
+      })
+      .catch(function(e){
+        dash.querySelector('.big').classList.remove('spin');
+        if(dash.style.display === 'block'){
+          document.getElementById('updated').textContent = 'Error: ' + e.message;
+        } else {
+          err.textContent = e.message;
+        }
+        if(isRetry){ // stored key failed — force re-login
+          localStorage.removeItem(LS_KEY);
+          gate.style.display = 'block';
+          dash.style.display = 'none';
+        }
+      });
+  }
+
+  document.getElementById('go').addEventListener('click', function(){
+    var k = keyInput.value.trim();
+    if(!k){ err.textContent = 'Enter your key.'; return; }
+    load(k, false);
+  });
+  keyInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ document.getElementById('go').click(); } });
+  document.getElementById('refresh').addEventListener('click', function(){
+    var k = localStorage.getItem(LS_KEY); if(k){ load(k, false); }
+  });
+  document.getElementById('logout').addEventListener('click', function(){
+    localStorage.removeItem(LS_KEY);
+    dash.style.display = 'none';
+    gate.style.display = 'block';
+    keyInput.value = '';
+  });
+
+  // Auto-login if we have a stored key
+  var saved = localStorage.getItem(LS_KEY);
+  if(saved){ gate.style.display = 'none'; dash.style.display = 'block'; load(saved, true); }
+</script>
+</body>
+</html>
