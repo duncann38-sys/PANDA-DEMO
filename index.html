@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -56,7 +55,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .home-feed .feed-divider{scroll-snap-align:start}
 .homefilters{display:flex;gap:8px;padding:0 18px 8px;overflow-x:auto;scrollbar-width:none}
 .homefilters::-webkit-scrollbar{display:none}
-/* compact, secondary filters that sit in the Suggestions header */
 .sug-h{gap:8px}
 .homefilters.mini{padding:0;gap:6px;margin-left:auto;flex:0 0 auto;overflow:visible}
 .homefilters.mini .dd-btn{font-size:11px;font-weight:700;padding:5px 9px;gap:3px;border-radius:999px;box-shadow:0 2px 8px rgba(6,46,34,.08);color:var(--muted)}
@@ -132,7 +130,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .screen-head{padding:calc(env(safe-area-inset-top,0px) + 22px) 20px 6px}
 .screen-head h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
 .screen-head p{margin:6px 0 0;color:var(--muted);font-weight:600;font-size:14px}
-/* map */
 .mapfilters{display:flex;gap:9px;padding:12px 16px 8px;overflow-x:auto;scrollbar-width:none}
 .mapfilters::-webkit-scrollbar{display:none}
 .mapfilters select{flex:0 0 auto;appearance:none;-webkit-appearance:none;background:var(--card);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-weight:700;font-size:13.5px;padding:10px 30px 10px 14px;border-radius:999px;box-shadow:var(--shadow);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230F6B4F' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
@@ -150,7 +147,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .mapcard .mm{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:3px}
 .mapcard .go{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--green-800);color:#fff;display:grid;place-items:center}
 .mapcard .mcx{position:absolute;top:-9px;right:-9px;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--ink);box-shadow:var(--shadow);display:grid;place-items:center;font-size:15px;font-weight:800}
-/* credit */
 .credit-hero{margin:16px 18px;background:linear-gradient(150deg,var(--green-700),var(--green-800));color:#fff;border-radius:26px;padding:26px 22px;position:relative;overflow:hidden;box-shadow:0 16px 34px rgba(10,79,58,.34)}
 .credit-hero::after{content:"";position:absolute;right:-40px;bottom:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.07)}
 .credit-hero .lbl{font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--mint-300)}
@@ -163,7 +159,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .step span{color:var(--muted);font-weight:600;font-size:13.5px;line-height:1.4}
 .bigbtn{display:flex;align-items:center;justify-content:center;gap:9px;margin:8px 18px;background:var(--green-800);color:#fff;font-weight:800;font-size:16px;padding:17px;border-radius:18px}
 .finenote{margin:12px 22px 0;color:var(--muted);font-size:11.5px;line-height:1.5;font-weight:500;text-align:center}
-/* profile */
 .profile-card{margin:calc(env(safe-area-inset-top,0px) + 18px) 18px 6px;background:linear-gradient(150deg,var(--green-700),var(--green-800));border-radius:24px;padding:20px;display:flex;align-items:center;gap:15px;color:#fff;box-shadow:0 16px 34px rgba(10,79,58,.3)}
 .pfp{position:relative;width:66px;height:66px;flex:0 0 66px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center;color:#fff;font-size:26px;font-weight:800;overflow:hidden;border:2px solid rgba(255,255,255,.35)}
 .pfp img{width:100%;height:100%;object-fit:cover}
@@ -177,7 +172,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .prow .pic{width:36px;height:36px;border-radius:10px;background:var(--mint-100);color:var(--green-800);display:grid;place-items:center}
 .prow .arrow{margin-left:auto;color:#b9c9c0}
 .prow.cta{background:var(--green-800);color:#fff}.prow.cta .pic{background:rgba(255,255,255,.15);color:#fff}
-/* nav */
 .tabbar{position:absolute;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:space-around;align-items:flex-end;padding:10px 10px calc(env(safe-area-inset-bottom,0px) + 10px);background:#ffffff;border-top:1px solid var(--line)}
 .tab{display:flex;flex-direction:column;align-items:center;gap:4px;color:#8aa094;font-size:11px;font-weight:700;padding:4px 8px;border-radius:14px;position:relative;flex:1}
 .tab.on{color:var(--green-800)}
@@ -187,13 +181,11 @@ img{display:block}a{color:inherit;text-decoration:none}
 .tab.center{color:var(--green-800)}
 .tab.hint::after{content:"";position:absolute;top:0;right:14px;width:8px;height:8px;border-radius:50%;background:var(--honey);animation:pulse 1.6s infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(244,180,60,.55)}70%{box-shadow:0 0 0 10px rgba(244,180,60,0)}100%{box-shadow:0 0 0 0 rgba(244,180,60,0)}}
-/* draggable panda */
 .panda-fab{position:absolute;z-index:50;width:60px;height:60px;border-radius:50%;background:linear-gradient(160deg,var(--green-700),var(--green-800));box-shadow:var(--shadow-lg);display:grid;place-items:center;touch-action:none;right:16px;bottom:118px}
 .panda-fab svg{width:42px;height:42px;pointer-events:none}
 .panda-fab .tag{position:absolute;top:-8px;right:-2px;background:var(--honey);color:#5a3c05;font-size:10px;font-weight:800;padding:3px 7px;border-radius:999px}
 .panda-fab.hint{animation:fabhint 1.8s ease-in-out infinite}
 @keyframes fabhint{0%,100%{box-shadow:var(--shadow-lg)}50%{box-shadow:0 0 0 10px rgba(244,180,60,.22),var(--shadow-lg)}}
-/* chat */
 .chat{position:absolute;inset:0;z-index:70;background:var(--chat-bg);display:flex;flex-direction:column;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
 .chat.open{transform:translateY(0)}
 .chat-head{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px;background:linear-gradient(180deg,#151318,var(--chat-panel));color:#fff;border-bottom:1px solid rgba(198,161,91,.25)}
@@ -224,7 +216,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .composer input::placeholder{color:#7fae9c}
 .send{width:50px;height:50px;border-radius:16px;background:var(--gold);display:grid;place-items:center;flex:0 0 auto}
 .send svg{width:24px;height:24px;color:#052018}
-/* sheet + scrim + modal */
 .scrim{position:absolute;inset:0;z-index:80;background:rgba(4,18,13,.55);opacity:0;pointer-events:none;transition:opacity .28s;backdrop-filter:blur(2px)}
 .scrim.show{opacity:1;pointer-events:auto}
 .sheet{position:absolute;left:0;right:0;bottom:0;z-index:90;background:var(--card);border-radius:28px 28px 0 0;transform:translateY(101%);transition:transform .34s cubic-bezier(.2,.8,.2,1);max-height:92%;overflow-y:auto;overflow-x:hidden;box-shadow:var(--shadow-lg)}
@@ -260,7 +251,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .modal .box p{margin:0 0 18px;color:var(--muted);font-weight:600;font-size:14px;line-height:1.5}
 .modal .box .go{display:block;background:var(--green-800);color:#fff;font-weight:800;padding:15px;border-radius:16px;font-size:15px}
 .modal .box .later{display:block;margin-top:10px;color:var(--muted);font-weight:700;font-size:13.5px}
-/* trending drawer */
 .trend-drawer{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 64px);z-index:38;background:var(--card);border-radius:26px 26px 0 0;box-shadow:0 -12px 30px rgba(6,46,34,.16);transform:translateY(calc(100% - 52px));transition:transform .34s cubic-bezier(.2,.8,.2,1);touch-action:none}
 .trend-drawer.open{transform:translateY(0)}
 .trend-drawer[hidden]{display:none}
@@ -279,7 +269,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .rail-sm .vmeta{font-size:11px;margin-top:3px}
 .rail-sm .vopen{font-size:11px;margin-top:5px}
 .panda-fab.fab-hide{opacity:0;pointer-events:none;transform:scale(.8)}
-/* compact dropdowns */
 .dd{position:relative}
 .dd-btn{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-weight:700;font-size:13px;padding:9px 13px;border-radius:999px;box-shadow:var(--shadow)}
 .dd-btn svg{width:15px;height:15px;opacity:.55}
@@ -289,10 +278,8 @@ img{display:block}a{color:inherit;text-decoration:none}
 .dd-menu button{display:block;width:100%;text-align:left;padding:11px 12px;border-radius:10px;font-weight:700;font-size:14px;color:var(--ink);background:none}
 .dd-menu button.sel{background:var(--mint-100);color:var(--green-800)}
 .dd-menu button:active{background:var(--card-soft)}
-/* map close */
 .map-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;z-index:45;width:38px;height:38px;border-radius:50%;background:var(--card);box-shadow:var(--shadow-lg);display:grid;place-items:center;font-size:16px;font-weight:800;color:var(--ink)}
 .map-x:active{transform:scale(.94)}
-/* panda AI day (chill) theme 5am-7pm */
 .chat.day{background:#EEF4EE}
 .chat.day .chat-head{background:linear-gradient(180deg,var(--green-700),var(--green-600));color:#fff;border-bottom:none}
 .chat.day .chat-head .who small{color:rgba(255,255,255,.82)}
@@ -304,14 +291,12 @@ img{display:block}a{color:inherit;text-decoration:none}
 .chat.day .chip.plan-chip{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent}
 .chat.day .composer{background:#EEF4EE;border-top:1px solid var(--line)}
 .chat.day #chatInput{background:#fff;color:#12241d}
-/* panda shuffle */
 .shuffle-handle{position:absolute;left:0;top:44%;z-index:60;width:44px;height:58px;background:linear-gradient(160deg,var(--gold),var(--gold-deep));border-radius:0 18px 18px 0;box-shadow:4px 4px 14px rgba(0,0,0,.24);display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;transform:translateX(-22px);transition:transform .24s cubic-bezier(.2,.8,.2,1);animation:shpeek 2.6s ease-in-out infinite}
 .shuffle-handle:active{transform:translateX(0);animation:none}
 @keyframes shpeek{0%,100%{transform:translateX(-22px)}50%{transform:translateX(-14px)}}
 .plan-modes{display:flex;gap:8px;padding:2px 18px 8px}
 .plan-modes button{flex:1;padding:9px 4px;border-radius:11px;font-weight:800;font-size:12px;background:var(--card-soft);color:var(--muted);border:1px solid var(--line)}
 .plan-modes button.on{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent}
-/* plan my night */
 .plan-cta{display:flex;align-items:center;justify-content:center;gap:9px;margin:8px 18px 2px;padding:12px;border-radius:16px;background:linear-gradient(120deg,var(--green-700),var(--green-600));color:#fff;font-weight:800;font-size:14.5px;box-shadow:0 8px 20px rgba(10,79,58,.28)}
 .plan-cta:active{transform:scale(.98)}
 .plan-cta .em{font-size:17px}
@@ -334,7 +319,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .plan-actions .mapb{background:var(--green-800);color:#fff}
 .plan-actions button:active{transform:scale(.98)}
 .chip.plan-chip{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent;font-weight:800}
-/* loader */
 #loader{position:fixed;inset:0;z-index:200;background:linear-gradient(180deg,var(--green-800),var(--green-950));display:grid;place-items:center;transition:opacity .5s}
 #loader.gone{opacity:0;pointer-events:none}
 .loadwrap{display:flex;flex-direction:column;align-items:center;gap:20px}
@@ -349,8 +333,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .loadwrap .bar i{display:block;height:100%;width:40%;background:var(--mint-300);border-radius:3px;animation:load 1.1s ease-in-out infinite}
 @keyframes load{0%{transform:translateX(-120%)}100%{transform:translateX(340%)}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.08s!important}}
-
-/* ===== Gold polish & responsive density ===== */
 .profile-card{position:relative}
 .profile-card::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 0 0 0 1px rgba(198,161,91,.4);pointer-events:none}
 .search{border:1px solid transparent;transition:box-shadow .2s,border-color .2s}
@@ -386,8 +368,6 @@ img{display:block}a{color:inherit;text-decoration:none}
   .lcard{height:76px;margin-bottom:7px}
   .homefilters{padding-bottom:4px}
 }
-
-/* ===== LOGIN ===== */
 #login{position:absolute;inset:0;z-index:180;background:radial-gradient(120% 80% at 50% 0%,#0F6B4F 0%,var(--green-900) 55%,var(--green-950) 100%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:34px 28px calc(env(safe-area-inset-bottom,0px) + 30px);text-align:center;color:#fff;opacity:0;transition:opacity .4s}
 #login.show{display:flex;opacity:1}
 #login .brandmark{width:104px;height:104px;border-radius:30px;background:linear-gradient(160deg,#0d5c43,#08321f);display:grid;place-items:center;box-shadow:0 20px 46px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.06);animation:floaty 3.4s ease-in-out infinite}
@@ -403,8 +383,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .authbtn svg{width:20px;height:20px;flex:0 0 auto}
 #login .legal{margin-top:22px;font-size:11.5px;color:rgba(210,236,220,.65);font-weight:500;line-height:1.5;max-width:280px}
 #login .legal a{color:var(--mint-300);text-decoration:underline}
-
-/* ===== AUTH SHEET (name + email) ===== */
 #authModal{position:absolute;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center}
 #authModal.show{display:flex}
 #authModal .back{position:absolute;inset:0;background:rgba(5,32,24,.55);backdrop-filter:blur(3px)}
@@ -421,8 +399,11 @@ img{display:block}a{color:inherit;text-decoration:none}
 #authModal .fld label{display:block;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
 #authModal .fld input{width:100%;border:none;outline:none;background:transparent;font-family:inherit;font-size:15.5px;font-weight:700;color:var(--ink);margin-top:2px}
 #authModal .go{width:100%;margin-top:6px;background:var(--green-800);color:#fff;font-weight:800;font-size:16px;padding:15px;border-radius:16px}
-
-/* ===== WELCOME / DANCING PANDA ===== */
+#authGender{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+#authGender button{padding:11px 6px;border-radius:11px;font-family:inherit;font-weight:800;font-size:13px;background:var(--card-soft);color:var(--muted);border:1.5px solid var(--line);cursor:pointer}
+#authGender button.on{background:var(--green-800);color:#fff;border-color:transparent}
+#authGender button[data-g="Prefer not to say"]{grid-column:1/-1}
+#fldGender{background:transparent;border:none;padding:2px 2px 4px}
 #welcome{position:absolute;inset:0;z-index:220;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:radial-gradient(120% 90% at 50% 25%,#12855F 0%,var(--green-800) 45%,var(--green-950) 100%);color:#fff;overflow:hidden}
 #welcome.show{display:flex}
 #welcome .stage{position:relative;width:220px;height:210px;display:grid;place-items:center}
@@ -447,8 +428,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 @keyframes notefloat{0%{opacity:0;transform:translateY(10px) scale(.7)}30%{opacity:1}100%{opacity:0;transform:translateY(-34px) scale(1)}}
 #welcome h2{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;text-align:center;padding:0 24px}
 #welcome p{margin:4px 0 0;color:var(--mint-300);font-weight:600;font-size:15px}
-
-/* ===== SETTINGS ===== */
 #settings{position:absolute;inset:0;z-index:210;display:none;align-items:flex-end;justify-content:center}
 #settings.show{display:flex}
 #settings .back{position:absolute;inset:0;background:rgba(5,32,24,.5);backdrop-filter:blur(3px)}
@@ -469,8 +448,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .switch i{position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 2px 5px rgba(0,0,0,.2);transition:.2s}
 .switch.on i{left:22px}
 .setver{text-align:center;color:var(--muted);font-size:12px;font-weight:600;margin:14px 0 4px}
-
-/* ===== CREDIT CARD REDESIGN ===== */
 .cardwrap{margin:14px 18px 6px;perspective:1000px}
 .paycard{position:relative;border-radius:22px;padding:20px;color:#fff;overflow:hidden;background:linear-gradient(135deg,#0F6B4F 0%,var(--green-800) 55%,var(--green-950) 100%);box-shadow:0 20px 40px rgba(10,79,58,.4),inset 0 0 0 1px rgba(255,255,255,.07);aspect-ratio:1.585/1;display:flex;flex-direction:column;justify-content:space-between}
 .paycard::before{content:"";position:absolute;right:-30px;top:-40px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%)}
@@ -491,8 +468,6 @@ img{display:block}a{color:inherit;text-decoration:none}
 .steps.compact .step{padding:13px 14px;margin-bottom:9px;border-radius:16px}
 .steps.compact .step b{font-size:14.5px}
 .steps.compact .step span{font-size:13px}
-
-/* install / add-to-home-screen banner */
 #a2hs{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:300;display:none;align-items:center;gap:12px;padding:12px 12px 12px 14px;background:var(--green-800);color:#fff;border-radius:20px;box-shadow:0 18px 40px rgba(6,46,34,.42);max-width:420px;margin:0 auto;transform:translateY(140%);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
 #a2hs.show{display:flex;transform:translateY(0)}
 #a2hs .ic{flex:0 0 auto;width:44px;height:44px;border-radius:13px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
@@ -666,6 +641,13 @@ img{display:block}a{color:inherit;text-decoration:none}
       <p class="hint">Confirm your details to set up your Panda account.</p>
       <div class="fld" id="fldName"><label>Full name</label><input id="authName" type="text" autocomplete="name" placeholder="Your name" /></div>
       <div class="fld" id="fldEmail"><label>Email</label><input id="authEmail" type="email" autocomplete="email" placeholder="you@email.com" /></div>
+      <div id="fldGender"><label style="display:block;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">Gender</label>
+        <div id="authGender">
+          <button type="button" data-g="Male">Male</button>
+          <button type="button" data-g="Female">Female</button>
+          <button type="button" data-g="Prefer not to say">Prefer not to say</button>
+        </div>
+      </div>
       <button class="go" id="authGo">Continue</button>
     </div>
   </div>
@@ -676,16 +658,12 @@ img{display:block}a{color:inherit;text-decoration:none}
     <div class="stage">
       <div class="floor"></div>
       <svg class="dancer" viewBox="0 0 170 190">
-        <!-- legs -->
         <g class="legL"><rect x="58" y="140" width="16" height="34" rx="8" fill="#071A14"/><ellipse cx="66" cy="176" rx="12" ry="7" fill="#071A14"/></g>
         <g class="legR"><rect x="96" y="140" width="16" height="34" rx="8" fill="#071A14"/><ellipse cx="104" cy="176" rx="12" ry="7" fill="#071A14"/></g>
-        <!-- body -->
         <ellipse cx="85" cy="115" rx="42" ry="44" fill="#fff"/>
         <ellipse cx="85" cy="120" rx="26" ry="28" fill="#eef6f0"/>
-        <!-- arms -->
         <g class="armL"><rect x="30" y="88" width="18" height="42" rx="9" fill="#071A14" transform="rotate(18 39 96)"/><circle cx="34" cy="128" r="9" fill="#071A14"/></g>
         <g class="armR"><rect x="122" y="88" width="18" height="42" rx="9" fill="#071A14" transform="rotate(-18 131 96)"/><circle cx="136" cy="128" r="9" fill="#071A14"/></g>
-        <!-- head -->
         <g class="head">
           <circle cx="52" cy="40" r="17" fill="#071A14"/><circle cx="118" cy="40" r="17" fill="#071A14"/>
           <circle cx="85" cy="66" r="40" fill="#fff"/>
@@ -731,20 +709,18 @@ img{display:block}a{color:inherit;text-decoration:none}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 /* ===== CONFIG ===== */
-const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";  /* leave as-is if the app already works */
+const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
-const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform"; /* Credit "Join the waiting list" -> swap for your waitlist form if separate */
+const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
 const SHARE_URL = "https://pandaindustry.co";
 const SHARE_TEXT = "Check out Panda \uD83D\uDC3C — discover the best restaurants, bars & nights out, wherever you are.";
-const FORCE_FORM_AFTER_DAYS = 48;   /* lower this (e.g. 2) to capture details sooner */
-const RESERVATIONS_URL = "./venues.json"; /* file your Apify/GitHub Action writes */
-/* Sponsored venues: a single cached list the app reads. Today a JSON file in the
-   repo (hand-edit for your first partners); later swap SPONSORED_URL to a Firestore
-   endpoint — only loadSponsored() changes, nothing else. */
+const FORCE_FORM_AFTER_DAYS = 48;
+const RESERVATIONS_URL = "./venues.json";
 const SPONSORED_URL = "./sponsored.json";
-const SPONSORED_TTL_MIN = 8;   /* cache for 8 minutes */
-const SPONSOR_REACH_M = 3000;  /* a sponsored venue is shown to anyone within ~3km (≈40 min walk) */
-const ANALYTICS_ENDPOINT = "https://panda-partners-api.vercel.app/api/track"; /* Vercel fn that writes events to Firestore */
+const SPONSORED_TTL_MIN = 8;
+const SPONSOR_REACH_M = 3000;
+const ANALYTICS_ENDPOINT = "https://panda-partners-api.vercel.app/api/track";
+const SIGNUP_ENDPOINT = "https://panda-partners-api.vercel.app/api/signup";
 /* anonymous user counter — one app_open per session (no personal data) */
 (function(){
   try{
@@ -757,23 +733,26 @@ const ANALYTICS_ENDPOINT = "https://panda-partners-api.vercel.app/api/track"; /*
     }
   }catch(e){}
 })();
+/* country auto-detect for sign-ups (by IP, no permission needed) */
+let PANDA_COUNTRY=null;
+(function(){
+  fetch("https://api.country.is/").then(function(r){return r.ok?r.json():null;}).then(function(d){
+    if(d&&d.country){ try{var dn=new Intl.DisplayNames(['en'],{type:'region'});PANDA_COUNTRY=dn.of(d.country)||d.country;}catch(e){PANDA_COUNTRY=d.country;} }
+  }).catch(function(){});
+})();
 /* ================= */
 
 let SPONSORED={}, SPONSORED_BYNAME={};
 function sponsorTier(v){ if(!v)return null; return SPONSORED[v.id] || (v.name&&SPONSORED_BYNAME[String(v.name).toLowerCase().trim()]) || null; }
-/* Only surface a sponsored venue to users within reach (≈3km). This widens a
-   venue's catchment well beyond the nearest few results, so a narrow-catchment
-   spot isn't disadvantaged. */
 function sponsorEligible(v){ const t=sponsorTier(v); if(!t)return null; if(v.distanceMeters!=null && v.distanceMeters>SPONSOR_REACH_M) return null; return t; }
 
-/* ===== Real analytics — proves ROI (who saw/tapped, area, time). ===== */
 let EVQ = (function(){ try{return JSON.parse(localStorage.getItem("panda_evq")||"[]");}catch(e){return [];} })();
-const SEEN_IMPR = new Set();  /* one impression per venue per session */
-function coarseArea(){ if(!COORDS)return null; return {lat:Math.round(COORDS.lat*100)/100, lng:Math.round(COORDS.lng*100)/100}; } /* ~1km grid — privacy-preserving */
+const SEEN_IMPR = new Set();
+function coarseArea(){ if(!COORDS)return null; return {lat:Math.round(COORDS.lat*100)/100, lng:Math.round(COORDS.lng*100)/100}; }
 function track(type,v,extra){
   if(!v) return;
   const tier=v.__sponsor||sponsorTier(v);
-  if(!tier) return; /* we only meter sponsored venues (their paid ROI) */
+  if(!tier) return;
   const ev=Object.assign({
     type, ts:Date.now(), venueId:v.id||null, venue:v.name||null, tier,
     area:coarseArea(), city:(typeof CITY!=="undefined"?CITY:null)||null,
@@ -799,7 +778,6 @@ function flushEvents(useBeacon){
 }
 setInterval(()=>flushEvents(), 15000);
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushEvents(true); });
-/* fire an impression when a sponsored card actually scrolls into view */
 const imprObserver = ("IntersectionObserver" in window) ? new IntersectionObserver((ents)=>{
   ents.forEach(e=>{ if(e.isIntersecting){ const el=e.target; const id=el.getAttribute("data-vid"); const src=el.getAttribute("data-asrc"); imprObserver.unobserve(el);
     if(id && !SEEN_IMPR.has(id)){ SEEN_IMPR.add(id); const arr=(typeof srcArr==="function")?srcArr(src):null; const v=arr?arr.find(x=>x&&x.id===id):null; if(v) track("impression",v); } } });
@@ -855,6 +833,7 @@ function resolveCity(c){
     .then(d=>{
       if(!d)return;
       CITY=d.city||d.locality||d.principalSubdivision||d.countryName||null;
+      if(d.countryName) PANDA_COUNTRY=d.countryName;
       if(CITY){var hl=$("#hello");if(hl)hl.textContent="Welcome back · "+CITY;}
     }).catch(function(){});
 }
@@ -882,17 +861,15 @@ let homeQuery="",homeToken=null,homeLoading=false,homeRaw=[];
 function wireDropdown(id,cb){const dd=$("#"+id);if(!dd)return;const btn=dd.querySelector(".dd-btn");btn.addEventListener("click",e=>{e.stopPropagation();document.querySelectorAll(".dd.open").forEach(o=>{if(o!==dd)o.classList.remove("open");});dd.classList.toggle("open");});dd.querySelectorAll(".dd-menu button").forEach(b=>{b.addEventListener("click",e=>{e.stopPropagation();dd.dataset.val=b.dataset.v;btn.firstChild.textContent=b.textContent+" ";dd.querySelectorAll(".dd-menu button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");dd.classList.remove("open");cb&&cb();});});}
 document.addEventListener("click",()=>{document.querySelectorAll(".dd.open").forEach(o=>o.classList.remove("open"));});
 function interleaveSponsored(list){
-  // Pull sponsored out, then drop them back in at every 5th slot (5,10,15…)
   const spon=[],organic=[];
   list.forEach(x=>{const t=sponsorEligible(x);x.__sponsor=t;(t?spon:organic).push(x);});
   if(!spon.length) return organic;
   const out=[];let si=0;
   for(let i=0;i<organic.length;i++){
-    // before filling position 5,10,15… (0-indexed 4,9,14) insert a sponsored one
     if(out.length>0 && out.length%5===4 && si<spon.length){ out.push(spon[si++]); }
     out.push(organic[i]);
   }
-  while(si<spon.length) out.push(spon[si++]); // any remaining sponsored go at the end
+  while(si<spon.length) out.push(spon[si++]);
   return out;
 }
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
@@ -900,7 +877,6 @@ async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.l
 let TREND_ORGANIC=[];
 function renderTrend(){
   let t=TREND_ORGANIC.slice().filter(x=>sponsorEligible(x)!=="banging");
-  // insert paid top-tier (Banging) venues into the trending row for double visibility
   const bang=(homeRaw||[]).filter(x=>sponsorEligible(x)==="banging");
   if(bang.length){const out=[];let bi=0;for(let i=0;i<t.length;i++){if(out.length>0&&out.length%5===2&&bi<bang.length){out.push(bang[bi++]);}out.push(t[i]);}while(bi<bang.length)out.push(bang[bi++]);t=out;}
   t.forEach(x=>x.__sponsor=sponsorEligible(x));
@@ -918,7 +894,6 @@ async function loadMoreHome(){
   if(COORDS&&ringStage<RING_KM.length){homeLoading=true;const centers=ringCenters(RING_KM[ringStage]);ringStage++;const res=await Promise.all(centers.map(c=>fetchVenuesAt(homeQuery,c.lat,c.lng)));mergeHome([].concat.apply([],res));applyHomeFilters();homeLoading=false;return;}
 }
 
-/* MAP */
 let map=null,markers=null,pendingPlanRoute=false;
 function pinIcon(txt){return L.divIcon({className:"",html:'<div class="pin"><b>'+txt+'</b></div>',iconSize:[34,34],iconAnchor:[17,34]});}
 function initMap(){if(map)return;map=L.map('map-canvas',{zoomControl:false}).setView([COORDS?COORDS.lat:51.5074,COORDS?COORDS.lng:-0.1278],14);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);markers=L.layerGroup().addTo(map);setTimeout(()=>map.invalidateSize(),200);}
@@ -941,10 +916,18 @@ function joinWaitlist(){window.open(WAITLIST_URL,"_blank","noopener");store.setF
 
 /* ===== AUTH / LOGIN ===== */
 let AUTH_PROVIDER="Google";
+let AUTH_GENDER="";
 function isAuthed(){const a=store.lget("panda_auth");return !!(a&&a.email);}
 function initAuth(){ if(isAuthed()){window.__authed=true;return;} showLogin(); }
 function showLogin(){ $("#login").classList.add("show"); }
 function hideLogin(){ $("#login").classList.remove("show"); }
+function wireGender(){
+  $$("#authGender button").forEach(b=>b.addEventListener("click",()=>{
+    AUTH_GENDER=b.dataset.g;
+    $$("#authGender button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+  }));
+}
 function openAuth(prov){
   AUTH_PROVIDER=prov;
   $("#authProvName").textContent=prov;
@@ -953,6 +936,8 @@ function openAuth(prov){
     : '<svg width="12" height="12" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1A11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>';
   const p=store.lget("panda_profile")||{};
   $("#authName").value=p.name||""; $("#authEmail").value=p.email||"";
+  AUTH_GENDER=p.gender||"";
+  $$("#authGender button").forEach(x=>x.classList.toggle("on",x.dataset.g===AUTH_GENDER));
   $("#authModal").classList.add("show");
   setTimeout(()=>$("#authName").focus(),260);
 }
@@ -961,8 +946,17 @@ function doAuth(){
   const name=$("#authName").value.trim(), email=$("#authEmail").value.trim();
   const okEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   if(!okEmail){ $("#fldEmail").classList.add("bad"); setTimeout(()=>$("#fldEmail").classList.remove("bad"),400); $("#authEmail").focus(); return; }
-  store.lset("panda_auth",{name:name,email:email,provider:AUTH_PROVIDER,ts:Date.now()});
-  const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; store.lset("panda_profile",p);
+  store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now()});
+  const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
+  /* send sign-up (name + email + gender + country) to backend, once per device */
+  try{
+    var __did=localStorage.getItem("panda_device_id")||("d_"+Math.random().toString(36).slice(2));
+    if(!localStorage.getItem("panda_signup_sent")){
+      localStorage.setItem("panda_signup_sent","1");
+      fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({name:name,email:email,gender:AUTH_GENDER,country:PANDA_COUNTRY,provider:AUTH_PROVIDER,deviceId:__did,ts:Date.now()}),keepalive:true}).catch(function(){});
+    }
+  }catch(e){}
   window.__authed=true; loadProfile();
   closeAuth(); hideLogin();
   showWelcome(name);
@@ -977,7 +971,6 @@ function showWelcome(name){
 }
 function logout(){ try{localStorage.removeItem("panda_auth");}catch(e){} window.__authed=false; closeSettings(); showScreen("home"); showLogin(); }
 
-/* ===== SETTINGS ===== */
 function openSettings(){
   const a=store.lget("panda_auth")||store.lget("panda_profile")||{};
   $("#setAccount").firstChild.textContent=a.name||"Your account";
@@ -986,7 +979,6 @@ function openSettings(){
 }
 function closeSettings(){ $("#settings").classList.remove("show"); }
 
-/* ===== SHARE ===== */
 function shareWhatsApp(){
   const msg=SHARE_TEXT+" "+SHARE_URL;
   window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank","noopener");
@@ -997,7 +989,7 @@ function sharePanda(){
 }
 
 function loadProfile(){const p=store.lget("panda_profile")||{};$("#dName").value=p.name||"";$("#dEmail").value=p.email||"";$("#dPhone").value=p.phone||"";const first=(p.name||"").trim().split(" ")[0];$("#homeName").textContent=first||"there";$("#pName").textContent=p.name||"Welcome";$("#pfpInitial").textContent=((p.name||"P")[0]||"P").toUpperCase();const img=store.lget("panda_pfp");if(img){$("#pfp").innerHTML='<img src="'+img+'" alt="you"/><span class="cam"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg></span>';}}
-function saveProfile(){const p={name:$("#dName").value.trim(),email:$("#dEmail").value.trim(),phone:$("#dPhone").value.trim()};store.lset("panda_profile",p);loadProfile();}
+function saveProfile(){const p=store.lget("panda_profile")||{};p.name=$("#dName").value.trim();p.email=$("#dEmail").value.trim();p.phone=$("#dPhone").value.trim();store.lset("panda_profile",p);loadProfile();}
 
 function openSheet(v){if(!v)return;$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View official website &amp; menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
 if(sponsorEligible(v)||v.__sponsor){ track("detail_open",v);
@@ -1039,7 +1031,6 @@ function makeDraggable(el){let sx,sy,ox,oy,moved,dragging=false;const saved=stor
 
 function checkFormGate(){let first=store.lget("first_use");if(!first){first=Date.now();store.lset("first_use",first);}if(store.flag("form_done"))return;const days=(Date.now()-first)/86400000;if(days>=FORCE_FORM_AFTER_DAYS){$("#formGo").href=FORM_URL;$("#formModal").classList.add("show");}}
 
-/* ===== Plan my night ===== */
 function haversine(aLat,aLng,bLat,bLng){const R=6371000,tr=x=>x*Math.PI/180;const dLat=tr(bLat-aLat),dLng=tr(bLng-aLng);const q=Math.sin(dLat/2)**2+Math.cos(tr(aLat))*Math.cos(tr(bLat))*Math.sin(dLng/2)**2;return Math.round(2*R*Math.asin(Math.sqrt(q)));}
 function planScore(v){return (v.rating||3.5)*Math.log((v.ratingCount||5)+10);}
 function pickTop(list,n){return list.slice().sort((a,b)=>planScore(b)-planScore(a)).slice(0,n);}
@@ -1074,7 +1065,7 @@ function drawPlanRoute(){if(!DATA.plan||!DATA.plan.length)return;markers.clearLa
 function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();var _c=$("#chat");if(_c)_c.classList.remove("open");pendingPlanRoute=true;showScreen("map");}
 
 function boot(){
-  buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();
+  buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();wireGender();
   $("#fCuisine").innerHTML=CATEGORIES.map((c,i)=>'<option value="'+esc(c.q)+'">'+(i===0?"All cuisines":c.label)+'</option>').join('');
   $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;if(b.classList.contains("plan-chip")){buildPlan(defaultMode());return;}sendMessage(b.textContent)});
   $("#closeChat").addEventListener("click",closeChat);
@@ -1150,7 +1141,6 @@ document.addEventListener("DOMContentLoaded",boot);
   var goBtn=document.getElementById("a2hsGo");
   var clBtn=document.getElementById("a2hsClose");
   var deferred=null;
-
   function isStandalone(){
     return window.matchMedia("(display-mode: standalone)").matches ||
            window.matchMedia("(display-mode: fullscreen)").matches ||
@@ -1170,33 +1160,24 @@ document.addEventListener("DOMContentLoaded",boot);
   function authed(){ try{ return !!JSON.parse(localStorage.getItem("panda_auth")||"null"); }catch(e){ return false; } }
   function maybeShow(){ if(!dismissed() && !isStandalone() && authed()) show(); }
   window.__a2hsRetry = maybeShow;
-  /* Manual trigger from Settings → Add to home screen */
   window.__pandaInstall = function(){
     if(deferred){ deferred.prompt(); deferred.userChoice.then(function(){ deferred=null; hide(); }); }
     else if(isiOS()){ banner.classList.contains("ios")||buildIos(); show(); }
     else { show(); }
   };
-
   if(clBtn) clBtn.addEventListener("click", function(){ hide(); remember(); });
-
-  /* Already installed → never nag. */
   if(isStandalone() || dismissed()) return;
-
-  /* Android / desktop Chrome: real install prompt. */
   window.addEventListener("beforeinstallprompt", function(e){
     e.preventDefault();
     deferred=e;
-    setTimeout(maybeShow, 2600);       // only after login
+    setTimeout(maybeShow, 2600);
   });
-
   if(goBtn) goBtn.addEventListener("click", function(){
     if(!deferred) return;
     deferred.prompt();
     deferred.userChoice.then(function(){ deferred=null; hide(); remember(); });
   });
-
   window.addEventListener("appinstalled", function(){ hide(); remember(); });
-
   function buildIos(){
     banner.classList.add("ios");
     banner.innerHTML =
@@ -1209,13 +1190,10 @@ document.addEventListener("DOMContentLoaded",boot);
     var ic=document.getElementById("a2hsCloseIos");
     if(ic) ic.addEventListener("click", function(){ hide(); remember(); });
   }
-  /* iOS Safari: no install API — show the Share → Add to Home Screen hint. */
   if(isiOS() && !isStandalone()){
     buildIos();
     setTimeout(maybeShow, 3000);
   }
-
-  /* Register the service worker (needed for a clean, reliable install). */
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
       navigator.serviceWorker.register("./sw.js").catch(function(){});
