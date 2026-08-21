@@ -1212,5 +1212,44 @@ document.addEventListener("DOMContentLoaded",boot);
   }
 })();
 </script>
+
+<style id="panda-photo-carousel-style">
+.panda-photo-carousel{position:absolute;inset:0;z-index:1;overflow:hidden;background:linear-gradient(135deg,var(--green-700),var(--green-500));touch-action:pan-y;user-select:none}
+.panda-photo-track{display:flex;height:100%;will-change:transform;transition:transform .28s ease}
+.panda-photo-slide{position:relative;min-width:100%;height:100%;margin:0;background:linear-gradient(135deg,var(--green-700),var(--green-500))}
+.panda-photo-slide img{display:block;width:100%;height:100%;object-fit:cover}
+.panda-photo-nav{position:absolute;z-index:2;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:50%;background:rgba(6,32,24,.62);color:#fff;display:grid;place-items:center;backdrop-filter:blur(4px);font-size:24px;line-height:1;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.panda-photo-nav.prev{left:12px}.panda-photo-nav.next{right:12px}.panda-photo-nav[hidden]{display:none}
+.panda-photo-dots{position:absolute;z-index:2;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:6px}
+.panda-photo-dot{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.panda-photo-dot.on{width:20px;border-radius:99px;background:#fff}
+.panda-photo-empty{position:absolute;inset:0;display:grid;place-items:center;color:#eafff5;font-size:13px;font-weight:700;background:linear-gradient(135deg,var(--green-700),var(--green-500))}
+.sheet .hero>.panda-photo-carousel~img,.sheet .hero>.panda-photo-carousel~.ph-init{display:none}
+.sheet .hero>.closeX,.sheet .hero>.grip,.sheet .hero>.attr{z-index:3}
+</style>
+<script id="panda-photo-carousel-script">
+(function(){
+  var legacyOpenSheet=window.openSheet;
+  var photoOrigin="https://www.pandaindustry.co";
+  function safeText(value){return String(value||"").replace(/[&<>\"]/g,function(ch){return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[ch];});}
+  function attributionMarkup(items){return (items||[]).map(function(item){var label=safeText(item.displayName||"Google contributor");return item.uri?'<a href="'+safeText(item.uri)+'" target="_blank" rel="noopener">'+label+'</a>':label;}).join(" · ");}
+  function restoreFallback(hero,carousel){if(carousel)carousel.remove();Array.from(hero.children).forEach(function(child){if(child.tagName==='IMG'||child.classList.contains('ph-init'))child.style.display='';});}
+  function mountCarousel(venue){
+    var hero=document.querySelector("#sheet .hero");if(!hero)return;
+    var old=hero.querySelector(".panda-photo-carousel");if(old)old.remove();
+    var carousel=document.createElement("div");carousel.className="panda-photo-carousel";carousel.id="pandaPhotoCarousel";carousel.setAttribute("role","region");carousel.setAttribute("aria-label",(venue.name||"Venue")+" photos");
+    carousel.innerHTML='<div class="panda-photo-track" id="pandaPhotoTrack"><div class="panda-photo-empty">Loading venue photos…</div></div><button class="panda-photo-nav prev" type="button" aria-label="Previous photo" hidden>‹</button><button class="panda-photo-nav next" type="button" aria-label="Next photo" hidden>›</button><div class="panda-photo-dots" id="pandaPhotoDots"></div>';
+    hero.insertBefore(carousel,hero.firstChild);
+    Array.from(hero.children).forEach(function(child){if(child!==carousel&&(child.tagName==='IMG'||child.classList.contains('ph-init')))child.style.display='none';});
+    var track=carousel.querySelector("#pandaPhotoTrack"),dots=carousel.querySelector("#pandaPhotoDots"),prev=carousel.querySelector(".prev"),next=carousel.querySelector(".next"),active=0,photos=[];var startX=0;
+    function setActive(nextIndex){if(!photos.length)return;active=(nextIndex+photos.length)%photos.length;track.style.transform="translateX(-"+(active*100)+"%)";Array.from(dots.children).forEach(function(dot,index){dot.classList.toggle("on",index===active);dot.setAttribute("aria-current",index===active?"true":"false");});}
+    function showPhotos(data){photos=(data.photos||[]).slice(0,3);if(!photos.length){restoreFallback(hero,carousel);return;}track.innerHTML=photos.map(function(photo,index){return '<figure class="panda-photo-slide"><img src="'+photoOrigin+photo.path+'" alt="'+safeText(venue.name)+' — Google photo '+(index+1)+'" draggable="false"></figure>';}).join("");dots.innerHTML=photos.map(function(_,index){return '<button class="panda-photo-dot'+(index===0?' on':'')+'" type="button" aria-label="Show photo '+(index+1)+'" aria-current="'+(index===0?'true':'false')+'"></button>';}).join("");dots.querySelectorAll("button").forEach(function(dot,index){dot.addEventListener("click",function(){setActive(index);});});if(photos.length>1){prev.hidden=false;next.hidden=false;prev.addEventListener("click",function(){setActive(active-1);});next.addEventListener("click",function(){setActive(active+1);});}var attr=hero.querySelector(".attr");if(attr)attr.innerHTML="Photos: "+photos.map(function(photo){return attributionMarkup(photo.attribution);}).filter(Boolean).join(" · ");setActive(0);}
+    carousel.addEventListener("pointerdown",function(event){startX=event.clientX;});carousel.addEventListener("pointerup",function(event){var delta=event.clientX-startX;if(Math.abs(delta)>45&&photos.length>1)setActive(active+(delta<0?1:-1));});carousel.addEventListener("keydown",function(event){if(event.key==='ArrowLeft')setActive(active-1);if(event.key==='ArrowRight')setActive(active+1);});carousel.tabIndex=0;
+    if(!venue.id){restoreFallback(hero,carousel);return;}
+    fetch(photoOrigin+"/api/partner/venues/"+encodeURIComponent(venue.id)+"/photos",{headers:{Accept:"application/json"}}).then(function(response){if(!response.ok)throw new Error("photos");return response.json();}).then(showPhotos).catch(function(){restoreFallback(hero,carousel);});
+  }
+  window.openSheet=function(venue){legacyOpenSheet(venue);mountCarousel(venue);};
+})();
+</script>
 </body>
 </html>
