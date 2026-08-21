@@ -1251,5 +1251,21 @@ document.addEventListener("DOMContentLoaded",boot);
   window.openSheet=function(venue){legacyOpenSheet(venue);mountCarousel(venue);};
 })();
 </script>
+
+<style id="panda-location-luxury-style">
+.location-bar{display:flex;align-items:center;gap:8px;margin:5px 18px 0;padding:8px 10px;border:1px solid rgba(15,107,79,.12);border-radius:12px;background:rgba(255,255,255,.52);color:#668b7a;font-size:11px;font-weight:700;min-height:34px}.location-bar .loc-dot{width:8px;height:8px;border-radius:50%;background:#b9c9c0;flex:0 0 auto}.location-bar.ready .loc-dot{background:#1b9a66;box-shadow:0 0 0 4px rgba(27,154,102,.12)}.location-bar.busy .loc-dot{background:#e0a52f;box-shadow:0 0 0 4px rgba(224,165,47,.12)}.location-bar .loc-copy{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.location-bar button{border:0;background:transparent;color:#0f6b4f;padding:4px 2px;font-family:inherit;font-size:11px;font-weight:800;white-space:nowrap;text-decoration:underline;text-underline-offset:2px}.location-bar.ready button{color:#668b7a;text-decoration:none;pointer-events:none}.location-bar.error{background:#fffaf0;border-color:rgba(198,161,91,.28)}.location-bar.error .loc-dot{background:#c69a4d}
+.lcard.promoted-card{border:1px solid #d7b46b;background:linear-gradient(105deg,#fffdf7 0%,#fff 42%,#fffaf0 100%);box-shadow:0 8px 24px rgba(154,111,36,.18),inset 3px 0 0 #c69a4d}.lcard.promoted-card:active{box-shadow:0 10px 28px rgba(154,111,36,.25),inset 3px 0 0 #c69a4d}.lcard.promoted-card .promoted{background:linear-gradient(135deg,#b98532,#e8c77e);color:#fffdf4;border-radius:999px;padding:3px 8px;letter-spacing:.1em;box-shadow:0 2px 6px rgba(154,111,36,.22)}.lcard.promoted-card .ln{color:#182d24}.lcard.promoted-card .heart{background:#fffdf7;box-shadow:0 2px 7px rgba(154,111,36,.12)}
+.vcard.promoted-card{border:1px solid #d7b46b;background:linear-gradient(145deg,#fffdf7,#fff9ec);box-shadow:0 9px 24px rgba(154,111,36,.2),inset 0 3px 0 #c69a4d}.vcard.promoted-card .vpromo{background:linear-gradient(135deg,#b98532,#e8c77e);color:#fffdf4;border:1px solid rgba(255,255,255,.45);box-shadow:0 3px 8px rgba(90,62,15,.25);border-radius:999px;letter-spacing:.1em}
+</style>
+<script id="panda-location-luxury-script">
+(function(){
+  var locationBusy=false;
+  function updateLocationUi(mode,text){var bar=document.getElementById("pandaLocationBar"),copy=document.getElementById("pandaLocationCopy"),button=document.getElementById("pandaLocationButton");if(!bar)return;bar.classList.remove("ready","busy","error");if(mode)bar.classList.add(mode);if(copy)copy.textContent=text;if(button)button.textContent=mode==='ready'?"Location on":mode==='busy'?"Finding…":"Use my location";}
+  function ensureLocationUi(){var search=document.querySelector(".search");if(!search||document.getElementById("pandaLocationBar"))return;search.insertAdjacentHTML("afterend",'<div class="location-bar" id="pandaLocationBar" role="status" aria-live="polite"><span class="loc-dot" aria-hidden="true"></span><span class="loc-copy" id="pandaLocationCopy">Allow location to see the closest spots around you</span><button id="pandaLocationButton" type="button">Use my location</button></div>');document.getElementById("pandaLocationButton").addEventListener("click",function(){window.getLocation();});if(COORDS)updateLocationUi("ready","Showing the closest spots around you");}
+  function requestLocation(){if(locationBusy)return;if(!navigator.geolocation){updateLocationUi("error","Location is not available in this browser");return;}locationBusy=true;updateLocationUi("busy","Finding the closest spots around you…");navigator.geolocation.getCurrentPosition(function(position){COORDS={lat:position.coords.latitude,lng:position.coords.longitude};locationBusy=false;updateLocationUi("ready","Showing the closest spots around you");resolveCity(COORDS);refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},function(){locationBusy=false;updateLocationUi("error","Location is off — allow it to see nearby spots");},{enableHighAccuracy:true,timeout:10000,maximumAge:120000});}
+  window.getLocation=requestLocation;
+  if(document.readyState==='loading')document.addEventListener("DOMContentLoaded",ensureLocationUi);else ensureLocationUi();
+})();
+</script>
 </body>
 </html>
