@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-23T16:22:59.977Z",
+  "updated": "2026-08-23T17:35:50.480Z",
   "note": "Sponsored venues. Match by exact 'name' (as shown in the app) or 'place_id'. tier 'discovery' = promoted in Suggestions (every 5th slot). tier 'banging' = promoted in Suggestions AND the Banging trending row. Written automatically by the Stripe webhook; can also be edited by hand.",
   "venues": [
     {
@@ -15,6 +15,11 @@
     {
       "name": "Nine Elms Tavern",
       "place_id": "ChIJe0d53vwEdkgREBIjpHxxLxc",
+      "tier": "discovery"
+    },
+    {
+      "name": "",
+      "place_id": "",
       "tier": "discovery"
     },
     {
