@@ -1,9 +1,26 @@
 {
-  "updated": "2026-08-19T12:10:00.000Z",
+  "updated": "2026-08-23T16:22:59.977Z",
   "note": "Sponsored venues. Match by exact 'name' (as shown in the app) or 'place_id'. tier 'discovery' = promoted in Suggestions (every 5th slot). tier 'banging' = promoted in Suggestions AND the Banging trending row. Written automatically by the Stripe webhook; can also be edited by hand.",
   "venues": [
-    { "name": "Dishoom", "place_id": "", "tier": "banging" },
-    { "name": "Bentley's Oyster Bar & Grill", "place_id": "", "tier": "banging" },
-    { "name": "Nine Elms Tavern", "place_id": "ChIJe0d53vwEdkgREBIjpHxxLxc", "tier": "discovery" }
+    {
+      "name": "Dishoom",
+      "place_id": "",
+      "tier": "banging"
+    },
+    {
+      "name": "Bentley's Oyster Bar & Grill",
+      "place_id": "",
+      "tier": "banging"
+    },
+    {
+      "name": "Nine Elms Tavern",
+      "place_id": "ChIJe0d53vwEdkgREBIjpHxxLxc",
+      "tier": "discovery"
+    },
+    {
+      "name": "",
+      "place_id": "",
+      "tier": "discovery"
+    }
   ]
 }
