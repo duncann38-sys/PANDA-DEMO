@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -727,7 +728,8 @@ body.gated #login{pointer-events:auto}
         Continue with Apple
       </button>
     </div>
-    <p class="legal">By continuing you agree to Panda's <a href="https://pandaindustry.co" target="_blank" rel="noopener">Terms</a> &amp; <a href="https://pandaindustry.co" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+    <p class="legal">By continuing you agree to Panda's <a href="https://www.pandaindustry.co" target="_blank" rel="noopener">Terms</a> &amp; <a href="https://www.pandaindustry.co" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+    <button type="button" id="loginSkip" style="margin-top:18px;background:transparent;border:none;color:rgba(210,236,220,.78);font-family:inherit;font-weight:700;font-size:14px;text-decoration:underline;cursor:pointer">Maybe later</button>
   </div>
 
   <!-- AUTH SHEET -->
@@ -845,7 +847,7 @@ body.gated #login{pointer-events:auto}
 const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
 const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
-const SHARE_URL = "https://pandaindustry.co";
+const SHARE_URL = "https://www.pandaindustry.co";
 const SHARE_TEXT = "Check out Panda \uD83D\uDC3C — discover the best restaurants, bars & nights out, wherever you are.";
 const FORCE_FORM_AFTER_DAYS = 48;
 const RESERVATIONS_URL = "./venues.json";
@@ -1054,7 +1056,7 @@ function buildCats(){const order=[0].concat(catOrder());$("#cats").innerHTML=ord
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
-function showScreen(n){ if(!window.__authed && !isAuthed()){ showLogin(); return; } Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
+function showScreen(n){ Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
@@ -1064,9 +1066,15 @@ function joinWaitlist(){window.open(WAITLIST_URL,"_blank","noopener");store.setF
 let AUTH_PROVIDER="Google";
 let AUTH_GENDER="";
 function isAuthed(){const a=store.lget("panda_auth");return !!(a&&a.email&&a.stored===true);}
-function initAuth(){ if(isAuthed()){window.__authed=true;return;} showLogin(); }
-function showLogin(){ document.body.classList.add("gated"); window.__authLocked=true; $("#login").classList.add("show"); }
+function initAuth(){
+  /* The app is always usable. Sign-in is an optional prompt, never a lock. */
+  window.__authed=true;
+  try{ showScreen("home"); }catch(e){}
+  if(!isAuthed() && !sessionStorage.getItem("panda_login_skip")){ showLogin(); }
+}
+function showLogin(){ $("#login").classList.add("show"); }
 function hideLogin(){ document.body.classList.remove("gated"); window.__authLocked=false; $("#login").classList.remove("show"); }
+function dismissLogin(){ try{ sessionStorage.setItem("panda_login_skip","1"); }catch(e){} closeAuth(); hideLogin(); }
 function wireGender(){
   $$("#authGender button").forEach(b=>b.addEventListener("click",()=>{
     AUTH_GENDER=b.dataset.g;
@@ -1087,7 +1095,7 @@ function openAuth(prov){
   $("#authModal").classList.add("show");
   setTimeout(()=>$("#authName").focus(),260);
 }
-function closeAuth(){ if(window.__authLocked && !isAuthed()) return; $("#authModal").classList.remove("show"); }
+function closeAuth(){ $("#authModal").classList.remove("show"); }
 function pfAuthError(msg){var el=$("#authErr");if(!el){el=document.createElement("p");el.id="authErr";el.style.cssText="margin:10px 2px 0;color:#c0483f;font-size:12.5px;font-weight:700;line-height:1.4;text-align:center";var go=$("#authGo");if(go&&go.parentNode)go.parentNode.insertBefore(el,go);}el.textContent=msg;}
 function pfAuthClearError(){var el=$("#authErr");if(el)el.textContent="";}
 function doAuth(){
@@ -1095,52 +1103,43 @@ function doAuth(){
   const okEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   if(!name){ $("#fldName").classList.add("bad"); setTimeout(()=>$("#fldName").classList.remove("bad"),400); $("#authName").focus(); pfAuthError("Please enter your name."); return; }
   if(!okEmail){ $("#fldEmail").classList.add("bad"); setTimeout(()=>$("#fldEmail").classList.remove("bad"),400); $("#authEmail").focus(); pfAuthError("Please enter a valid email address."); return; }
-  const btn=$("#authGo"); if(btn.dataset.busy==="1") return;
   pfAuthClearError();
   const __did=localStorage.getItem("panda_device_id")||("d_"+Math.random().toString(36).slice(2)+Date.now().toString(36));
   localStorage.setItem("panda_device_id",__did);
   const payload={name:name,email:email,gender:AUTH_GENDER,country:PANDA_COUNTRY,provider:AUTH_PROVIDER,deviceId:__did,ts:Date.now()};
-  btn.dataset.busy="1"; const _label=btn.textContent; btn.textContent="Setting up your account…"; btn.style.opacity=".7";
-  /* Store the record locally and open the gate. pendingSync=true means the backend
-     hasn't confirmed yet; the record is queued and retried in the background so a
-     transient backend failure can never lock a real user out. */
-  function enter(pendingSync){
-    try{
-      store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true,pendingSync:!!pendingSync});
-      const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
-      localStorage.setItem("panda_signup_sent","1");
-      if(pendingSync){ try{ store.lset("panda_signup_queue",payload); }catch(e){} }
-      else{ try{ localStorage.removeItem("panda_signup_queue"); }catch(e){} }
-    }catch(e){}
-    /* Lift the gate FIRST. Nothing below this line can trap the user on the sheet. */
-    window.__authed=true;
-    btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity="";
-    try{ closeAuth(); }catch(e){}
-    try{ hideLogin(); }catch(e){}
-    /* Best-effort rendering — each wrapped so a render error can never re-gate. */
-    try{ loadProfile(); }catch(e){}
-    try{ if(typeof showScreen==="function") showScreen("home"); }catch(e){}
-    try{ showWelcome(name); }catch(e){}
-    try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
-    if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
-  }
-  /* Try the backend first; on 2xx we mark the record fully synced. On any failure
-     the user still gets in (data stored locally + queued), never trapped behind a
-     down or misconfigured endpoint. */
-  var ctrl=("AbortController" in window)?new AbortController():null; var to=setTimeout(function(){if(ctrl)ctrl.abort();},12000);
-  var done=false; function finish(pending){ if(done)return; done=true; clearTimeout(to); clearTimeout(hardTo); enter(pending); }
-  var hardTo=setTimeout(function(){ finish(true); },13000);
-  fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:ctrl?ctrl.signal:undefined})
-    .then(function(r){ finish(!(r&&r.ok)); })
-    .catch(function(){ finish(true); });
+  /* Capture immediately — no waiting on the network, no gating. */
+  try{
+    store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true,pendingSync:true});
+    const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
+    localStorage.setItem("panda_signup_sent","1");
+    store.lset("panda_signup_queue",payload);
+    try{ sessionStorage.removeItem("panda_login_skip"); }catch(e){}
+  }catch(e){}
+  /* Save to the backend in the background; success clears the retry queue. */
+  saveSignup(payload);
+  /* Open the app. Every step wrapped so nothing can trap the user on the sheet. */
+  window.__authed=true;
+  try{ loadProfile(); }catch(e){}
+  try{ closeAuth(); }catch(e){}
+  try{ hideLogin(); }catch(e){}
+  try{ showScreen("home"); }catch(e){}
+  try{ showWelcome(name); }catch(e){}
+  try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
+  if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
+}
+/* Best-effort backend save. Clears the retry queue and marks synced on HTTP 2xx. */
+function saveSignup(payload){
+  try{
+    fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true})
+      .then(function(r){ if(r&&r.ok){ try{ localStorage.removeItem("panda_signup_queue"); var a=store.lget("panda_auth"); if(a){ a.pendingSync=false; store.lset("panda_auth",a); } }catch(e){} } })
+      .catch(function(){});
+  }catch(e){}
 }
 /* Background retry: if a prior sign-up couldn't reach the backend, resend it quietly. */
 function flushSignupQueue(){
   var q=null; try{ q=store.lget("panda_signup_queue"); }catch(e){}
   if(!q||!q.email) return;
-  fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(q)})
-    .then(function(r){ if(r&&r.ok){ try{ localStorage.removeItem("panda_signup_queue"); var a=store.lget("panda_auth"); if(a){ a.pendingSync=false; store.lset("panda_auth",a); } }catch(e){} } })
-    .catch(function(){});
+  saveSignup(q);
 }
 function showWelcome(name){
   const first=(name||"").trim().split(" ")[0];
@@ -1326,6 +1325,7 @@ function boot(){
   $("#openSettings").addEventListener("click",openSettings);
   wirePfEdit();
   $$("#login .authbtn").forEach(b=>b.addEventListener("click",()=>openAuth(b.dataset.prov)));
+  var _ls=$("#loginSkip"); if(_ls) _ls.addEventListener("click",dismissLogin);
   $("#authGo").addEventListener("click",doAuth);
   $("#authBack").addEventListener("click",closeAuth);
   $("#authEmail").addEventListener("keydown",e=>{if(e.key==="Enter")doAuth();});
@@ -1535,4 +1535,3 @@ document.addEventListener("DOMContentLoaded",boot);
 <script id="panda-profile-upgrade-script">(function(){var row=document.getElementById("rowShare");if(!row)return;var label=row.previousElementSibling;if(label)label.textContent="Your favourites";row.className="srow share-favourites-row";row.innerHTML='<span class="sic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg></span><div class="stx">Share saved places<small id="setSavedSummary">Save places to share a list</small></div><span class="arrow">→</span>';})();</script>
 </body>
 </html>
-
