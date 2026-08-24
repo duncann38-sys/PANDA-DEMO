@@ -861,9 +861,9 @@ const SIGNUP_ENDPOINT = "https://panda-partners-api.vercel.app/api/signup";
   try{
     var id=localStorage.getItem("panda_device_id");
     if(!id){ id="d_"+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem("panda_device_id",id); }
-    /* Only count a device as active once it has signed up. Anonymous link-openers are NOT tracked. */
-    var _authed=false; try{ _authed=!!(JSON.parse(localStorage.getItem("panda_auth")||"null")||{}).email; }catch(e){}
-    if(_authed && !sessionStorage.getItem("panda_open_sent")){
+    /* Count every device that opens the app, once per session — signed in or not.
+       Only anonymous data is sent (device id + timestamp), no personal info. */
+    if(!sessionStorage.getItem("panda_open_sent")){
       sessionStorage.setItem("panda_open_sent","1");
       fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({events:[{type:"app_open",deviceId:id,ts:Date.now()}]}),keepalive:true}).catch(function(){});
