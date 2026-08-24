@@ -853,7 +853,7 @@ const FORCE_FORM_AFTER_DAYS = 48;
 const RESERVATIONS_URL = "./venues.json";
 const SPONSORED_URL = "./sponsored.json";
 const SPONSORED_TTL_MIN = 8;
-const SPONSOR_REACH_M = 3000;
+const SPONSOR_REACH_M = 3600;
 const ANALYTICS_ENDPOINT = "https://panda-partners-api.vercel.app/api/track";
 const SIGNUP_ENDPOINT = "https://panda-partners-api.vercel.app/api/signup";
 /* anonymous user counter — one app_open per session (no personal data) */
@@ -995,7 +995,7 @@ function catOrder(){const h=new Date().getHours();const key=h<11?"morning":h<16?
 function ph(v,size){size=size||600;return v.photoName?'<img loading="lazy" decoding="async" src="'+PHOTO_URL(v.photoName,size)+'" alt="'+esc(v.name)+'" onload="this.classList.add(\'ph-on\')" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>';}
 function meta(v){const b=[];if(v.rating)b.push('<span class="star">★ '+v.rating+'</span>');if(v.type)b.push(esc(v.type));if(v.price)b.push('<span class="price">'+esc(v.price)+'</span>');return b.join('<span class="sep">•</span>');}
 function openTxt(v){return v.openNow===true?'<div class="vopen o">Open now</div>':v.openNow===false?'<div class="vopen c">Closed now</div>':'';}
-function railCard(v,i,src){return '<button class="vcard'+(v.__sponsor?' promoted-card':'')+'" data-i="'+i+'" data-src="'+src+'" data-vid="'+esc(v.id||'')+'" data-asrc="'+src+'"><div class="vphoto">'+ph(v,400)+(v.__sponsor?'<span class="promoted vpromo">Promoted</span>':'')+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
+function railCard(v,i,src){var _b=v.__sponsor==="banging";var _cls=v.__sponsor?(_b?' promoted-card banging-card':' promoted-card'):'';var _badge=v.__sponsor?(_b?'<span class="vpromo vpromo-bang"><span class="bang-star">\u2726</span>Banging</span>':'<span class="promoted vpromo">Promoted</span>'):'';return '<button class="vcard'+_cls+'" data-i="'+i+'" data-src="'+src+'" data-vid="'+esc(v.id||'')+'" data-asrc="'+src+'"><div class="vphoto">'+ph(v,400)+_badge+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
 function isNew(v){return v.ratingCount!=null&&v.ratingCount>0&&v.ratingCount<40;}
 function shortVenueName(name){const full=String(name||"").replace(/\s+/g," ").trim();const limit=28;if(full.length<=limit)return full;const wordEnd=full.slice(0,limit+1).replace(/\s+\S*$/,"").trim();return (wordEnd||full.slice(0,limit).trim())+"…";}
 function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const o=v.openNow===true?'<span class="ostat o">Open</span>':v.openNow===false?'<span class="ostat c">Closed</span>':'';const bits=[o,fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');return '<button class="lcard'+(v.__sponsor?' promoted-card':'')+'" data-i="'+i+'" data-src="'+src+'" data-vid="'+esc(v.id||'')+'" data-asrc="'+src+'"><div class="lp">'+ph(v,160)+'</div><div class="lb"><div class="ln">'+(v.__sponsor?'<span class="promoted">Promoted</span>':'')+(isNew(v)?'<span class="newpill">NEW</span>':'')+esc(shortVenueName(v.name))+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="la-t">'+esc(v.address)+'</span></div>':'<div class="la"></div>')+'<div class="lm">'+line+'</div></div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
@@ -1533,5 +1533,21 @@ document.addEventListener("DOMContentLoaded",boot);
     })();
     </script>
 <script id="panda-profile-upgrade-script">(function(){var row=document.getElementById("rowShare");if(!row)return;var label=row.previousElementSibling;if(label)label.textContent="Your favourites";row.className="srow share-favourites-row";row.innerHTML='<span class="sic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg></span><div class="stx">Share saved places<small id="setSavedSummary">Save places to share a list</small></div><span class="arrow">→</span>';})();</script>
+<style id="panda-banging-premium-style">
+/* ===== BANGING — premium luxury carousel card (distinct from discovery "Promoted") ===== */
+.vcard.banging-card{position:relative;background:linear-gradient(158deg,#0f3e2e 0%,#0a2a20 58%,#123f2e 100%);border:none;box-shadow:0 16px 36px rgba(8,34,24,.44),0 0 22px rgba(198,161,91,.22)}
+.vcard.banging-card::before{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:var(--radius);padding:1.6px;background:linear-gradient(135deg,#f7e6b0,#c69a4d 38%,#f0d48c 60%,#b98532);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.vcard.banging-card .vphoto::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 -40px 38px rgba(7,26,19,.5),inset 0 0 0 1px rgba(240,212,140,.34)}
+.vcard.banging-card .vbody{background:transparent}
+.vcard.banging-card .vname{color:#fbf6e9}
+.vcard.banging-card .vmeta,.vcard.banging-card .vmeta *{color:#cdbf9c!important}
+.vcard.banging-card .vmeta .sep{color:#8a7c58!important}
+.vcard.banging-card .vopen.o{color:#7fe0b0}
+.vcard.banging-card .vopen.c{color:#e6a58f}
+.vpromo-bang{position:absolute;top:8px;left:8px;z-index:6;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;overflow:hidden;font-size:9.5px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#3a2708;background:linear-gradient(135deg,#fff4d4 0%,#f0d48c 34%,#e6c072 56%,#f7e6b0 100%);border:1px solid rgba(255,255,255,.6);box-shadow:0 3px 10px rgba(74,48,11,.4),inset 0 1px 0 rgba(255,255,255,.75)}
+.vpromo-bang .bang-star{font-size:11px;line-height:1;color:#9a6f24}
+.vpromo-bang::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.85) 48%,transparent 60%);transform:translateX(-120%);animation:bangShine 3.4s ease-in-out infinite}
+@keyframes bangShine{0%,14%{transform:translateX(-120%)}46%,100%{transform:translateX(120%)}}
+</style>
 </body>
 </html>
