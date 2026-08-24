@@ -1,5 +1,4 @@
 
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -927,23 +926,24 @@ function applySponsored(data){
   list.forEach(o=>{ if(!o)return; const tier=(o.tier||o.sponsor_tier||"discovery"); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[String(o.name).toLowerCase().trim()]=tier; });
   if(typeof homeRaw!=="undefined" && homeRaw && homeRaw.length) applyHomeFilters();
   if(typeof TREND_ORGANIC!=="undefined" && TREND_ORGANIC.length) renderTrend();
-  ensureBangingVenues();
+  scheduleBangingEnsure(true);
 }
 /* Guarantee every banging (paid) venue appears near the user, even if the
-   discovery search didn't return it: fetch it by name, match by place_id,
-   and inject it into the loaded set (cached so we don't refetch each render). */
+   discovery search didn't return it. Returns true only when every banging
+   venue is resolved (in the feed, injected, or genuinely out of reach) so the
+   scheduler below knows when it can stop retrying. */
 async function ensureBangingVenues(){
-  if(!COORDS) return;
   var want=(SPONSORED_LIST||[]).filter(function(o){return o&&(o.tier||o.sponsor_tier||"discovery")==="banging";});
-  if(!want.length) return;
+  if(!want.length) return false;              /* sponsor list not loaded yet — retry */
+  if(!COORDS) return false;                    /* no location yet — retry */
   var have=new Set((homeRaw||[]).map(function(x){return x.id;}));
   var names=new Set((homeRaw||[]).map(function(x){return (x.name||"").toLowerCase().trim();}));
-  var added=false;
+  var added=false, unresolved=0;
   for(var k=0;k<want.length;k++){
     var o=want[k];
     var pid=o.place_id||o.google_place_id||o.id||"";
     var nm=(o.name||"").toLowerCase().trim();
-    if((pid&&have.has(pid))||(nm&&names.has(nm))) continue;
+    if((pid&&have.has(pid))||(nm&&names.has(nm))) continue;   /* already present */
     var key=pid||nm; if(!key) continue;
     var hit=BANGING_CACHE[key]||null;
     if(!hit){
@@ -956,12 +956,33 @@ async function ensureBangingVenues(){
     }
     if(hit){
       if(hit.distanceMeters==null&&hit.lat!=null&&COORDS) hit.distanceMeters=haversine(COORDS.lat,COORDS.lng,hit.lat,hit.lng);
-      if((hit.distanceMeters==null||hit.distanceMeters<=SPONSOR_REACH_M)&&!have.has(hit.id)){
-        homeRaw.push(hit); have.add(hit.id); added=true;
-      }
+      if(hit.distanceMeters!=null&&hit.distanceMeters>SPONSOR_REACH_M){ /* out of reach: resolved */ }
+      else if(!have.has(hit.id)){ homeRaw.push(hit); have.add(hit.id); if(nm)names.add(nm); added=true; }
+    } else {
+      unresolved++;                            /* couldn't fetch this pass — retry */
     }
   }
   if(added){ try{applyHomeFilters();}catch(e){} try{renderTrend();}catch(e){} }
+  return unresolved===0;
+}
+/* Retry scheduler: keeps calling ensureBangingVenues until it reports done,
+   so a slow/cached load order can never leave banging venues out. */
+var BANGING_TIMER=null, BANGING_STEP=0;
+var BANGING_DELAYS=[0,700,1600,3200,6000,10000];
+function _bangingRun(){
+  BANGING_TIMER=null;
+  Promise.resolve(ensureBangingVenues()).then(function(done){
+    if(done) return;
+    if(BANGING_STEP<BANGING_DELAYS.length-1){
+      BANGING_STEP++;
+      BANGING_TIMER=setTimeout(_bangingRun,BANGING_DELAYS[BANGING_STEP]);
+    }
+  }).catch(function(){});
+}
+function scheduleBangingEnsure(fresh){
+  if(fresh) BANGING_STEP=0;
+  if(BANGING_TIMER){ clearTimeout(BANGING_TIMER); BANGING_TIMER=null; }
+  BANGING_TIMER=setTimeout(_bangingRun,BANGING_DELAYS[Math.min(BANGING_STEP,BANGING_DELAYS.length-1)]);
 }
 async function loadSponsored(){
   try{
@@ -1057,7 +1078,7 @@ function interleaveSponsored(list){
   return out;
 }
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();ensureBangingVenues();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
+async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();scheduleBangingEnsure(true);if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
 function renderTrend(){
   let t=TREND_ORGANIC.slice().filter(x=>sponsorEligible(x)!=="banging");
