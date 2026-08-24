@@ -370,8 +370,11 @@ img{display:block}a{color:inherit;text-decoration:none}
   .lcard{height:76px;margin-bottom:7px}
   .homefilters{padding-bottom:4px}
 }
-#login{position:absolute;inset:0;z-index:180;background:radial-gradient(120% 80% at 50% 0%,#0F6B4F 0%,var(--green-900) 55%,var(--green-950) 100%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:34px 28px calc(env(safe-area-inset-bottom,0px) + 30px);text-align:center;color:#fff;opacity:0;transition:opacity .4s}
+#login{position:fixed;inset:0;z-index:250;background:radial-gradient(120% 80% at 50% 0%,#0F6B4F 0%,var(--green-900) 55%,var(--green-950) 100%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:34px 28px calc(env(safe-area-inset-bottom,0px) + 30px);text-align:center;color:#fff;opacity:0;transition:opacity .4s;overflow-y:auto}
 #login.show{display:flex;opacity:1}
+body.gated{overflow:hidden}
+body.gated #app{pointer-events:none;filter:saturate(.6)}
+body.gated #login{pointer-events:auto}
 #login .brandmark{width:104px;height:104px;border-radius:30px;background:linear-gradient(160deg,#0d5c43,#08321f);display:grid;place-items:center;box-shadow:0 20px 46px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.06);animation:floaty 3.4s ease-in-out infinite}
 #login .brandmark svg{width:72px;height:72px}
 @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
@@ -857,7 +860,9 @@ const SIGNUP_ENDPOINT = "https://panda-partners-api.vercel.app/api/signup";
   try{
     var id=localStorage.getItem("panda_device_id");
     if(!id){ id="d_"+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem("panda_device_id",id); }
-    if(!sessionStorage.getItem("panda_open_sent")){
+    /* Only count a device as active once it has signed up. Anonymous link-openers are NOT tracked. */
+    var _authed=false; try{ _authed=!!(JSON.parse(localStorage.getItem("panda_auth")||"null")||{}).email; }catch(e){}
+    if(_authed && !sessionStorage.getItem("panda_open_sent")){
       sessionStorage.setItem("panda_open_sent","1");
       fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({events:[{type:"app_open",deviceId:id,ts:Date.now()}]}),keepalive:true}).catch(function(){});
@@ -880,7 +885,7 @@ function sponsorEligible(v){ const t=sponsorTier(v); if(!t)return null; if(v.dis
 let EVQ = (function(){ try{return JSON.parse(localStorage.getItem("panda_evq")||"[]");}catch(e){return [];} })();
 const SEEN_IMPR = new Set();
 function coarseArea(){ if(!COORDS)return null; return {lat:Math.round(COORDS.lat*100)/100, lng:Math.round(COORDS.lng*100)/100}; }
-function track(type,v,extra){
+function track(type,v,extra){ if(!window.__authed && !isAuthed()){ return; }
   if(!v) return;
   const tier=v.__sponsor||sponsorTier(v);
   if(!tier) return;
@@ -1050,7 +1055,7 @@ function buildCats(){const order=[0].concat(catOrder());$("#cats").innerHTML=ord
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
-function showScreen(n){Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
+function showScreen(n){ if(!window.__authed && !isAuthed()){ showLogin(); return; } Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
@@ -1059,10 +1064,10 @@ function joinWaitlist(){window.open(WAITLIST_URL,"_blank","noopener");store.setF
 /* ===== AUTH / LOGIN ===== */
 let AUTH_PROVIDER="Google";
 let AUTH_GENDER="";
-function isAuthed(){const a=store.lget("panda_auth");return !!(a&&a.email);}
+function isAuthed(){const a=store.lget("panda_auth");return !!(a&&a.email&&a.stored===true);}
 function initAuth(){ if(isAuthed()){window.__authed=true;return;} showLogin(); }
-function showLogin(){ $("#login").classList.add("show"); }
-function hideLogin(){ $("#login").classList.remove("show"); }
+function showLogin(){ document.body.classList.add("gated"); window.__authLocked=true; $("#login").classList.add("show"); }
+function hideLogin(){ document.body.classList.remove("gated"); window.__authLocked=false; $("#login").classList.remove("show"); }
 function wireGender(){
   $$("#authGender button").forEach(b=>b.addEventListener("click",()=>{
     AUTH_GENDER=b.dataset.g;
@@ -1083,26 +1088,37 @@ function openAuth(prov){
   $("#authModal").classList.add("show");
   setTimeout(()=>$("#authName").focus(),260);
 }
-function closeAuth(){ $("#authModal").classList.remove("show"); }
+function closeAuth(){ if(window.__authLocked && !isAuthed()) return; $("#authModal").classList.remove("show"); }
+function pfAuthError(msg){var el=$("#authErr");if(!el){el=document.createElement("p");el.id="authErr";el.style.cssText="margin:10px 2px 0;color:#c0483f;font-size:12.5px;font-weight:700;line-height:1.4;text-align:center";var go=$("#authGo");if(go&&go.parentNode)go.parentNode.insertBefore(el,go);}el.textContent=msg;}
+function pfAuthClearError(){var el=$("#authErr");if(el)el.textContent="";}
 function doAuth(){
   const name=$("#authName").value.trim(), email=$("#authEmail").value.trim();
   const okEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  if(!okEmail){ $("#fldEmail").classList.add("bad"); setTimeout(()=>$("#fldEmail").classList.remove("bad"),400); $("#authEmail").focus(); return; }
-  store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now()});
-  const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
-  /* send sign-up (name + email + gender + country) to backend, once per device */
-  try{
-    var __did=localStorage.getItem("panda_device_id")||("d_"+Math.random().toString(36).slice(2));
-    if(!localStorage.getItem("panda_signup_sent")){
-      localStorage.setItem("panda_signup_sent","1");
-      fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({name:name,email:email,gender:AUTH_GENDER,country:PANDA_COUNTRY,provider:AUTH_PROVIDER,deviceId:__did,ts:Date.now()}),keepalive:true}).catch(function(){});
-    }
-  }catch(e){}
-  window.__authed=true; loadProfile();
-  closeAuth(); hideLogin();
-  showWelcome(name);
-  if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
+  if(!name){ $("#fldName").classList.add("bad"); setTimeout(()=>$("#fldName").classList.remove("bad"),400); $("#authName").focus(); pfAuthError("Please enter your name."); return; }
+  if(!okEmail){ $("#fldEmail").classList.add("bad"); setTimeout(()=>$("#fldEmail").classList.remove("bad"),400); $("#authEmail").focus(); pfAuthError("Please enter a valid email address."); return; }
+  const btn=$("#authGo"); if(btn.dataset.busy==="1") return;
+  pfAuthClearError();
+  const __did=localStorage.getItem("panda_device_id")||("d_"+Math.random().toString(36).slice(2)+Date.now().toString(36));
+  localStorage.setItem("panda_device_id",__did);
+  const payload={name:name,email:email,gender:AUTH_GENDER,country:PANDA_COUNTRY,provider:AUTH_PROVIDER,deviceId:__did,ts:Date.now()};
+  btn.dataset.busy="1"; const _label=btn.textContent; btn.textContent="Setting up your account…"; btn.style.opacity=".7";
+  function fail(msg){ btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity=""; pfAuthError(msg||"We couldn\u2019t reach our servers. Please check your connection and try again."); }
+  function succeed(){
+    /* Only NOW do we consider the person signed up — data is confirmed stored. */
+    store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true});
+    const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
+    localStorage.setItem("panda_signup_sent","1");
+    window.__authed=true; loadProfile();
+    try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
+    btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity="";
+    closeAuth(); hideLogin(); showWelcome(name);
+    if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
+  }
+  /* Gate opens ONLY after the backend confirms it stored the record (HTTP 2xx). No blind entry. */
+  var ctrl=("AbortController" in window)?new AbortController():null; var to=setTimeout(function(){if(ctrl)ctrl.abort();},12000);
+  fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:ctrl?ctrl.signal:undefined})
+    .then(function(r){ clearTimeout(to); if(r&&r.ok){ succeed(); } else { fail("We couldn\u2019t save your details (server error). Please try again."); } })
+    .catch(function(){ clearTimeout(to); fail(); });
 }
 function showWelcome(name){
   const first=(name||"").trim().split(" ")[0];
