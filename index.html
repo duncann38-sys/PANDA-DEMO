@@ -1,5 +1,4 @@
 
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -1102,23 +1101,36 @@ function doAuth(){
   localStorage.setItem("panda_device_id",__did);
   const payload={name:name,email:email,gender:AUTH_GENDER,country:PANDA_COUNTRY,provider:AUTH_PROVIDER,deviceId:__did,ts:Date.now()};
   btn.dataset.busy="1"; const _label=btn.textContent; btn.textContent="Setting up your account…"; btn.style.opacity=".7";
-  function fail(msg){ btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity=""; pfAuthError(msg||"We couldn\u2019t reach our servers. Please check your connection and try again."); }
-  function succeed(){
-    /* Only NOW do we consider the person signed up — data is confirmed stored. */
-    store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true});
+  /* Store the record locally and open the gate. pendingSync=true means the backend
+     hasn't confirmed yet; the record is queued and retried in the background so a
+     transient backend failure can never lock a real user out. */
+  function enter(pendingSync){
+    store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true,pendingSync:!!pendingSync});
     const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
     localStorage.setItem("panda_signup_sent","1");
+    if(pendingSync){ try{ store.lset("panda_signup_queue",payload); }catch(e){} }
+    else{ try{ store.del ? sessionStorage.removeItem("panda_signup_queue") : 0; localStorage.removeItem("panda_signup_queue"); }catch(e){} }
     window.__authed=true; loadProfile();
     try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
     btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity="";
     closeAuth(); hideLogin(); showWelcome(name);
     if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
   }
-  /* Gate opens ONLY after the backend confirms it stored the record (HTTP 2xx). No blind entry. */
+  /* Try the backend first; on 2xx we mark the record fully synced. On any failure
+     the user still gets in (data stored locally + queued), never trapped behind a
+     down or misconfigured endpoint. */
   var ctrl=("AbortController" in window)?new AbortController():null; var to=setTimeout(function(){if(ctrl)ctrl.abort();},12000);
   fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:ctrl?ctrl.signal:undefined})
-    .then(function(r){ clearTimeout(to); if(r&&r.ok){ succeed(); } else { fail("We couldn\u2019t save your details (server error). Please try again."); } })
-    .catch(function(){ clearTimeout(to); fail(); });
+    .then(function(r){ clearTimeout(to); enter(!(r&&r.ok)); })
+    .catch(function(){ clearTimeout(to); enter(true); });
+}
+/* Background retry: if a prior sign-up couldn't reach the backend, resend it quietly. */
+function flushSignupQueue(){
+  var q=null; try{ q=store.lget("panda_signup_queue"); }catch(e){}
+  if(!q||!q.email) return;
+  fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(q)})
+    .then(function(r){ if(r&&r.ok){ try{ localStorage.removeItem("panda_signup_queue"); var a=store.lget("panda_auth"); if(a){ a.pendingSync=false; store.lset("panda_auth",a); } }catch(e){} } })
+    .catch(function(){});
 }
 function showWelcome(name){
   const first=(name||"").trim().split(" ")[0];
@@ -1345,7 +1357,7 @@ function boot(){
   $("#planShuffle").addEventListener("click",()=>buildPlan(planMode));
   $("#planMap").addEventListener("click",showPlanOnMap);
   $("#planModes").addEventListener("click",e=>{const b=e.target.closest("button");if(b)buildPlan(b.dataset.mode);});
-  renderSaved();refreshHome();getLocation();checkFormGate();initAuth();loadSponsored();
+  renderSaved();refreshHome();getLocation();checkFormGate();initAuth();flushSignupQueue();loadSponsored();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
 }
 document.addEventListener("DOMContentLoaded",boot);
