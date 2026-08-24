@@ -1163,6 +1163,9 @@ function openSheet(v){if(!v)return;$("#mapCard").classList.remove("show");const 
     const cls=a.className||""; const href=a.getAttribute("href")||"";
     const kind=/book/.test(cls)?"booking_click":/primary/.test(cls)?"menu_click":(href.indexOf("tel:")===0?"call_click":"directions_click");
     track(kind,v);
+    // Send it right now — these open a new tab / navigate away, so don't wait
+    // for the 8-event batch. fetch(keepalive) survives the navigation.
+    flushEvents(false);
   }));
 }
 function closeSheet(){$("#sheet").classList.remove("open");$("#scrim").classList.remove("show");}
