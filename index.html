@@ -1579,11 +1579,20 @@ document.addEventListener("DOMContentLoaded",boot);
     var previousOpenSheet=window.openSheet;
     function applyPremiumDetail(venue){
       var sheet=document.getElementById("sheet");if(!sheet)return;
-      var isPromoted=Boolean(venue&&venue.__sponsor);sheet.classList.toggle("panda-premium-sheet",isPromoted);
+      var tier=venue&&venue.__sponsor;
+      var isPromoted=Boolean(tier);
+      var isBanging=tier==="banging";
+      sheet.classList.toggle("panda-premium-sheet",isPromoted);
+      sheet.classList.toggle("panda-premium-banging",isBanging);
       var existing=sheet.querySelector(".panda-premium-label");if(existing)existing.remove();
       if(!isPromoted)return;
       var body=sheet.querySelector(".sbody");if(!body)return;
-      var label=document.createElement("div");label.className="panda-premium-label";label.setAttribute("aria-label","Promoted Panda Select venue");label.innerHTML='<span class="premium-star" aria-hidden="true">✦</span><span>Panda Select · Promoted</span>';
+      var label=document.createElement("div");
+      label.className="panda-premium-label"+(isBanging?" premium-gold":"");
+      label.setAttribute("aria-label",isBanging?"Panda Premium venue":"Promoted venue");
+      label.innerHTML=isBanging
+        ? '<span class="premium-star" aria-hidden="true">\u2726</span><span>Panda Premium</span>'
+        : '<span class="premium-star" aria-hidden="true">\u2726</span><span>Promoted</span>';
       body.insertBefore(label,body.firstChild);
     }
     window.openSheet=function(venue){previousOpenSheet(venue);applyPremiumDetail(venue);};
@@ -1591,6 +1600,20 @@ document.addEventListener("DOMContentLoaded",boot);
     </script>
 <script id="panda-profile-upgrade-script">(function(){var row=document.getElementById("rowShare");if(!row)return;var label=row.previousElementSibling;if(label)label.textContent="Your favourites";row.className="srow share-favourites-row";row.innerHTML='<span class="sic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg></span><div class="stx">Share saved places<small id="setSavedSummary">Save places to share a list</small></div><span class="arrow">→</span>';})();</script>
 <style id="panda-banging-premium-style">
+/* ===== Panda Premium (banging) DETAIL SHEET — big HD photos, swipe, gold ===== */
+.sheet.panda-premium-banging .hero{height:340px}
+.sheet.panda-premium-banging .panda-photo-carousel{background:#0a2a20}
+.sheet.panda-premium-banging .panda-photo-track{transition:transform .46s cubic-bezier(.22,.61,.36,1)}
+.sheet.panda-premium-banging .panda-photo-slide img{object-fit:cover;-webkit-user-drag:none}
+.sheet.panda-premium-banging .panda-photo-nav{display:none!important}
+.sheet.panda-premium-banging .panda-photo-dots{bottom:16px;gap:7px}
+.sheet.panda-premium-banging .panda-photo-dot{width:7px;height:7px;background:rgba(255,255,255,.5);box-shadow:0 1px 6px rgba(0,0,0,.45)}
+.sheet.panda-premium-banging .panda-photo-dot.on{width:24px;background:linear-gradient(90deg,#f0d48c,#e8c77e)}
+.sheet.panda-premium-banging .hero::before{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1.5px rgba(240,212,140,.6),inset 0 -80px 64px rgba(6,20,14,.42)}
+.sheet.panda-premium-banging .hero .closeX{background:rgba(8,26,19,.6);color:#fbf6e9}
+.sheet.panda-premium-banging .sbody h3{color:#14281d}
+.panda-premium-label.premium-gold{background:linear-gradient(135deg,#fff4d4,#f0d48c 44%,#e6c072 64%,#f7e6b0);color:#5c3f0c;border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 14px rgba(154,111,36,.3),inset 0 1px 0 rgba(255,255,255,.72);font-size:11px;letter-spacing:.18em;padding:6px 13px}
+.panda-premium-label.premium-gold .premium-star{color:#a66c1b;font-size:13px}
 /* ===== BANGING — premium luxury carousel card (distinct from discovery "Promoted") ===== */
 .vcard.banging-card{position:relative;background:linear-gradient(158deg,#0f3e2e 0%,#0a2a20 58%,#123f2e 100%);border:none;box-shadow:0 16px 36px rgba(8,34,24,.44),0 0 22px rgba(198,161,91,.22)}
 .vcard.banging-card::before{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:var(--radius);padding:1.6px;background:linear-gradient(135deg,#f7e6b0,#c69a4d 38%,#f0d48c 60%,#b98532);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
@@ -1635,3 +1658,4 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
+
