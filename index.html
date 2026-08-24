@@ -1,5 +1,4 @@
 
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -879,7 +878,7 @@ let PANDA_COUNTRY=null;
 })();
 /* ================= */
 
-let SPONSORED={}, SPONSORED_BYNAME={};
+let SPONSORED={}, SPONSORED_BYNAME={}, SPONSORED_LIST=[], BANGING_CACHE={};
 function sponsorTier(v){ if(!v)return null; return SPONSORED[v.id] || (v.name&&SPONSORED_BYNAME[String(v.name).toLowerCase().trim()]) || null; }
 function sponsorEligible(v){ const t=sponsorTier(v); if(!t)return null; if(v.distanceMeters!=null && v.distanceMeters>SPONSOR_REACH_M) return null; return t; }
 
@@ -923,9 +922,45 @@ function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll(
 function applySponsored(data){
   SPONSORED={};SPONSORED_BYNAME={};
   const list=Array.isArray(data)?data:(data&&data.venues?data.venues:[]);
+  SPONSORED_LIST=list;
   list.forEach(o=>{ if(!o)return; const tier=(o.tier||o.sponsor_tier||"discovery"); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[String(o.name).toLowerCase().trim()]=tier; });
   if(typeof homeRaw!=="undefined" && homeRaw && homeRaw.length) applyHomeFilters();
   if(typeof TREND_ORGANIC!=="undefined" && TREND_ORGANIC.length) renderTrend();
+  ensureBangingVenues();
+}
+/* Guarantee every banging (paid) venue appears near the user, even if the
+   discovery search didn't return it: fetch it by name, match by place_id,
+   and inject it into the loaded set (cached so we don't refetch each render). */
+async function ensureBangingVenues(){
+  if(!COORDS) return;
+  var want=(SPONSORED_LIST||[]).filter(function(o){return o&&(o.tier||o.sponsor_tier||"discovery")==="banging";});
+  if(!want.length) return;
+  var have=new Set((homeRaw||[]).map(function(x){return x.id;}));
+  var names=new Set((homeRaw||[]).map(function(x){return (x.name||"").toLowerCase().trim();}));
+  var added=false;
+  for(var k=0;k<want.length;k++){
+    var o=want[k];
+    var pid=o.place_id||o.google_place_id||o.id||"";
+    var nm=(o.name||"").toLowerCase().trim();
+    if((pid&&have.has(pid))||(nm&&names.has(nm))) continue;
+    var key=pid||nm; if(!key) continue;
+    var hit=BANGING_CACHE[key]||null;
+    if(!hit){
+      try{
+        var res=await fetchVenues(o.name||"");
+        if(pid) hit=res.find(function(v){return v.id===pid;});
+        if(!hit&&nm) hit=res.find(function(v){return (v.name||"").toLowerCase().trim()===nm;});
+        if(hit) BANGING_CACHE[key]=hit;
+      }catch(e){}
+    }
+    if(hit){
+      if(hit.distanceMeters==null&&hit.lat!=null&&COORDS) hit.distanceMeters=haversine(COORDS.lat,COORDS.lng,hit.lat,hit.lng);
+      if((hit.distanceMeters==null||hit.distanceMeters<=SPONSOR_REACH_M)&&!have.has(hit.id)){
+        homeRaw.push(hit); have.add(hit.id); added=true;
+      }
+    }
+  }
+  if(added){ try{applyHomeFilters();}catch(e){} try{renderTrend();}catch(e){} }
 }
 async function loadSponsored(){
   try{
@@ -1021,7 +1056,7 @@ function interleaveSponsored(list){
   return out;
 }
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
+async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();ensureBangingVenues();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
 function renderTrend(){
   let t=TREND_ORGANIC.slice().filter(x=>sponsorEligible(x)!=="banging");
@@ -1551,3 +1586,4 @@ document.addEventListener("DOMContentLoaded",boot);
 </style>
 </body>
 </html>
+
