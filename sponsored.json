@@ -16,6 +16,21 @@
       "name": "JOIA Restaurant, Bar & Rooftop",
       "place_id": "ChIJR7FHQ7oFdkgRcGgNclUbmGs",
       "tier": "banging"
+    },
+    {
+      "name": "Vardo Chelsea",
+      "place_id": "ChIJUaCq6-sFdkgRXlZ0lMw_vMs",
+      "tier": "banging"
+    },
+    {
+      "name": "Brinkley's",
+      "place_id": "ChIJd6eAqGMFdkgRVY9AOpAFhHI",
+      "tier": "banging"
+    },
+    {
+      "name": "Colbert",
+      "place_id": "ChIJGZHDPhYFdkgRys_AGmXvKsk",
+      "tier": "banging"
     }
   ]
 }
