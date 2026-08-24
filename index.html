@@ -1,5 +1,4 @@
 
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -1106,24 +1105,34 @@ function doAuth(){
      hasn't confirmed yet; the record is queued and retried in the background so a
      transient backend failure can never lock a real user out. */
   function enter(pendingSync){
-    store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true,pendingSync:!!pendingSync});
-    const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
-    localStorage.setItem("panda_signup_sent","1");
-    if(pendingSync){ try{ store.lset("panda_signup_queue",payload); }catch(e){} }
-    else{ try{ store.del ? sessionStorage.removeItem("panda_signup_queue") : 0; localStorage.removeItem("panda_signup_queue"); }catch(e){} }
-    window.__authed=true; loadProfile();
-    try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
+    try{
+      store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true,pendingSync:!!pendingSync});
+      const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
+      localStorage.setItem("panda_signup_sent","1");
+      if(pendingSync){ try{ store.lset("panda_signup_queue",payload); }catch(e){} }
+      else{ try{ localStorage.removeItem("panda_signup_queue"); }catch(e){} }
+    }catch(e){}
+    /* Lift the gate FIRST. Nothing below this line can trap the user on the sheet. */
+    window.__authed=true;
     btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity="";
-    closeAuth(); hideLogin(); showWelcome(name);
+    try{ closeAuth(); }catch(e){}
+    try{ hideLogin(); }catch(e){}
+    /* Best-effort rendering — each wrapped so a render error can never re-gate. */
+    try{ loadProfile(); }catch(e){}
+    try{ if(typeof showScreen==="function") showScreen("home"); }catch(e){}
+    try{ showWelcome(name); }catch(e){}
+    try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
     if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
   }
   /* Try the backend first; on 2xx we mark the record fully synced. On any failure
      the user still gets in (data stored locally + queued), never trapped behind a
      down or misconfigured endpoint. */
   var ctrl=("AbortController" in window)?new AbortController():null; var to=setTimeout(function(){if(ctrl)ctrl.abort();},12000);
+  var done=false; function finish(pending){ if(done)return; done=true; clearTimeout(to); clearTimeout(hardTo); enter(pending); }
+  var hardTo=setTimeout(function(){ finish(true); },13000);
   fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:ctrl?ctrl.signal:undefined})
-    .then(function(r){ clearTimeout(to); enter(!(r&&r.ok)); })
-    .catch(function(){ clearTimeout(to); enter(true); });
+    .then(function(r){ finish(!(r&&r.ok)); })
+    .catch(function(){ finish(true); });
 }
 /* Background retry: if a prior sign-up couldn't reach the backend, resend it quietly. */
 function flushSignupQueue(){
@@ -1526,3 +1535,4 @@ document.addEventListener("DOMContentLoaded",boot);
 <script id="panda-profile-upgrade-script">(function(){var row=document.getElementById("rowShare");if(!row)return;var label=row.previousElementSibling;if(label)label.textContent="Your favourites";row.className="srow share-favourites-row";row.innerHTML='<span class="sic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg></span><div class="stx">Share saved places<small id="setSavedSummary">Save places to share a list</small></div><span class="arrow">→</span>';})();</script>
 </body>
 </html>
+
