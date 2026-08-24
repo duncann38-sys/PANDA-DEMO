@@ -387,7 +387,7 @@ body.gated #login{pointer-events:auto}
 .authbtn svg{width:20px;height:20px;flex:0 0 auto}
 #login .legal{margin-top:22px;font-size:11.5px;color:rgba(210,236,220,.65);font-weight:500;line-height:1.5;max-width:280px}
 #login .legal a{color:var(--mint-300);text-decoration:underline}
-#authModal{position:fixed;inset:0;z-index:400;display:none;align-items:flex-end;justify-content:center}
+#authModal{position:absolute;inset:0;z-index:200;display:none;align-items:flex-end;justify-content:center}
 #authModal.show{display:flex}
 #authModal .back{position:absolute;inset:0;background:rgba(5,32,24,.55);backdrop-filter:blur(3px)}
 #authModal .card{position:relative;width:100%;max-width:440px;background:var(--card);border-radius:26px 26px 0 0;padding:22px 22px calc(env(safe-area-inset-bottom,0px) + 22px);box-shadow:0 -12px 40px rgba(6,46,34,.3);animation:sheetup .34s cubic-bezier(.2,.8,.2,1)}
@@ -727,8 +727,7 @@ body.gated #login{pointer-events:auto}
         Continue with Apple
       </button>
     </div>
-    <p class="legal">By continuing you agree to Panda's <a href="https://www.pandaindustry.co" target="_blank" rel="noopener">Terms</a> &amp; <a href="https://www.pandaindustry.co" target="_blank" rel="noopener">Privacy Policy</a>.</p>
-    <button type="button" id="loginSkip" style="margin-top:18px;background:transparent;border:none;color:rgba(210,236,220,.78);font-family:inherit;font-weight:700;font-size:14px;text-decoration:underline;cursor:pointer">Maybe later</button>
+    <p class="legal">By continuing you agree to Panda's <a href="https://pandaindustry.co" target="_blank" rel="noopener">Terms</a> &amp; <a href="https://pandaindustry.co" target="_blank" rel="noopener">Privacy Policy</a>.</p>
   </div>
 
   <!-- AUTH SHEET -->
@@ -846,13 +845,13 @@ body.gated #login{pointer-events:auto}
 const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
 const WAITLIST_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdcxPUi1Va-5AYS9eEZySIjJoUSXHFLGCcmTCpWqC7N8ctMlg/viewform";
-const SHARE_URL = "https://www.pandaindustry.co";
+const SHARE_URL = "https://pandaindustry.co";
 const SHARE_TEXT = "Check out Panda \uD83D\uDC3C — discover the best restaurants, bars & nights out, wherever you are.";
 const FORCE_FORM_AFTER_DAYS = 48;
 const RESERVATIONS_URL = "./venues.json";
 const SPONSORED_URL = "./sponsored.json";
 const SPONSORED_TTL_MIN = 8;
-const SPONSOR_REACH_M = 3600;
+const SPONSOR_REACH_M = 3000;
 const ANALYTICS_ENDPOINT = "https://panda-partners-api.vercel.app/api/track";
 const SIGNUP_ENDPOINT = "https://panda-partners-api.vercel.app/api/signup";
 /* anonymous user counter — one app_open per session (no personal data) */
@@ -860,9 +859,9 @@ const SIGNUP_ENDPOINT = "https://panda-partners-api.vercel.app/api/signup";
   try{
     var id=localStorage.getItem("panda_device_id");
     if(!id){ id="d_"+Math.random().toString(36).slice(2)+Date.now().toString(36); localStorage.setItem("panda_device_id",id); }
-    /* Count every device that opens the app, once per session — signed in or not.
-       Only anonymous data is sent (device id + timestamp), no personal info. */
-    if(!sessionStorage.getItem("panda_open_sent")){
+    /* Only count a device as active once it has signed up. Anonymous link-openers are NOT tracked. */
+    var _authed=false; try{ _authed=!!(JSON.parse(localStorage.getItem("panda_auth")||"null")||{}).email; }catch(e){}
+    if(_authed && !sessionStorage.getItem("panda_open_sent")){
       sessionStorage.setItem("panda_open_sent","1");
       fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({events:[{type:"app_open",deviceId:id,ts:Date.now()}]}),keepalive:true}).catch(function(){});
@@ -878,7 +877,7 @@ let PANDA_COUNTRY=null;
 })();
 /* ================= */
 
-let SPONSORED={}, SPONSORED_BYNAME={}, SPONSORED_LIST=[], BANGING_CACHE={};
+let SPONSORED={}, SPONSORED_BYNAME={};
 function sponsorTier(v){ if(!v)return null; return SPONSORED[v.id] || (v.name&&SPONSORED_BYNAME[String(v.name).toLowerCase().trim()]) || null; }
 function sponsorEligible(v){ const t=sponsorTier(v); if(!t)return null; if(v.distanceMeters!=null && v.distanceMeters>SPONSOR_REACH_M) return null; return t; }
 
@@ -887,6 +886,9 @@ const SEEN_IMPR = new Set();
 function coarseArea(){ if(!COORDS)return null; return {lat:Math.round(COORDS.lat*100)/100, lng:Math.round(COORDS.lng*100)/100}; }
 function track(type,v,extra){ if(!window.__authed && !isAuthed()){ return; }
   if(!v) return;
+  // Sponsor tier by Place ID OR name — independent of distance. A genuinely
+  // sponsored venue (in sponsored.json) always records its events, even when
+  // the user is far away. Non-sponsored venues are still skipped (keeps writes low).
   const tier=v.__sponsor||sponsorTier(v);
   if(!tier) return;
   const ev=Object.assign({
@@ -922,67 +924,9 @@ function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll(
 function applySponsored(data){
   SPONSORED={};SPONSORED_BYNAME={};
   const list=Array.isArray(data)?data:(data&&data.venues?data.venues:[]);
-  SPONSORED_LIST=list;
   list.forEach(o=>{ if(!o)return; const tier=(o.tier||o.sponsor_tier||"discovery"); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[String(o.name).toLowerCase().trim()]=tier; });
   if(typeof homeRaw!=="undefined" && homeRaw && homeRaw.length) applyHomeFilters();
   if(typeof TREND_ORGANIC!=="undefined" && TREND_ORGANIC.length) renderTrend();
-  scheduleBangingEnsure(true);
-}
-/* Guarantee every banging (paid) venue appears near the user, even if the
-   discovery search didn't return it. Returns true only when every banging
-   venue is resolved (in the feed, injected, or genuinely out of reach) so the
-   scheduler below knows when it can stop retrying. */
-async function ensureBangingVenues(){
-  var want=(SPONSORED_LIST||[]).filter(function(o){return o&&(o.tier||o.sponsor_tier||"discovery")==="banging";});
-  if(!want.length) return false;              /* sponsor list not loaded yet — retry */
-  if(!COORDS) return false;                    /* no location yet — retry */
-  var have=new Set((homeRaw||[]).map(function(x){return x.id;}));
-  var names=new Set((homeRaw||[]).map(function(x){return (x.name||"").toLowerCase().trim();}));
-  var added=false, unresolved=0;
-  for(var k=0;k<want.length;k++){
-    var o=want[k];
-    var pid=o.place_id||o.google_place_id||o.id||"";
-    var nm=(o.name||"").toLowerCase().trim();
-    if((pid&&have.has(pid))||(nm&&names.has(nm))) continue;   /* already present */
-    var key=pid||nm; if(!key) continue;
-    var hit=BANGING_CACHE[key]||null;
-    if(!hit){
-      try{
-        var res=await fetchVenues(o.name||"");
-        if(pid) hit=res.find(function(v){return v.id===pid;});
-        if(!hit&&nm) hit=res.find(function(v){return (v.name||"").toLowerCase().trim()===nm;});
-        if(hit) BANGING_CACHE[key]=hit;
-      }catch(e){}
-    }
-    if(hit){
-      if(hit.distanceMeters==null&&hit.lat!=null&&COORDS) hit.distanceMeters=haversine(COORDS.lat,COORDS.lng,hit.lat,hit.lng);
-      if(hit.distanceMeters!=null&&hit.distanceMeters>SPONSOR_REACH_M){ /* out of reach: resolved */ }
-      else if(!have.has(hit.id)){ homeRaw.push(hit); have.add(hit.id); if(nm)names.add(nm); added=true; }
-    } else {
-      unresolved++;                            /* couldn't fetch this pass — retry */
-    }
-  }
-  if(added){ try{applyHomeFilters();}catch(e){} try{renderTrend();}catch(e){} }
-  return unresolved===0;
-}
-/* Retry scheduler: keeps calling ensureBangingVenues until it reports done,
-   so a slow/cached load order can never leave banging venues out. */
-var BANGING_TIMER=null, BANGING_STEP=0;
-var BANGING_DELAYS=[0,700,1600,3200,6000,10000];
-function _bangingRun(){
-  BANGING_TIMER=null;
-  Promise.resolve(ensureBangingVenues()).then(function(done){
-    if(done) return;
-    if(BANGING_STEP<BANGING_DELAYS.length-1){
-      BANGING_STEP++;
-      BANGING_TIMER=setTimeout(_bangingRun,BANGING_DELAYS[BANGING_STEP]);
-    }
-  }).catch(function(){});
-}
-function scheduleBangingEnsure(fresh){
-  if(fresh) BANGING_STEP=0;
-  if(BANGING_TIMER){ clearTimeout(BANGING_TIMER); BANGING_TIMER=null; }
-  BANGING_TIMER=setTimeout(_bangingRun,BANGING_DELAYS[Math.min(BANGING_STEP,BANGING_DELAYS.length-1)]);
 }
 async function loadSponsored(){
   try{
@@ -1052,7 +996,7 @@ function catOrder(){const h=new Date().getHours();const key=h<11?"morning":h<16?
 function ph(v,size){size=size||600;return v.photoName?'<img loading="lazy" decoding="async" src="'+PHOTO_URL(v.photoName,size)+'" alt="'+esc(v.name)+'" onload="this.classList.add(\'ph-on\')" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>';}
 function meta(v){const b=[];if(v.rating)b.push('<span class="star">★ '+v.rating+'</span>');if(v.type)b.push(esc(v.type));if(v.price)b.push('<span class="price">'+esc(v.price)+'</span>');return b.join('<span class="sep">•</span>');}
 function openTxt(v){return v.openNow===true?'<div class="vopen o">Open now</div>':v.openNow===false?'<div class="vopen c">Closed now</div>':'';}
-function railCard(v,i,src){var _b=v.__sponsor==="banging";var _cls=v.__sponsor?(_b?' promoted-card banging-card':' promoted-card'):'';var _badge=v.__sponsor?(_b?'<span class="vpromo vpromo-bang"><span class="bang-star">\u2726</span>Banging</span>':'<span class="promoted vpromo">Promoted</span>'):'';return '<button class="vcard'+_cls+'" data-i="'+i+'" data-src="'+src+'" data-vid="'+esc(v.id||'')+'" data-asrc="'+src+'"><div class="vphoto">'+ph(v,400)+_badge+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
+function railCard(v,i,src){return '<button class="vcard'+(v.__sponsor?' promoted-card':'')+'" data-i="'+i+'" data-src="'+src+'" data-vid="'+esc(v.id||'')+'" data-asrc="'+src+'"><div class="vphoto">'+ph(v,400)+(v.__sponsor?'<span class="promoted vpromo">Promoted</span>':'')+'</div><div class="vbody"><div class="vname">'+esc(v.name)+'</div><div class="vmeta">'+meta(v)+'</div>'+openTxt(v)+'</div></button>';}
 function isNew(v){return v.ratingCount!=null&&v.ratingCount>0&&v.ratingCount<40;}
 function shortVenueName(name){const full=String(name||"").replace(/\s+/g," ").trim();const limit=28;if(full.length<=limit)return full;const wordEnd=full.slice(0,limit+1).replace(/\s+\S*$/,"").trim();return (wordEnd||full.slice(0,limit).trim())+"…";}
 function listCard(v,i,src){const price=v.price?'<span class="price">'+esc(v.price)+'</span>':'';const o=v.openNow===true?'<span class="ostat o">Open</span>':v.openNow===false?'<span class="ostat c">Closed</span>':'';const bits=[o,fmtDist(v.distanceMeters),v.distanceMeters!=null?fmtWalk(v.distanceMeters):'',price,v.type?esc(v.type):''].filter(Boolean);const line=bits.join('<span class="sep"> · </span>');return '<button class="lcard'+(v.__sponsor?' promoted-card':'')+'" data-i="'+i+'" data-src="'+src+'" data-vid="'+esc(v.id||'')+'" data-asrc="'+src+'"><div class="lp">'+ph(v,160)+'</div><div class="lb"><div class="ln">'+(v.__sponsor?'<span class="promoted">Promoted</span>':'')+(isNew(v)?'<span class="newpill">NEW</span>':'')+esc(shortVenueName(v.name))+'</div>'+(v.address?'<div class="la"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span class="la-t">'+esc(v.address)+'</span></div>':'<div class="la"></div>')+'<div class="lm">'+line+'</div></div><span class="heart'+(isSaved(v.id)?' on':'')+'" data-heart="'+i+'" data-src="'+src+'" role="button" aria-label="Save"><svg width="19" height="19" viewBox="0 0 24 24" fill="'+(isSaved(v.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.7-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.3-7 10-7 10z"/></svg></span></button>';}
@@ -1078,7 +1022,7 @@ function interleaveSponsored(list){
   return out;
 }
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();scheduleBangingEnsure(true);if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
+async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
 function renderTrend(){
   let t=TREND_ORGANIC.slice().filter(x=>sponsorEligible(x)!=="banging");
@@ -1113,7 +1057,7 @@ function buildCats(){const order=[0].concat(catOrder());$("#cats").innerHTML=ord
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
-function showScreen(n){ Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
+function showScreen(n){ if(!window.__authed && !isAuthed()){ showLogin(); return; } Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
@@ -1123,15 +1067,9 @@ function joinWaitlist(){window.open(WAITLIST_URL,"_blank","noopener");store.setF
 let AUTH_PROVIDER="Google";
 let AUTH_GENDER="";
 function isAuthed(){const a=store.lget("panda_auth");return !!(a&&a.email&&a.stored===true);}
-function initAuth(){
-  /* The app is always usable. Sign-in is an optional prompt, never a lock. */
-  window.__authed=true;
-  try{ showScreen("home"); }catch(e){}
-  if(!isAuthed() && !sessionStorage.getItem("panda_login_skip")){ showLogin(); }
-}
-function showLogin(){ $("#login").classList.add("show"); }
+function initAuth(){ if(isAuthed()){window.__authed=true;return;} showLogin(); }
+function showLogin(){ document.body.classList.add("gated"); window.__authLocked=true; $("#login").classList.add("show"); }
 function hideLogin(){ document.body.classList.remove("gated"); window.__authLocked=false; $("#login").classList.remove("show"); }
-function dismissLogin(){ try{ sessionStorage.setItem("panda_login_skip","1"); }catch(e){} closeAuth(); hideLogin(); }
 function wireGender(){
   $$("#authGender button").forEach(b=>b.addEventListener("click",()=>{
     AUTH_GENDER=b.dataset.g;
@@ -1152,7 +1090,7 @@ function openAuth(prov){
   $("#authModal").classList.add("show");
   setTimeout(()=>$("#authName").focus(),260);
 }
-function closeAuth(){ $("#authModal").classList.remove("show"); }
+function closeAuth(){ if(window.__authLocked && !isAuthed()) return; $("#authModal").classList.remove("show"); }
 function pfAuthError(msg){var el=$("#authErr");if(!el){el=document.createElement("p");el.id="authErr";el.style.cssText="margin:10px 2px 0;color:#c0483f;font-size:12.5px;font-weight:700;line-height:1.4;text-align:center";var go=$("#authGo");if(go&&go.parentNode)go.parentNode.insertBefore(el,go);}el.textContent=msg;}
 function pfAuthClearError(){var el=$("#authErr");if(el)el.textContent="";}
 function doAuth(){
@@ -1160,43 +1098,29 @@ function doAuth(){
   const okEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   if(!name){ $("#fldName").classList.add("bad"); setTimeout(()=>$("#fldName").classList.remove("bad"),400); $("#authName").focus(); pfAuthError("Please enter your name."); return; }
   if(!okEmail){ $("#fldEmail").classList.add("bad"); setTimeout(()=>$("#fldEmail").classList.remove("bad"),400); $("#authEmail").focus(); pfAuthError("Please enter a valid email address."); return; }
+  const btn=$("#authGo"); if(btn.dataset.busy==="1") return;
   pfAuthClearError();
   const __did=localStorage.getItem("panda_device_id")||("d_"+Math.random().toString(36).slice(2)+Date.now().toString(36));
   localStorage.setItem("panda_device_id",__did);
   const payload={name:name,email:email,gender:AUTH_GENDER,country:PANDA_COUNTRY,provider:AUTH_PROVIDER,deviceId:__did,ts:Date.now()};
-  /* Capture immediately — no waiting on the network, no gating. */
-  try{
-    store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true,pendingSync:true});
+  btn.dataset.busy="1"; const _label=btn.textContent; btn.textContent="Setting up your account…"; btn.style.opacity=".7";
+  function fail(msg){ btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity=""; pfAuthError(msg||"We couldn\u2019t reach our servers. Please check your connection and try again."); }
+  function succeed(){
+    /* Only NOW do we consider the person signed up — data is confirmed stored. */
+    store.lset("panda_auth",{name:name,email:email,gender:AUTH_GENDER,provider:AUTH_PROVIDER,ts:Date.now(),stored:true});
     const p=store.lget("panda_profile")||{}; if(name)p.name=name; p.email=email; if(AUTH_GENDER)p.gender=AUTH_GENDER; store.lset("panda_profile",p);
     localStorage.setItem("panda_signup_sent","1");
-    store.lset("panda_signup_queue",payload);
-    try{ sessionStorage.removeItem("panda_login_skip"); }catch(e){}
-  }catch(e){}
-  /* Save to the backend in the background; success clears the retry queue. */
-  saveSignup(payload);
-  /* Open the app. Every step wrapped so nothing can trap the user on the sheet. */
-  window.__authed=true;
-  try{ loadProfile(); }catch(e){}
-  try{ closeAuth(); }catch(e){}
-  try{ hideLogin(); }catch(e){}
-  try{ showScreen("home"); }catch(e){}
-  try{ showWelcome(name); }catch(e){}
-  try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
-  if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
-}
-/* Best-effort backend save. Clears the retry queue and marks synced on HTTP 2xx. */
-function saveSignup(payload){
-  try{
-    fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true})
-      .then(function(r){ if(r&&r.ok){ try{ localStorage.removeItem("panda_signup_queue"); var a=store.lget("panda_auth"); if(a){ a.pendingSync=false; store.lset("panda_auth",a); } }catch(e){} } })
-      .catch(function(){});
-  }catch(e){}
-}
-/* Background retry: if a prior sign-up couldn't reach the backend, resend it quietly. */
-function flushSignupQueue(){
-  var q=null; try{ q=store.lget("panda_signup_queue"); }catch(e){}
-  if(!q||!q.email) return;
-  saveSignup(q);
+    window.__authed=true; loadProfile();
+    try{ if(!sessionStorage.getItem("panda_open_sent")){ sessionStorage.setItem("panda_open_sent","1"); fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({events:[{type:"app_open",deviceId:__did,ts:Date.now()}]}),keepalive:true}).catch(function(){}); } }catch(e){}
+    btn.dataset.busy="0"; btn.textContent=_label; btn.style.opacity="";
+    closeAuth(); hideLogin(); showWelcome(name);
+    if(window.__a2hsRetry) setTimeout(window.__a2hsRetry,1400);
+  }
+  /* Gate opens ONLY after the backend confirms it stored the record (HTTP 2xx). No blind entry. */
+  var ctrl=("AbortController" in window)?new AbortController():null; var to=setTimeout(function(){if(ctrl)ctrl.abort();},12000);
+  fetch(SIGNUP_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),signal:ctrl?ctrl.signal:undefined})
+    .then(function(r){ clearTimeout(to); if(r&&r.ok){ succeed(); } else { fail("We couldn\u2019t save your details (server error). Please try again."); } })
+    .catch(function(){ clearTimeout(to); fail(); });
 }
 function showWelcome(name){
   const first=(name||"").trim().split(" ")[0];
@@ -1232,13 +1156,15 @@ function loadProfile(){const p=store.lget("panda_profile")||{};
 function saveProfile(){/* replaced by edit-sheet flow */}
 
 function openSheet(v){if(!v)return;$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View official website &amp; menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
-if(sponsorEligible(v)||v.__sponsor){ track("detail_open",v);
+// Always track detail_open and every action-button click for THIS venue,
+  // regardless of sponsor/distance gating. Real interactions are always recorded.
+  track("detail_open",v);
   s.querySelectorAll("a.act").forEach(a=>a.addEventListener("click",()=>{
     const cls=a.className||""; const href=a.getAttribute("href")||"";
     const kind=/book/.test(cls)?"booking_click":/primary/.test(cls)?"menu_click":(href.indexOf("tel:")===0?"call_click":"directions_click");
     track(kind,v);
   }));
-}}
+}
 function closeSheet(){$("#sheet").classList.remove("open");$("#scrim").classList.remove("show");}
 
 function suggestChips(){const h=new Date().getHours();
@@ -1382,7 +1308,6 @@ function boot(){
   $("#openSettings").addEventListener("click",openSettings);
   wirePfEdit();
   $$("#login .authbtn").forEach(b=>b.addEventListener("click",()=>openAuth(b.dataset.prov)));
-  var _ls=$("#loginSkip"); if(_ls) _ls.addEventListener("click",dismissLogin);
   $("#authGo").addEventListener("click",doAuth);
   $("#authBack").addEventListener("click",closeAuth);
   $("#authEmail").addEventListener("keydown",e=>{if(e.key==="Enter")doAuth();});
@@ -1424,7 +1349,7 @@ function boot(){
   $("#planShuffle").addEventListener("click",()=>buildPlan(planMode));
   $("#planMap").addEventListener("click",showPlanOnMap);
   $("#planModes").addEventListener("click",e=>{const b=e.target.closest("button");if(b)buildPlan(b.dataset.mode);});
-  renderSaved();refreshHome();getLocation();checkFormGate();initAuth();flushSignupQueue();loadSponsored();
+  renderSaved();refreshHome();getLocation();checkFormGate();initAuth();loadSponsored();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
 }
 document.addEventListener("DOMContentLoaded",boot);
@@ -1579,83 +1504,16 @@ document.addEventListener("DOMContentLoaded",boot);
     var previousOpenSheet=window.openSheet;
     function applyPremiumDetail(venue){
       var sheet=document.getElementById("sheet");if(!sheet)return;
-      var tier=venue&&venue.__sponsor;
-      var isPromoted=Boolean(tier);
-      var isBanging=tier==="banging";
-      sheet.classList.toggle("panda-premium-sheet",isPromoted);
-      sheet.classList.toggle("panda-premium-banging",isBanging);
+      var isPromoted=Boolean(venue&&venue.__sponsor);sheet.classList.toggle("panda-premium-sheet",isPromoted);
       var existing=sheet.querySelector(".panda-premium-label");if(existing)existing.remove();
       if(!isPromoted)return;
       var body=sheet.querySelector(".sbody");if(!body)return;
-      var label=document.createElement("div");
-      label.className="panda-premium-label"+(isBanging?" premium-gold":"");
-      label.setAttribute("aria-label",isBanging?"Panda Premium venue":"Promoted venue");
-      label.innerHTML=isBanging
-        ? '<span class="premium-star" aria-hidden="true">\u2726</span><span>Panda Premium</span>'
-        : '<span class="premium-star" aria-hidden="true">\u2726</span><span>Promoted</span>';
+      var label=document.createElement("div");label.className="panda-premium-label";label.setAttribute("aria-label","Promoted Panda Select venue");label.innerHTML='<span class="premium-star" aria-hidden="true">✦</span><span>Panda Select · Promoted</span>';
       body.insertBefore(label,body.firstChild);
     }
     window.openSheet=function(venue){previousOpenSheet(venue);applyPremiumDetail(venue);};
     })();
     </script>
 <script id="panda-profile-upgrade-script">(function(){var row=document.getElementById("rowShare");if(!row)return;var label=row.previousElementSibling;if(label)label.textContent="Your favourites";row.className="srow share-favourites-row";row.innerHTML='<span class="sic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg></span><div class="stx">Share saved places<small id="setSavedSummary">Save places to share a list</small></div><span class="arrow">→</span>';})();</script>
-<style id="panda-banging-premium-style">
-/* ===== Panda Premium (banging) DETAIL SHEET — big HD photos, swipe, gold ===== */
-.sheet.panda-premium-banging .hero{height:340px}
-.sheet.panda-premium-banging .panda-photo-carousel{background:#0a2a20}
-.sheet.panda-premium-banging .panda-photo-track{transition:transform .46s cubic-bezier(.22,.61,.36,1)}
-.sheet.panda-premium-banging .panda-photo-slide img{object-fit:cover;-webkit-user-drag:none}
-.sheet.panda-premium-banging .panda-photo-nav{display:none!important}
-.sheet.panda-premium-banging .panda-photo-dots{bottom:16px;gap:7px}
-.sheet.panda-premium-banging .panda-photo-dot{width:7px;height:7px;background:rgba(255,255,255,.5);box-shadow:0 1px 6px rgba(0,0,0,.45)}
-.sheet.panda-premium-banging .panda-photo-dot.on{width:24px;background:linear-gradient(90deg,#f0d48c,#e8c77e)}
-.sheet.panda-premium-banging .hero::before{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1.5px rgba(240,212,140,.6),inset 0 -80px 64px rgba(6,20,14,.42)}
-.sheet.panda-premium-banging .hero .closeX{background:rgba(8,26,19,.6);color:#fbf6e9}
-.sheet.panda-premium-banging .sbody h3{color:#14281d}
-.panda-premium-label.premium-gold{background:linear-gradient(135deg,#fff4d4,#f0d48c 44%,#e6c072 64%,#f7e6b0);color:#5c3f0c;border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 14px rgba(154,111,36,.3),inset 0 1px 0 rgba(255,255,255,.72);font-size:11px;letter-spacing:.18em;padding:6px 13px}
-.panda-premium-label.premium-gold .premium-star{color:#a66c1b;font-size:13px}
-/* ===== BANGING — premium luxury carousel card (distinct from discovery "Promoted") ===== */
-.vcard.banging-card{position:relative;background:linear-gradient(158deg,#0f3e2e 0%,#0a2a20 58%,#123f2e 100%);border:none;box-shadow:0 16px 36px rgba(8,34,24,.44),0 0 22px rgba(198,161,91,.22)}
-.vcard.banging-card::before{content:"";position:absolute;inset:0;z-index:5;pointer-events:none;border-radius:var(--radius);padding:1.6px;background:linear-gradient(135deg,#f7e6b0,#c69a4d 38%,#f0d48c 60%,#b98532);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
-.vcard.banging-card .vphoto::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 -40px 38px rgba(7,26,19,.5),inset 0 0 0 1px rgba(240,212,140,.34)}
-.vcard.banging-card .vbody{background:transparent}
-.vcard.banging-card .vname{color:#fbf6e9}
-.vcard.banging-card .vmeta,.vcard.banging-card .vmeta *{color:#cdbf9c!important}
-.vcard.banging-card .vmeta .sep{color:#8a7c58!important}
-.vcard.banging-card .vopen.o{color:#7fe0b0}
-.vcard.banging-card .vopen.c{color:#e6a58f}
-.vpromo-bang{position:absolute;top:8px;left:8px;z-index:6;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;overflow:hidden;font-size:9.5px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#3a2708;background:linear-gradient(135deg,#fff4d4 0%,#f0d48c 34%,#e6c072 56%,#f7e6b0 100%);border:1px solid rgba(255,255,255,.6);box-shadow:0 3px 10px rgba(74,48,11,.4),inset 0 1px 0 rgba(255,255,255,.75)}
-.vpromo-bang .bang-star{font-size:11px;line-height:1;color:#9a6f24}
-.vpromo-bang::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.85) 48%,transparent 60%);transform:translateX(-120%);animation:bangShine 3.4s ease-in-out infinite}
-@keyframes bangShine{0%,14%{transform:translateX(-120%)}46%,100%{transform:translateX(120%)}}
-</style>
-<script id="panda-banging-debug">
-(function(){
-  if(!/[?&#]debug/.test(location.href)) return;
-  function dump(){
-    try{
-      var L=[];
-      L.push("SW: "+(navigator.serviceWorker&&navigator.serviceWorker.controller?"controlling (cache active)":"none"));
-      L.push("COORDS: "+(window.COORDS?(COORDS.lat.toFixed(4)+","+COORDS.lng.toFixed(4)):"NULL — no location"));
-      L.push("homeRaw venues: "+((window.homeRaw||[]).length));
-      L.push("sponsored: "+Object.keys(window.SPONSORED||{}).length+" ids / list "+((window.SPONSORED_LIST||[]).length));
-      L.push("ensureBangingVenues fn: "+(typeof window.ensureBangingVenues));
-      var bang=(window.SPONSORED_LIST||[]).filter(function(o){return o&&(o.tier||o.sponsor_tier||"discovery")==="banging";});
-      if(!bang.length) L.push("(no banging entries loaded)");
-      bang.forEach(function(o){
-        var pid=o.place_id||o.google_place_id||o.id||"";
-        var hit=(window.homeRaw||[]).find(function(x){return (pid&&x.id===pid)||((x.name||"").toLowerCase().trim()===(o.name||"").toLowerCase().trim());});
-        var elig=(hit&&typeof window.sponsorEligible==="function")?window.sponsorEligible(hit):null;
-        L.push("• "+(o.name||"?").slice(0,20)+" → "+(hit?("in feed, d="+(hit.distanceMeters!=null?Math.round(hit.distanceMeters)+"m":"?")+", elig="+elig):"NOT in feed"));
-      });
-      var el=document.getElementById("pandaDebug");
-      if(!el){el=document.createElement("div");el.id="pandaDebug";el.style.cssText="position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:rgba(6,20,14,.92);color:#e9f5ee;font:11px/1.45 ui-monospace,Menlo,monospace;padding:11px 13px;border-radius:12px;white-space:pre-wrap;max-height:48vh;overflow:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)";document.body.appendChild(el);}
-      el.textContent=L.join("\n");
-    }catch(e){}
-  }
-  window.addEventListener("load",function(){ setTimeout(dump,2600); setInterval(dump,3000); });
-})();
-</script>
 </body>
 </html>
-
