@@ -1,4 +1,5 @@
 
+
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -1584,6 +1585,32 @@ document.addEventListener("DOMContentLoaded",boot);
 .vpromo-bang::after{content:"";position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.85) 48%,transparent 60%);transform:translateX(-120%);animation:bangShine 3.4s ease-in-out infinite}
 @keyframes bangShine{0%,14%{transform:translateX(-120%)}46%,100%{transform:translateX(120%)}}
 </style>
+<script id="panda-banging-debug">
+(function(){
+  if(!/[?&#]debug/.test(location.href)) return;
+  function dump(){
+    try{
+      var L=[];
+      L.push("SW: "+(navigator.serviceWorker&&navigator.serviceWorker.controller?"controlling (cache active)":"none"));
+      L.push("COORDS: "+(window.COORDS?(COORDS.lat.toFixed(4)+","+COORDS.lng.toFixed(4)):"NULL — no location"));
+      L.push("homeRaw venues: "+((window.homeRaw||[]).length));
+      L.push("sponsored: "+Object.keys(window.SPONSORED||{}).length+" ids / list "+((window.SPONSORED_LIST||[]).length));
+      L.push("ensureBangingVenues fn: "+(typeof window.ensureBangingVenues));
+      var bang=(window.SPONSORED_LIST||[]).filter(function(o){return o&&(o.tier||o.sponsor_tier||"discovery")==="banging";});
+      if(!bang.length) L.push("(no banging entries loaded)");
+      bang.forEach(function(o){
+        var pid=o.place_id||o.google_place_id||o.id||"";
+        var hit=(window.homeRaw||[]).find(function(x){return (pid&&x.id===pid)||((x.name||"").toLowerCase().trim()===(o.name||"").toLowerCase().trim());});
+        var elig=(hit&&typeof window.sponsorEligible==="function")?window.sponsorEligible(hit):null;
+        L.push("• "+(o.name||"?").slice(0,20)+" → "+(hit?("in feed, d="+(hit.distanceMeters!=null?Math.round(hit.distanceMeters)+"m":"?")+", elig="+elig):"NOT in feed"));
+      });
+      var el=document.getElementById("pandaDebug");
+      if(!el){el=document.createElement("div");el.id="pandaDebug";el.style.cssText="position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:rgba(6,20,14,.92);color:#e9f5ee;font:11px/1.45 ui-monospace,Menlo,monospace;padding:11px 13px;border-radius:12px;white-space:pre-wrap;max-height:48vh;overflow:auto;box-shadow:0 8px 30px rgba(0,0,0,.5)";document.body.appendChild(el);}
+      el.textContent=L.join("\n");
+    }catch(e){}
+  }
+  window.addEventListener("load",function(){ setTimeout(dump,2600); setInterval(dump,3000); });
+})();
+</script>
 </body>
 </html>
-
