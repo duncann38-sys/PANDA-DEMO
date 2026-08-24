@@ -940,11 +940,36 @@ const imprObserver = ("IntersectionObserver" in window) ? new IntersectionObserv
 },{threshold:0.5}) : null;
 function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll(".promoted-card").forEach(el=>{ if(!el.__obs){ el.__obs=1; imprObserver.observe(el); } }); }
 function applySponsored(data){
-  SPONSORED={};SPONSORED_BYNAME={};
+  SPONSORED={};SPONSORED_BYNAME={};BANGING_LIST=[];
   const list=Array.isArray(data)?data:(data&&data.venues?data.venues:[]);
-  list.forEach(o=>{ if(!o)return; const tier=(o.tier||o.sponsor_tier||"discovery"); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[String(o.name).toLowerCase().trim()]=tier; });
+  list.forEach(o=>{ if(!o)return; const tier=(o.tier||o.sponsor_tier||"discovery"); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[String(o.name).toLowerCase().trim()]=tier; if(tier==="banging"&&o.name){ BANGING_LIST.push({name:o.name, place_id:id||null}); } });
+  fetchBangingVenues();
   if(typeof homeRaw!=="undefined" && homeRaw && homeRaw.length) applyHomeFilters();
   if(typeof TREND_ORGANIC!=="undefined" && TREND_ORGANIC.length) renderTrend();
+}
+// Banging venues fetched directly by name so they ALWAYS appear in the carousel,
+// regardless of whether the feed query happened to return them near the user.
+let BANGING_LIST=[], BANGING_VENUES=[];
+async function fetchBangingVenues(){
+  if(!BANGING_LIST.length) return;
+  try{
+    const results=await Promise.all(BANGING_LIST.map(async b=>{
+      try{
+        const vs=await fetchVenues(b.name);
+        if(!vs||!vs.length) return null;
+        // Prefer an exact place_id match; else exact name match; else first result.
+        let hit=null;
+        if(b.place_id) hit=vs.find(v=>v.id===b.place_id)||null;
+        if(!hit) hit=vs.find(v=>v.name&&v.name.toLowerCase().trim()===b.name.toLowerCase().trim())||null;
+        if(!hit) hit=vs[0];
+        return hit||null;
+      }catch(e){ return null; }
+    }));
+    BANGING_VENUES=results.filter(Boolean);
+    // recompute distance if we have coords
+    if(COORDS){ BANGING_VENUES.forEach(v=>{ if(v.lat!=null&&v.lng!=null) v.distanceMeters=haversine(COORDS.lat,COORDS.lng,v.lat,v.lng); }); }
+    renderTrend();
+  }catch(e){}
 }
 async function loadSponsored(){
   try{
@@ -1043,10 +1068,14 @@ function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").datas
 async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
 function renderTrend(){
-  let t=TREND_ORGANIC.slice().filter(x=>sponsorEligible(x)!=="banging");
-  const bang=(homeRaw||[]).filter(x=>sponsorEligible(x)==="banging");
+  let t=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
+  // Banging venues come from the directly-fetched BANGING_VENUES list so they
+  // always show, not just when the feed query happened to include them.
+  const bang=(BANGING_VENUES&&BANGING_VENUES.length?BANGING_VENUES.slice():(homeRaw||[]).filter(x=>sponsorTier(x)==="banging"));
+  bang.forEach(x=>x.__sponsor="banging");
   if(bang.length){const out=[];let bi=0;for(let i=0;i<t.length;i++){if(out.length>0&&out.length%5===2&&bi<bang.length){out.push(bang[bi++]);}out.push(t[i]);}while(bi<bang.length)out.push(bang[bi++]);t=out;}
-  t.forEach(x=>x.__sponsor=sponsorEligible(x));
+  // Preserve the banging flag on injected venues; only tag the rest normally.
+  t.forEach(x=>{ if(x.__sponsor!=="banging") x.__sponsor=sponsorEligible(x); });
   DATA.trend=t;
   $("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('');
   observeSponsored();
@@ -1540,4 +1569,5 @@ document.addEventListener("DOMContentLoaded",boot);
 <script id="panda-profile-upgrade-script">(function(){var row=document.getElementById("rowShare");if(!row)return;var label=row.previousElementSibling;if(label)label.textContent="Your favourites";row.className="srow share-favourites-row";row.innerHTML='<span class="sic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg></span><div class="stx">Share saved places<small id="setSavedSummary">Save places to share a list</small></div><span class="arrow">→</span>';})();</script>
 </body>
 </html>
+
 
