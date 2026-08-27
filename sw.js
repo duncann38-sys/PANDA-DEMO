@@ -1,6 +1,6 @@
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-2026-08-27-promoted-share-link-v12';
+const CACHE = 'panda-cache-2026-08-27-promoted-share-message-v13';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
