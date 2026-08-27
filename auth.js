@@ -97,10 +97,28 @@
     } catch (error) { profileError('We couldn’t verify your sign-in. Please try again.'); status('We couldn’t verify your sign-in. Please try again.', true); }
     finally { button.dataset.busy = '0'; button.textContent = label; button.style.opacity = ''; }
   }
+
+  async function resolveRedirectUser(current, redirect) {
+    if (redirect && redirect.user) return redirect.user;
+    if (current.auth.currentUser) return current.auth.currentUser;
+    return new Promise(function (resolve) {
+      var settled = false;
+      var unsubscribe = function () {};
+      var timer = setTimeout(function () { finish(current.auth.currentUser || null); }, 1800);
+      function finish(user) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        unsubscribe();
+        resolve(user || null);
+      }
+      try { unsubscribe = current.sdk.onAuthStateChanged(current.auth, function (user) { if (user) finish(user); }); } catch (error) { finish(current.auth.currentUser || null); }
+    });
+  }
   async function resume() {
     const old = readStoredAccount(); if (!verifiedAccount(old)) { try { localStorage.removeItem('panda_auth'); } catch (error) {} }
     showLogin();
-    try { const current = await getFirebase(); const redirect = await current.sdk.getRedirectResult(current.auth); const user = (redirect && redirect.user) || current.auth.currentUser; if (!user) { const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; if (pendingProvider) { localStorage.removeItem('panda_auth_pending_provider'); status('Sign-in was cancelled. Choose a provider to try again.', false); } return; } const saved = readStoredAccount(); const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; localStorage.removeItem('panda_auth_pending_provider'); if (verifiedAccount(saved) && saved.uid === user.uid) { window.__authed = true; hideLogin(); return; } pendingUser = user; selectedGender = ''; const nameField = byId('authName'); if (nameField) nameField.value = String(user.displayName || (user.email || '').split('@')[0] || 'Panda Friend').trim(); await finish(); }
+    try { const current = await getFirebase(); const redirect = await current.sdk.getRedirectResult(current.auth); const user = await resolveRedirectUser(current, redirect); if (!user) { const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; if (pendingProvider) { localStorage.removeItem('panda_auth_pending_provider'); status('Sign-in was cancelled. Choose a provider to try again.', false); } return; } const saved = readStoredAccount(); const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; localStorage.removeItem('panda_auth_pending_provider'); if (verifiedAccount(saved) && saved.uid === user.uid) { window.__authed = true; hideLogin(); return; } pendingUser = user; selectedGender = ''; const nameField = byId('authName'); if (nameField) nameField.value = String(user.displayName || (user.email || '').split('@')[0] || 'Panda Friend').trim(); await finish(); }
     catch (error) { status(errorMessage(error), true); }
   }
   async function logout() { try { localStorage.removeItem('panda_auth'); localStorage.removeItem('panda_auth_pending_provider'); } catch (error) {} pendingUser = null; if (firebase) firebase.sdk.signOut(firebase.auth).catch(function () {}); window.__authed = false; closeSheet(); if (typeof closeSettings === 'function') closeSettings(); if (typeof showScreen === 'function') showScreen('home'); showLogin(); }
