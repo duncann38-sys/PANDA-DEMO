@@ -997,9 +997,16 @@ const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"
 
 let RESLIST=[];
 const RSTOP=new Set(["the","and","restaurant","restaurants","bar","cafe","kitchen","grill","london","co","ltd"]);
-function rtok(s){return (s||"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").split(" ").filter(w=>w&&!RSTOP.has(w));}
-async function loadReservations(){try{const r=await fetch(RESERVATIONS_URL,{cache:"no-store"});if(!r.ok)return;const raw=await r.json();const list=Array.isArray(raw)?raw:(raw&&raw.venues?raw.venues:[]);RESLIST=list.filter(o=>o&&o.name).map(o=>({tokens:rtok(o.name),slots:(o.timeSlots||[]).map(t=>({time:t.time,url:t.url})),bookingUrl:o.bookingUrl||"",menuUrl:o.menuUrl||""}));}catch(e){}}
-function resFor(v){const vt=rtok(v.name);if(!vt.length)return null;let best=null,bs=0;for(const e of RESLIST){if(!e.tokens.length)continue;let ov=0;for(const w of vt)if(e.tokens.indexOf(w)>=0)ov++;const sc=ov/Math.min(vt.length,e.tokens.length);const nameShared=e.tokens[0]===vt[0];if((nameShared&&ov>=1&&sc>=0.5)||sc>=0.75){if(sc>bs){bs=sc;best=e;}}}return best;}
+function rtext(s){return String(s||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/&/g," and ").replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();}
+function rname(s){return rtext(s).split(" ").filter(w=>w&&!RSTOP.has(w)).join(" ");}
+function rpostcode(s){const m=String(s||"").toUpperCase().match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/);return m?m[1].replace(/\s/g,""):"";}
+function raddress(s){return rtext(s).replace(/\b(?:greater london|london|england|united kingdom|uk)\b/g," ").replace(/\s+/g," ").trim();}
+function reservationPlaceId(o){return [o.googlePlaceId,o.google_place_id,o.placeId,o.place_id].find(id=>typeof id==="string"&&id.trim())||"";}
+function venuePlaceId(v){return [v.googlePlaceId,v.google_place_id,v.placeId,v.place_id,v.id].find(id=>typeof id==="string"&&id.trim())||"";}
+function venueAddress(v){return v&&((v.fullAddress||v.address||v.formattedAddress||v.vicinity)||"");}
+function sameAddress(a,b){const ap=rpostcode(a),bp=rpostcode(b);if(ap||bp)return !!ap&&!!bp&&ap===bp;const an=raddress(a),bn=raddress(b);return an.length>=12&&bn.length>=12&&(an===bn||an.includes(bn)||bn.includes(an));}
+async function loadReservations(){try{const r=await fetch(RESERVATIONS_URL,{cache:"no-store"});if(!r.ok)return;const raw=await r.json();const list=Array.isArray(raw)?raw:(raw&&raw.venues?raw.venues:[]);RESLIST=list.filter(o=>o&&o.name).map(o=>({nameKey:rname(o.name),address:o.address||o.fullAddress||o.formattedAddress||"",placeId:reservationPlaceId(o),slots:(o.timeSlots||[]).map(t=>({time:t.time,url:t.url})),bookingUrl:o.bookingUrl||"",menuUrl:o.menuUrl||""}));}catch(e){}}
+function resFor(v){const placeId=venuePlaceId(v);if(placeId){const byId=RESLIST.filter(e=>e.placeId===placeId);if(byId.length===1)return byId[0];}const nameKey=rname(v&&v.name),address=venueAddress(v);if(!nameKey||!address)return null;const byNameAndAddress=RESLIST.filter(e=>e.nameKey===nameKey&&sameAddress(address,e.address));return byNameAndAddress.length===1?byNameAndAddress[0]:null;}
 
 let SAVED=store.lget("panda_saved")||{};
 function isSaved(id){return !!SAVED[id]}
@@ -1696,6 +1703,9 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
+
+
+
 
 
 
