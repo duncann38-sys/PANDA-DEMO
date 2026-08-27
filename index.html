@@ -1491,7 +1491,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-      var release="panda-tier-split-v7",releaseKey="panda_app_release";
+       var release="panda-carousel-size-v15",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
@@ -1507,7 +1507,7 @@ document.addEventListener("DOMContentLoaded",boot);
           return;
         }
       }catch(error){}
-      navigator.serviceWorker.register("./sw.js?release="+encodeURIComponent(release)).catch(function(){});
+       navigator.serviceWorker.register("./sw.js?release="+encodeURIComponent(release),{updateViaCache:"none"}).catch(function(){});
     });
   }
 })();
@@ -1715,6 +1715,9 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
+
+
+
 
 
 
