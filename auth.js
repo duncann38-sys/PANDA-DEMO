@@ -84,7 +84,7 @@
           return;
         } catch (popupError) {
           const popupCode = String((popupError && popupError.code) || '');
-          const canFallbackToRedirect = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported', 'auth/no-user-returned'].indexOf(popupCode) > -1;
+          const canFallbackToRedirect = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported', 'auth/no-user-returned', 'auth/popup-closed-by-user', 'auth/cancelled-popup-request'].indexOf(popupCode) > -1;
           if (!canFallbackToRedirect) { status(errorMessage(popupError), true); return; }
         }
       }
@@ -105,12 +105,12 @@
       const token = await user.getIdToken(true);
       const response = await fetch(SESSION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name: name, gender: selectedGender, country: typeof PANDA_COUNTRY === 'undefined' ? null : PANDA_COUNTRY, deviceId: deviceId }) });
       const payload = await response.json().catch(function () { return {}; });
-      if (!response.ok || !payload.user) throw new Error('account-save-failed');
+      if (!response.ok || !payload.user) { const failure = new Error((payload && payload.error) || 'account-save-failed'); failure.code = 'auth/session-' + ((payload && payload.error) || 'account-save-failed'); throw failure; }
       const account = payload.user;
       if (typeof store !== 'undefined') { store.lset('panda_auth', { uid: account.uid, name: account.name || name, email: account.email, gender: selectedGender, provider: account.provider, providerVerified: true, stored: true, ts: Date.now() }); const profile = store.lget('panda_profile') || {}; profile.name = account.name || name; profile.email = account.email; if (selectedGender) profile.gender = selectedGender; store.lset('panda_profile', profile); }
       localStorage.setItem('panda_signup_sent', '1'); pendingUser = null; window.__authed = true; if (typeof loadProfile === 'function') loadProfile(); closeSheet(); hideLogin(); if (typeof showWelcome === 'function') showWelcome(account.name || name); if (window.__a2hsRetry) setTimeout(window.__a2hsRetry, 1400);
       try { if (!sessionStorage.getItem('panda_open_sent')) { sessionStorage.setItem('panda_open_sent', '1'); fetch('https://panda-partners-api.vercel.app/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events: [{ type: 'app_open', deviceId: deviceId, ts: Date.now() }] }), keepalive: true }).catch(function () {}); } } catch (error) {}
-    } catch (error) { profileError('We couldn’t verify your sign-in. Please try again.'); status('We couldn’t verify your sign-in. Please try again.', true); }
+    } catch (error) { const code = String((error && error.code) || ''); const message = code === 'auth/session-invalid_or_expired_token' ? 'Google signed in, but Panda could not verify that session. Please try again. (Code: session verification)' : code === 'auth/session-account_save_failed' ? 'Google signed in, but Panda could not save the account yet. Please try again shortly. (Code: account save)' : code.indexOf('auth/session-') === 0 ? 'Google signed in, but Panda could not complete account setup. Please try again. (Code: account setup)' : 'We couldn’t verify your sign-in. Please try again.'; profileError(message); status(message, true); }
     finally { button.dataset.busy = '0'; button.textContent = label; button.style.opacity = ''; }
   }
 
