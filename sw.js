@@ -1,6 +1,6 @@
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-2026-08-27-auth';
+const CACHE = 'panda-cache-2026-08-27-premium-gallery-v2';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
@@ -9,7 +9,7 @@ self.addEventListener('install', function(){
 self.addEventListener('activate', function(e){
   e.waitUntil((async function(){
     const keys = await caches.keys();
-    await Promise.all(keys.filter(function(k){ return k !== CACHE; }).map(function(k){ return caches.delete(k); }));
+    await Promise.all(keys.filter(function(k){ return k.indexOf('panda-cache-') === 0 && k !== CACHE; }).map(function(k){ return caches.delete(k); }));
     await self.clients.claim();
   })());
 });
@@ -43,3 +43,4 @@ self.addEventListener('fetch', function(e){
     }
   })());
 });
+
