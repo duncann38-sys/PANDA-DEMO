@@ -1,3 +1,4 @@
+
 /* Panda consumer authentication — real Firebase Google and Apple sign-in. */
 (function () {
   'use strict';
@@ -21,7 +22,7 @@
   function providerLabel(user, fallback) { const providers = (user && user.providerData ? user.providerData : []).map(function (item) { return item.providerId; }); if (providers.indexOf('apple.com') > -1) return 'Apple'; if (providers.indexOf('google.com') > -1) return 'Google'; return fallback || ''; }
   function closeSheet() { const modal = byId('authModal'); modal.classList.remove('show'); modal.setAttribute('aria-hidden', 'true'); }
   function profileError(message) { let el = byId('authErr'); if (!el) { el = document.createElement('p'); el.id = 'authErr'; el.setAttribute('role', 'alert'); el.style.cssText = 'margin:10px 2px 0;color:#c0483f;font-size:12.5px;font-weight:700;line-height:1.4;text-align:center'; byId('authGo').before(el); } el.textContent = message || ''; }
-  function removeListeners(selector, listener) { const old = document.querySelector(selector); if (!old || !old.parentNode) return null; const clone = old.cloneNode(true); old.parentNode.replaceChild(clone, old); if (listener) clone.addEventListener('click', listener); return clone; }
+  function removeListeners(selector, listener) { const old = document.querySelector(selector); if (!old || !old.parentNode) return null; const clone = old.cloneNode(true); old.parentNode.replaceChild(clone, old); clone.removeAttribute('onclick'); clone.removeAttribute('onkeydown'); clone.removeAttribute('onkeypress'); clone.onclick = null; clone.onkeydown = null; clone.onkeypress = null; if (listener) clone.addEventListener('click', listener); return clone; }
 
   async function getFirebase() {
     if (firebase) return firebase;
@@ -107,7 +108,7 @@
     const style = document.createElement('style'); style.textContent = '#authModal{position:fixed!important;z-index:300!important}#authModal .auth-close{position:absolute;right:16px;top:14px;width:36px;height:36px;border-radius:50%;background:var(--card-soft);color:var(--ink);font-size:25px;line-height:1;z-index:1}#loginAuthStatus{width:100%;max-width:340px;margin:12px 0 -8px;color:var(--mint-300);font-size:12.5px;font-weight:700;line-height:1.45}#loginAuthStatus.error{color:#ffd0ca}.authbtn[disabled]{cursor:wait;opacity:.72}'; document.head.appendChild(style);
     const statusEl = document.createElement('p'); statusEl.id = 'loginAuthStatus'; statusEl.hidden = true; statusEl.setAttribute('role', 'status'); statusEl.setAttribute('aria-live', 'polite'); const authButtons = document.querySelector('#login .authbtns'); if (authButtons) authButtons.after(statusEl);
     const modal = byId('authModal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'authTitle'); const title = modal.querySelector('h3'); if (title) title.id = 'authTitle'; const close = document.createElement('button'); close.className = 'auth-close'; close.type = 'button'; close.setAttribute('aria-label', 'Cancel sign-in'); close.textContent = '×'; close.addEventListener('click', cancel); modal.querySelector('.card').appendChild(close);
-    all('#login .authbtn').forEach(function (old) { const button = old.cloneNode(true); old.parentNode.replaceChild(button, old); button.type = 'button'; button.addEventListener('click', function () { start(button.dataset.prov); }); });
+    all('#login .authbtn').forEach(function (old) { const button = old.cloneNode(true); old.parentNode.replaceChild(button, old); button.type = 'button'; button.removeAttribute('onclick'); button.onclick = null; button.addEventListener('click', function () { start(button.dataset.prov); }); });
     removeListeners('#authGo', finish); const email = removeListeners('#authEmail'); if (email) email.addEventListener('keydown', function (event) { if (event.key === 'Enter') finish(); }); removeListeners('#authBack', cancel); removeListeners('#rowLogout', logout);
     all('#authGender button').forEach(function (button) { button.addEventListener('click', function () { selectedGender = button.dataset.g; all('#authGender button').forEach(function (item) { item.classList.remove('on'); }); button.classList.add('on'); }); });
   }
