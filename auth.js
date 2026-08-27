@@ -4,6 +4,8 @@
   const CONFIG_ENDPOINT = 'https://panda-partners-api.vercel.app/api/auth-config';
   const SESSION_ENDPOINT = 'https://panda-partners-api.vercel.app/api/auth-session';
   const SDK_VERSION = '10.12.2';
+  const GOOGLE_CLIENT_ID = '361819429468-392737m2vt5d10m0rs09bckka3g1n48j.apps.googleusercontent.com';
+  let googleIdentityLoading = null;
   let firebase = null;
   let firebaseLoading = null;
   let pendingUser = null;
@@ -47,6 +49,50 @@
   }
 
   function createProvider(name, sdk) { if (name === 'Apple') { const apple = new sdk.OAuthProvider('apple.com'); apple.addScope('email'); apple.addScope('name'); return apple; } const google = new sdk.GoogleAuthProvider(); google.setCustomParameters({ prompt: 'select_account' }); return google; }
+  function loadGoogleIdentity() {
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) return Promise.resolve(window.google);
+    if (googleIdentityLoading) return googleIdentityLoading;
+    googleIdentityLoading = new Promise(function (resolve, reject) {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = function () {
+        if (window.google && window.google.accounts && window.google.accounts.oauth2) resolve(window.google);
+        else { const error = new Error('auth/google-direct-unavailable'); error.code = 'auth/google-direct-unavailable'; reject(error); }
+      };
+      script.onerror = function () { const error = new Error('auth/google-direct-unavailable'); error.code = 'auth/google-direct-unavailable'; reject(error); };
+      document.head.appendChild(script);
+    }).catch(function (error) { googleIdentityLoading = null; throw error; });
+    return googleIdentityLoading;
+  }
+  async function requestGoogleAccessToken() {
+    const google = await loadGoogleIdentity();
+    return new Promise(function (resolve, reject) {
+      let settled = false;
+      const timer = setTimeout(function () { fail('auth/google-direct-unavailable'); }, 30000);
+      function succeed(token) { if (settled) return; settled = true; clearTimeout(timer); resolve(token); }
+      function fail(code) { if (settled) return; settled = true; clearTimeout(timer); const error = new Error(code); error.code = code; reject(error); }
+      try {
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: GOOGLE_CLIENT_ID,
+          scope: 'openid email profile',
+          callback: function (response) { if (response && response.access_token) succeed(response.access_token); else fail('auth/google-direct-unavailable'); },
+          error_callback: function (error) { fail(error && error.type === 'popup_closed' ? 'auth/popup-closed-by-user' : 'auth/google-direct-unavailable'); }
+        });
+        client.requestAccessToken({ prompt: 'select_account' });
+      } catch (error) { fail('auth/google-direct-unavailable'); }
+    });
+  }
+  async function finishVerifiedUser(user) {
+    if (!user) { const error = new Error('auth/no-user-returned'); error.code = 'auth/no-user-returned'; throw error; }
+    localStorage.removeItem('panda_auth_pending_provider');
+    pendingUser = user;
+    selectedGender = '';
+    const nameField = byId('authName');
+    if (nameField) nameField.value = String(user.displayName || (user.email || '').split('@')[0] || 'Panda Friend').trim();
+    await finish();
+  }
   function configureSheet(user, provider) {
     if (!user || !user.email) { status('Your sign-in provider did not return an email address. Please try another account.', true); return; }
     pendingUser = user;
@@ -71,16 +117,20 @@
       localStorage.setItem('panda_auth_pending_provider', provider);
       const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
       if (isMobile) {
+        if (provider === 'Google') {
+          try {
+            const accessToken = await requestGoogleAccessToken();
+            const credential = current.sdk.GoogleAuthProvider.credential(null, accessToken);
+            const directResult = await current.sdk.signInWithCredential(current.auth, credential);
+            await finishVerifiedUser(directResult && directResult.user);
+            return;
+          } catch (directError) {
+            if (String((directError && directError.code) || '') === 'auth/popup-closed-by-user') { status(errorMessage(directError), true); return; }
+          }
+        }
         try {
           const popupResult = await current.sdk.signInWithPopup(current.auth, createProvider(provider, current.sdk));
-          const popupUser = popupResult && popupResult.user;
-          if (!popupUser) throw new Error('auth/no-user-returned');
-          localStorage.removeItem('panda_auth_pending_provider');
-          pendingUser = popupUser;
-          selectedGender = '';
-          const nameField = byId('authName');
-          if (nameField) nameField.value = String(popupUser.displayName || (popupUser.email || '').split('@')[0] || 'Panda Friend').trim();
-          await finish();
+          await finishVerifiedUser(popupResult && popupResult.user);
           return;
         } catch (popupError) {
           const popupCode = String((popupError && popupError.code) || '');
@@ -135,7 +185,7 @@
   async function resume() {
     const old = readStoredAccount(); if (!verifiedAccount(old)) { try { localStorage.removeItem('panda_auth'); } catch (error) {} }
     showLogin();
-    try { const current = await getFirebase(); const redirect = await current.sdk.getRedirectResult(current.auth); const user = await resolveRedirectUser(current, redirect); if (!user) { const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; if (pendingProvider) { localStorage.removeItem('panda_auth_pending_provider'); status('Sign-in was cancelled. Choose a provider to try again.', false); } return; } const saved = readStoredAccount(); const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; localStorage.removeItem('panda_auth_pending_provider'); if (verifiedAccount(saved) && saved.uid === user.uid) { window.__authed = true; hideLogin(); return; } pendingUser = user; selectedGender = ''; const nameField = byId('authName'); if (nameField) nameField.value = String(user.displayName || (user.email || '').split('@')[0] || 'Panda Friend').trim(); await finish(); }
+    try { const current = await getFirebase(); const redirect = await current.sdk.getRedirectResult(current.auth); const user = await resolveRedirectUser(current, redirect); if (!user) { const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; if (pendingProvider) { localStorage.removeItem('panda_auth_pending_provider'); status('Sign-in was cancelled. Choose a provider to try again.', false); } return; } const saved = readStoredAccount(); const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; localStorage.removeItem('panda_auth_pending_provider'); if (verifiedAccount(saved) && saved.uid === user.uid) { window.__authed = true; hideLogin(); return; } await finishVerifiedUser(user); }
     catch (error) { status(errorMessage(error), true); }
   }
   async function logout() { try { localStorage.removeItem('panda_auth'); localStorage.removeItem('panda_auth_pending_provider'); } catch (error) {} pendingUser = null; window.__authed = false; closeSheet(); if (typeof closeSettings === 'function') closeSettings(); if (typeof showScreen === 'function') showScreen('home'); if (firebase) { try { await firebase.sdk.signOut(firebase.auth); } catch (error) {} } showLogin(); }
