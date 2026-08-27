@@ -1491,7 +1491,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-carousel-size-v15",releaseKey="panda_app_release";
+       var release="panda-discovery-detail-v16",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
@@ -1712,9 +1712,48 @@ document.addEventListener("DOMContentLoaded",boot);
   };
 })();
 </script>
+<style id="panda-discovery-detail-style">
+  .sheet.panda-discovery-sheet{background:linear-gradient(180deg,#fffdf7 0%,#fff 54%,#fffaf0 100%);border-top:1px solid rgba(198,161,91,.8);box-shadow:0 -18px 44px rgba(92,62,15,.16),inset 0 3px 0 #d5ad59}
+  .sheet.panda-discovery-sheet .hero{background:linear-gradient(145deg,#f8f0df,#ead8af);box-shadow:inset 0 -3px 0 #d5ad59}
+  .sheet.panda-discovery-sheet .hero::before{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(63,46,17,.1),transparent 38%,rgba(86,62,22,.24));box-shadow:inset 0 0 0 1px rgba(240,212,140,.72)}
+  .sheet.panda-discovery-sheet .sbody h3{color:#493713}
+  .sheet.panda-discovery-sheet .pill:first-child{background:linear-gradient(135deg,#fff2cd,#f5d98c);border-color:rgba(185,133,50,.28);color:#79531a}
+  .sheet.panda-discovery-sheet .saddr svg{color:#a66c1b}
+  .sheet.panda-discovery-sheet .act.primary{border:1px solid rgba(198,161,91,.62);box-shadow:0 7px 16px rgba(154,111,36,.12)}
+  .panda-discovery-label{display:inline-flex;align-items:center;gap:7px;margin:0 0 11px;padding:6px 10px;border:1px solid rgba(185,133,50,.42);border-radius:999px;background:linear-gradient(135deg,#fff7df,#e8c77e);color:#775019;font-size:9.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 4px 12px rgba(154,111,36,.16)}
+  .panda-discovery-label .discovery-star{font-size:12px;line-height:1;color:#a66c1b}
+</style>
+<script id="panda-discovery-detail-script">
+  (function(){
+    var previousOpenSheet=window.openSheet;
+    if(typeof previousOpenSheet!=="function")return;
+    window.openSheet=function(venue){
+      var result=previousOpenSheet.apply(this,arguments);
+      window.setTimeout(function(){
+        var sheet=document.getElementById("sheet");
+        if(!sheet)return;
+        var tier=venue&&(venue.__sponsor||(typeof sponsorTier==="function"&&sponsorTier(venue)));
+        var isDiscovery=tier==="discovery";
+        sheet.classList.toggle("panda-discovery-sheet",isDiscovery);
+        if(!isDiscovery)return;
+        var body=sheet.querySelector(".sbody");
+        if(!body)return;
+        var label=body.querySelector(".panda-discovery-label");
+        if(!label){
+          label=document.createElement("div");
+          label.className="panda-discovery-label";
+          body.insertBefore(label,body.firstChild);
+        }
+        label.innerHTML='<span class="discovery-star" aria-hidden="true">✦</span><span>Promoted</span>';
+      },0);
+      return result;
+    };
+  })();
+</script>
 <script src="./auth.js"></script>
 </body>
 </html>
+
 
 
 
