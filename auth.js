@@ -100,11 +100,12 @@
 
   async function resolveRedirectUser(current, redirect) {
     if (redirect && redirect.user) return redirect.user;
+    try { if (typeof current.auth.authStateReady === 'function') await current.auth.authStateReady(); } catch (error) {}
     if (current.auth.currentUser) return current.auth.currentUser;
     return new Promise(function (resolve) {
       var settled = false;
       var unsubscribe = function () {};
-      var timer = setTimeout(function () { finish(current.auth.currentUser || null); }, 1800);
+      var timer = setTimeout(function () { finish(current.auth.currentUser || null); }, 8000);
       function finish(user) {
         if (settled) return;
         settled = true;
