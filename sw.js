@@ -1,6 +1,6 @@
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-2026-08-27-carousel-size-v14';
+const CACHE = 'panda-cache-2026-08-27-carousel-size-v15';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
@@ -26,7 +26,11 @@ self.addEventListener('fetch', function(e){
      fall back to cache (then cached index for navigations) when offline. */
   e.respondWith((async function(){
     try{
-      const fresh = await fetch(req);
+      const fresh = await fetch(
+        (req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('/index.html'))
+          ? new Request(req,{cache:'no-store'})
+          : req
+      );
       if(fresh && fresh.status === 200 && url.origin === self.location.origin){
         const cache = await caches.open(CACHE);
         cache.put(req, fresh.clone());
