@@ -69,13 +69,29 @@
     try {
       const current = await getFirebase();
       localStorage.setItem('panda_auth_pending_provider', provider);
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+      if (isMobile) {
+        try {
+          const popupResult = await current.sdk.signInWithPopup(current.auth, createProvider(provider, current.sdk));
+          const popupUser = popupResult && popupResult.user;
+          if (!popupUser) throw new Error('auth/no-user-returned');
+          localStorage.removeItem('panda_auth_pending_provider');
+          pendingUser = popupUser;
+          selectedGender = '';
+          const nameField = byId('authName');
+          if (nameField) nameField.value = String(popupUser.displayName || (popupUser.email || '').split('@')[0] || 'Panda Friend').trim();
+          await finish();
+          return;
+        } catch (popupError) {
+          const popupCode = String((popupError && popupError.code) || '');
+          const canFallbackToRedirect = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported', 'auth/no-user-returned'].indexOf(popupCode) > -1;
+          if (!canFallbackToRedirect) { status(errorMessage(popupError), true); return; }
+        }
+      }
       await current.sdk.signInWithRedirect(current.auth, createProvider(provider, current.sdk));
       return;
     } catch (error) {
-      const code = String((error && error.code) || '');
-      if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
-        try { const current = await getFirebase(); await current.sdk.signInWithRedirect(current.auth, createProvider(provider, current.sdk)); return; } catch (redirectError) { status(errorMessage(redirectError), true); }
-      } else { status(errorMessage(error), true); }
+      status(errorMessage(error), true);
     } finally { setBusy(provider, false); }
   }
   async function finish() {
