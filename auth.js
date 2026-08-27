@@ -69,9 +69,8 @@
     try {
       const current = await getFirebase();
       localStorage.setItem('panda_auth_pending_provider', provider);
-      const result = await current.sdk.signInWithPopup(current.auth, createProvider(provider, current.sdk));
-      localStorage.removeItem('panda_auth_pending_provider');
-      configureSheet(result.user, provider);
+      await current.sdk.signInWithRedirect(current.auth, createProvider(provider, current.sdk));
+      return;
     } catch (error) {
       const code = String((error && error.code) || '');
       if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
@@ -101,7 +100,7 @@
   async function resume() {
     const old = readStoredAccount(); if (!verifiedAccount(old)) { try { localStorage.removeItem('panda_auth'); } catch (error) {} }
     showLogin();
-    try { const current = await getFirebase(); const redirect = await current.sdk.getRedirectResult(current.auth); const user = (redirect && redirect.user) || current.auth.currentUser; if (!user) return; const saved = readStoredAccount(); const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; localStorage.removeItem('panda_auth_pending_provider'); if (verifiedAccount(saved) && saved.uid === user.uid) { window.__authed = true; hideLogin(); return; } configureSheet(user, providerLabel(user, pendingProvider)); }
+    try { const current = await getFirebase(); const redirect = await current.sdk.getRedirectResult(current.auth); const user = (redirect && redirect.user) || current.auth.currentUser; if (!user) { const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; if (pendingProvider) { localStorage.removeItem('panda_auth_pending_provider'); status('Sign-in was cancelled. Choose a provider to try again.', false); } return; } const saved = readStoredAccount(); const pendingProvider = localStorage.getItem('panda_auth_pending_provider') || ''; localStorage.removeItem('panda_auth_pending_provider'); if (verifiedAccount(saved) && saved.uid === user.uid) { window.__authed = true; hideLogin(); return; } configureSheet(user, providerLabel(user, pendingProvider)); }
     catch (error) { status(errorMessage(error), true); }
   }
   async function logout() { try { localStorage.removeItem('panda_auth'); localStorage.removeItem('panda_auth_pending_provider'); } catch (error) {} pendingUser = null; if (firebase) firebase.sdk.signOut(firebase.auth).catch(function () {}); window.__authed = false; closeSheet(); if (typeof closeSettings === 'function') closeSettings(); if (typeof showScreen === 'function') showScreen('home'); showLogin(); }
@@ -118,4 +117,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialiseAuth, { once: true });
   else initialiseAuth();
 })();
+
 
