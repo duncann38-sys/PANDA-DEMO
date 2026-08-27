@@ -88,10 +88,23 @@
     if (!user) { const error = new Error('auth/no-user-returned'); error.code = 'auth/no-user-returned'; throw error; }
     localStorage.removeItem('panda_auth_pending_provider');
     pendingUser = user;
-    selectedGender = '';
+    const profile = typeof store !== 'undefined' ? (store.lget('panda_profile') || {}) : {};
+    selectedGender = profile.gender || '';
     const nameField = byId('authName');
     if (nameField) nameField.value = String(user.displayName || (user.email || '').split('@')[0] || 'Panda Friend').trim();
     await finish();
+  }
+  function ageFromProfile(profile) {
+    const year = Number(profile && profile.dobY);
+    const month = Number(profile && profile.dobM);
+    const day = Number(profile && profile.dobD);
+    if (!year || !month || !day) return null;
+    const birth = new Date(year, month - 1, day);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const beforeBirthday = today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate());
+    if (beforeBirthday) age--;
+    return Number.isInteger(age) && age >= 16 && age <= 100 ? age : null;
   }
   function configureSheet(user, provider) {
     if (!user || !user.email) { status('Your sign-in provider did not return an email address. Please try another account.', true); return; }
@@ -153,11 +166,12 @@
     const deviceId = localStorage.getItem('panda_device_id') || ('d_' + Math.random().toString(36).slice(2) + Date.now().toString(36)); localStorage.setItem('panda_device_id', deviceId);
     try {
       const token = await user.getIdToken(true);
-      const response = await fetch(SESSION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name: name, gender: selectedGender, country: typeof PANDA_COUNTRY === 'undefined' ? null : PANDA_COUNTRY, deviceId: deviceId }) });
+      const profile = typeof store !== 'undefined' ? (store.lget('panda_profile') || {}) : {}; const age = ageFromProfile(profile);
+      const response = await fetch(SESSION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name: name, gender: selectedGender, country: typeof PANDA_COUNTRY === 'undefined' ? null : PANDA_COUNTRY, age: age, deviceId: deviceId }) });
       const payload = await response.json().catch(function () { return {}; });
       if (!response.ok || !payload.user) { const failure = new Error((payload && payload.error) || 'account-save-failed'); failure.code = 'auth/session-' + ((payload && payload.error) || 'account-save-failed'); throw failure; }
       const account = payload.user;
-      if (typeof store !== 'undefined') { store.lset('panda_auth', { uid: account.uid, name: account.name || name, email: account.email, gender: selectedGender, provider: account.provider, providerVerified: true, stored: true, ts: Date.now() }); const profile = store.lget('panda_profile') || {}; profile.name = account.name || name; profile.email = account.email; if (selectedGender) profile.gender = selectedGender; store.lset('panda_profile', profile); }
+      if (typeof store !== 'undefined') { store.lset('panda_auth', { uid: account.uid, name: account.name || name, email: account.email, gender: selectedGender, age: age, provider: account.provider, providerVerified: true, stored: true, ts: Date.now() }); const profile = store.lget('panda_profile') || {}; profile.name = account.name || name; profile.email = account.email; if (selectedGender) profile.gender = selectedGender; store.lset('panda_profile', profile); }
       localStorage.setItem('panda_signup_sent', '1'); pendingUser = null; window.__authed = true; if (typeof loadProfile === 'function') loadProfile(); closeSheet(); hideLogin(); if (typeof showWelcome === 'function') showWelcome(account.name || name); if (window.__a2hsRetry) setTimeout(window.__a2hsRetry, 1400);
       try { if (!sessionStorage.getItem('panda_open_sent')) { sessionStorage.setItem('panda_open_sent', '1'); fetch('https://panda-partners-api.vercel.app/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events: [{ type: 'app_open', deviceId: deviceId, ts: Date.now() }] }), keepalive: true }).catch(function () {}); } } catch (error) {}
     } catch (error) { const code = String((error && error.code) || ''); const message = code === 'auth/session-invalid_or_expired_token' ? 'Google signed in, but Panda could not verify that session. Please try again. (Code: session verification)' : code === 'auth/session-account_save_failed' ? 'Google signed in, but Panda could not save the account yet. Please try again shortly. (Code: account save)' : code.indexOf('auth/session-') === 0 ? 'Google signed in, but Panda could not complete account setup. Please try again. (Code: account setup)' : 'We couldn’t verify your sign-in. Please try again.'; profileError(message); status(message, true); }
