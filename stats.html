@@ -113,6 +113,20 @@
       <div class="copybar"><button id="copyEmails">Copy all emails</button></div>
     </div>
 
+    <div class="section-label">Sign-ins</div>
+    <div class="grid">
+      <div class="card hi"><div class="n" id="signInsAll">—</div><div class="k">All time</div></div>
+      <div class="card"><div class="n" id="signInsToday">—</div><div class="k">Today</div></div>
+      <div class="card"><div class="n" id="signIns7">—</div><div class="k">Last 7 days</div></div>
+    </div>
+    <div class="emails" id="signInBox">
+      <div class="eh" id="signInHead">
+        <b>Recent sign-in details (<span id="signInCount">0</span>)</b>
+        <span class="chev">▾</span>
+      </div>
+      <div class="list" id="signInList"></div>
+    </div>
+
     <div class="section-label">Usage</div>
     <div class="grid">
       <div class="card"><div class="n" id="total">—</div><div class="k" id="totalK">Total users</div></div>
@@ -133,6 +147,7 @@
   var API = 'https://panda-partners-api.vercel.app/api/stats';
   var LS_KEY = 'panda_stats_key';
   var LAST_EMAILS = [];
+  var LAST_SIGN_INS = [];
 
   var gate = document.getElementById('gate');
   var dash = document.getElementById('dash');
@@ -188,6 +203,29 @@
       list.innerHTML = '<div class="empty">No sign-ups captured yet. New sign-ups will appear here.</div>';
     }
 
+    document.getElementById('signInsAll').textContent = fmt(d.signIns);
+    document.getElementById('signInsToday').textContent = fmt(d.signInsToday);
+    document.getElementById('signIns7').textContent = fmt(d.signInsLast7);
+
+    LAST_SIGN_INS = Array.isArray(d.signInDetails) ? d.signInDetails : [];
+    document.getElementById('signInCount').textContent = LAST_SIGN_INS.length;
+    var signInList = document.getElementById('signInList');
+    if(LAST_SIGN_INS.length){
+      signInList.innerHTML = LAST_SIGN_INS.map(function(e){
+        var bits = [];
+        if(e.name) bits.push('<span>'+esc(e.name)+'</span>');
+        if(e.gender) bits.push('<span class="tag">'+esc(e.gender)+'</span>');
+        if(e.country) bits.push('<span>'+esc(e.country)+'</span>');
+        if(e.age != null) bits.push('<span>Age '+esc(String(e.age))+'</span>');
+        if(e.provider) bits.push('<span class="tag">'+esc(e.provider)+'</span>');
+        if(e.ts) bits.push('<span>'+fmtDate(e.ts)+'</span>');
+        return '<div class="erow"><div class="em">'+esc(e.email || 'No email')+'</div>'
+          + (bits.length ? '<div class="sub2">'+bits.join('')+'</div>' : '') + '</div>';
+      }).join('');
+    } else {
+      signInList.innerHTML = '<div class="empty">No sign-ins captured yet. New sign-ins will appear here.</div>';
+    }
+
     if(d.updatedAt){ document.getElementById('updated').textContent = 'Updated ' + new Date(d.updatedAt).toLocaleString(); }
   }
 
@@ -223,6 +261,7 @@
     localStorage.removeItem(LS_KEY); dash.style.display='none'; gate.style.display='block'; keyInput.value='';
   });
   document.getElementById('emailsHead').addEventListener('click', function(){ document.getElementById('emailsBox').classList.toggle('open'); });
+   document.getElementById('signInHead').addEventListener('click', function(){ document.getElementById('signInBox').classList.toggle('open'); });
   document.getElementById('copyEmails').addEventListener('click', function(e){
     e.stopPropagation();
     var txt = LAST_EMAILS.map(function(x){ return x.email; }).filter(Boolean).join(', ');
