@@ -8,6 +8,8 @@
   let firebaseLoading = null;
   let pendingUser = null;
   let selectedGender = '';
+  if (typeof window.openAuth === 'function') window.openAuth = function () {};
+  if (typeof window.doAuth === 'function') window.doAuth = function () {};
 
   function byId(id) { return document.getElementById(id); }
   function all(selector) { return Array.prototype.slice.call(document.querySelectorAll(selector)); }
@@ -107,7 +109,8 @@
     const style = document.createElement('style'); style.textContent = '#authModal{position:fixed!important;z-index:300!important}#authModal .auth-close{position:absolute;right:16px;top:14px;width:36px;height:36px;border-radius:50%;background:var(--card-soft);color:var(--ink);font-size:25px;line-height:1;z-index:1}#loginAuthStatus{width:100%;max-width:340px;margin:12px 0 -8px;color:var(--mint-300);font-size:12.5px;font-weight:700;line-height:1.45}#loginAuthStatus.error{color:#ffd0ca}.authbtn[disabled]{cursor:wait;opacity:.72}'; document.head.appendChild(style);
     const statusEl = document.createElement('p'); statusEl.id = 'loginAuthStatus'; statusEl.hidden = true; statusEl.setAttribute('role', 'status'); statusEl.setAttribute('aria-live', 'polite'); const authButtons = document.querySelector('#login .authbtns'); if (authButtons) authButtons.after(statusEl);
     const modal = byId('authModal'); modal.setAttribute('role', 'dialog'); modal.setAttribute('aria-modal', 'true'); modal.setAttribute('aria-labelledby', 'authTitle'); const title = modal.querySelector('h3'); if (title) title.id = 'authTitle'; const close = document.createElement('button'); close.className = 'auth-close'; close.type = 'button'; close.setAttribute('aria-label', 'Cancel sign-in'); close.textContent = '×'; close.addEventListener('click', cancel); modal.querySelector('.card').appendChild(close);
-    all('#login .authbtn').forEach(function (old) { const button = old.cloneNode(true); old.parentNode.replaceChild(button, old); button.type = 'button'; button.removeAttribute('onclick'); button.onclick = null; button.addEventListener('click', function (event) { event.preventDefault(); event.stopImmediatePropagation(); start(button.dataset.prov); }, true); });
+    all('#login .authbtn').forEach(function (old) { const button = old.cloneNode(true); old.parentNode.replaceChild(button, old); button.type = 'button'; button.removeAttribute('onclick'); button.onclick = null; });
+    document.addEventListener('click', function (event) { const button = event.target.closest('#login .authbtn'); if (!button) return; event.preventDefault(); event.stopImmediatePropagation(); start(button.dataset.prov); }, true);
     removeListeners('#authGo', finish); const email = removeListeners('#authEmail'); if (email) email.addEventListener('keydown', function (event) { if (event.key === 'Enter') finish(); }); removeListeners('#authBack', cancel); removeListeners('#rowLogout', logout);
     all('#authGender button').forEach(function (button) { button.addEventListener('click', function () { selectedGender = button.dataset.g; all('#authGender button').forEach(function (item) { item.classList.remove('on'); }); button.classList.add('on'); }); });
   }
@@ -115,3 +118,4 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialiseAuth, { once: true });
   else initialiseAuth();
 })();
+
