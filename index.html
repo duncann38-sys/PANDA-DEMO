@@ -21,7 +21,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <style>
 :root{
   --green-950:#052018;--green-900:#062E22;--green-800:#0A4F3A;--green-700:#0F6B4F;
@@ -134,8 +133,13 @@ img{display:block}a{color:inherit;text-decoration:none}
 .mapfilters{display:flex;gap:9px;padding:12px 16px 8px;overflow-x:auto;scrollbar-width:none}
 .mapfilters::-webkit-scrollbar{display:none}
 .mapfilters select{flex:0 0 auto;appearance:none;-webkit-appearance:none;background:var(--card);border:1px solid var(--line);color:var(--ink);font-family:inherit;font-weight:700;font-size:13.5px;padding:10px 30px 10px 14px;border-radius:999px;box-shadow:var(--shadow);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230F6B4F' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-#map-canvas{flex:1;width:100%;min-height:300px;background:#eef1ef;z-index:1}
-.leaflet-container{font-family:var(--font)}
+#map-canvas{flex:1;width:100%;min-height:300px;background:#eef1ef;z-index:1;position:relative;overflow:hidden}
+.google-map{position:absolute;inset:0}
+.map-status{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:28px;text-align:center;background:rgba(238,241,239,.94);color:var(--muted);font-size:13px;font-weight:700;line-height:1.45}
+.map-status[hidden]{display:none}
+.map-status b{display:block;color:var(--green-800);font-size:15px;margin-bottom:6px}
+.panda-map-marker{position:absolute;z-index:10;width:42px;height:48px;padding:0;background:transparent;display:grid;place-items:start center;transform:translate(-50%,-100%);cursor:pointer;overflow:visible;pointer-events:auto!important;touch-action:manipulation}
+.panda-map-marker:focus-visible{outline:3px solid var(--honey);outline-offset:3px;border-radius:18px}
 .pin{width:34px;height:34px;border-radius:50% 50% 50% 0;background:var(--green-700);transform:rotate(-45deg);box-shadow:0 4px 10px rgba(0,0,0,.3);border:2.5px solid #fff;display:grid;place-items:center}
 .pin b{transform:rotate(45deg);color:#fff;font-size:11px;font-weight:800}
 .mapcard{position:absolute;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:1000;background:var(--card);border-radius:20px;box-shadow:var(--shadow-lg);padding:12px;display:none;gap:12px;align-items:center}
@@ -608,7 +612,7 @@ body.gated #login{pointer-events:auto}
       <select id="fBudget"><option value="">Any budget</option><option value="1">£</option><option value="2">££</option><option value="3">£££</option></select>
       <select id="fHours"><option value="">Any time</option><option value="open">Open now</option></select>
     </div>
-    <div id="map-canvas"></div>
+    <div id="map-canvas"><div class="google-map" id="googleMap" aria-label="Map of nearby venues"></div><div class="map-status" id="mapStatus" role="status" aria-live="polite" hidden></div></div>
     <button class="map-x" id="mapX" aria-label="Close map">✕</button>
     <div class="mapcard" id="mapCard">
       <div class="mp" id="mcPhoto"></div>
@@ -840,7 +844,6 @@ body.gated #login{pointer-events:auto}
   <div class="wm">Panda</div><div class="tagline">Sniffing out the good stuff…</div><div class="bar"><i></i></div>
 </div></div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 /* ===== CONFIG ===== */
 const PANDA_API_BASE = "https://panda-ai-proxy.vercel.app";
@@ -1039,7 +1042,7 @@ function resolveCity(c){
       if(CITY){var hl=$("#hello");if(hl)hl.textContent="Welcome back · "+CITY;}
     }).catch(function(){});
 }
-function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};resolveCity(COORDS);refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
+function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};resolveCity(COORDS);refreshHome();if(map){map.setCenter({lat:COORDS.lat,lng:COORDS.lng});map.setZoom(14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
 
 function discovery(){const h=new Date().getHours();if(h<11)return{label:"Breakfast time",q:"breakfast"};if(h<16)return{label:"Lunch spots",q:"lunch"};if(h<23)return{label:"Dinner & drinks",q:"dinner restaurants bars"};return{label:"Out out",q:"nightlife bars clubs"};}
 const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Spanish",em:"🥘",q:"spanish tapas"},{label:"French",em:"🥖",q:"french restaurants"},{label:"British",em:"🥧",q:"modern british restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Mexican",em:"🌮",q:"mexican restaurants"},{label:"Turkish",em:"🥙",q:"turkish restaurants"},{label:"Pub Food",em:"🍺",q:"gastropub pub food"},{label:"American",em:"🌭",q:"american diner"},{label:"Lebanese",em:"🧆",q:"lebanese middle eastern"},{label:"Thai",em:"🍜",q:"thai restaurants"},{label:"Chicken",em:"🍗",q:"fried chicken"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Dessert",em:"🍰",q:"dessert"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Breakfast",em:"🍳",q:"breakfast"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Brunch",em:"🥐",q:"brunch"},{label:"Bottomless",em:"🍾",q:"bottomless brunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Sports",em:"⚽",q:"sports bars showing live football"},{label:"Live Music",em:"🎵",q:"live music venues bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"}];
@@ -1103,10 +1106,65 @@ async function loadMoreHome(){
   if(COORDS&&ringStage<RING_KM.length){homeLoading=true;const centers=ringCenters(RING_KM[ringStage]);ringStage++;const res=await Promise.all(centers.map(c=>fetchVenuesAt(homeQuery,c.lat,c.lng)));mergeHome([].concat.apply([],res));applyHomeFilters();homeLoading=false;return;}
 }
 
-let map=null,markers=null,pendingPlanRoute=false;
-function pinIcon(txt){return L.divIcon({className:"",html:'<div class="pin"><b>'+txt+'</b></div>',iconSize:[34,34],iconAnchor:[17,34]});}
-function initMap(){if(map)return;map=L.map('map-canvas',{zoomControl:false}).setView([COORDS?COORDS.lat:51.5074,COORDS?COORDS.lng:-0.1278],14);L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);markers=L.layerGroup().addTo(map);setTimeout(()=>map.invalidateSize(),200);}
-async function loadMapVenues(){initMap();const cui=$("#fCuisine").value;const q=cui||(discovery().q||"restaurants");let v=await fetchVenues(q);const bud=$("#fBudget").value;const hrs=$("#fHours").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);if(hrs==="open")v=v.filter(x=>x.openNow===true);DATA.map=v;markers.clearLayers();const pts=[];v.forEach((x)=>{if(x.lat==null)return;const mk=L.marker([x.lat,x.lng],{icon:pinIcon(x.price||"•")}).addTo(markers);mk.on("click",()=>showMapCard(x));pts.push([x.lat,x.lng]);});if(pts.length){try{map.fitBounds(pts,{padding:[50,50],maxZoom:15});}catch(e){}}$("#mapCard").classList.remove("show");}
+let map=null,markers=[],routePath=null,pendingPlanRoute=false,mapLoaderPromise=null;
+function setMapStatus(title,message){const el=$("#mapStatus");if(!el)return;if(!title&&!message){el.hidden=true;el.innerHTML="";return;}el.hidden=false;el.innerHTML="<b>"+esc(title||"Map unavailable")+"</b><span>"+esc(message||"Please try again shortly.")+"</span>";}
+function googleMapsKey(){return window.__PANDA_GOOGLE_MAPS_BROWSER_KEY__||"";}
+function loadGoogleMaps(){
+  if(window.google&&window.google.maps)return Promise.resolve();
+  if(mapLoaderPromise)return mapLoaderPromise;
+  const key=googleMapsKey();
+  if(!key)return Promise.reject(new Error("Google Maps browser key is not configured."));
+  mapLoaderPromise=new Promise((resolve,reject)=>{
+    const existing=document.querySelector("script[data-panda-google-maps]");
+    const finish=()=>{if(window.google&&window.google.maps)resolve();else reject(new Error("Google Maps loaded without its API."));};
+    window.__pandaGoogleMapsReady=finish;
+    if(existing){existing.addEventListener("load",finish,{once:true});existing.addEventListener("error",()=>reject(new Error("Google Maps could not load.")),{once:true});return;}
+    const script=document.createElement("script");
+    script.dataset.pandaGoogleMaps="1";
+    script.async=true;script.defer=true;
+    script.src="https://maps.googleapis.com/maps/api/js?key="+encodeURIComponent(key)+"&v=weekly&loading=async&callback=__pandaGoogleMapsReady";
+    script.onerror=()=>reject(new Error("Google Maps could not load."));
+    document.head.appendChild(script);
+  }).catch(error=>{mapLoaderPromise=null;throw error;});
+  return mapLoaderPromise;
+}
+function makePandaMarker(position,label,title,venue){
+  const marker=new google.maps.OverlayView();
+  marker.position=new google.maps.LatLng(position);
+  marker.onAdd=function(){
+    const button=document.createElement("button");
+    button.type="button";button.className="panda-map-marker";button.title=title||"Venue";button.setAttribute("aria-label",title||"Open venue");
+    button.innerHTML='<span class="pin"><b>'+esc(String(label||"•"))+"</b></span>";
+    const openVenue=event=>{event.preventDefault();event.stopPropagation();showMapCard(venue);};
+    button.addEventListener("pointerdown",openVenue);button.addEventListener("click",openVenue);
+    this.button=button;this.getPanes().overlayMouseTarget.appendChild(button);
+  };
+  marker.draw=function(){if(!this.button)return;const point=this.getProjection().fromLatLngToDivPixel(this.position);if(!point)return;this.button.style.left=point.x+"px";this.button.style.top=point.y+"px";};
+  marker.onRemove=function(){if(this.button){this.button.remove();this.button=null;}};
+  marker.setMap(map);
+  return marker;
+}
+function clearMapOverlays(){markers.forEach(m=>m.setMap(null));markers=[];if(routePath){routePath.setMap(null);routePath=null;}}
+function fitMapToPoints(points,padding){if(!map||!points.length)return;const bounds=new google.maps.LatLngBounds();points.forEach(p=>bounds.extend(p));map.fitBounds(bounds,padding||50);}
+async function initMap(){
+  if(map)return map;
+  setMapStatus("Loading Google Maps","Getting the map ready…");
+  try{
+    await loadGoogleMaps();
+    const center={lat:COORDS?COORDS.lat:51.5074,lng:COORDS?COORDS.lng:-0.1278};
+    map=new google.maps.Map($("#googleMap"),{center,zoom:14,gestureHandling:"greedy",clickableIcons:false,streetViewControl:false,fullscreenControl:false,mapTypeControl:false,zoomControl:true,zoomControlOptions:{position:google.maps.ControlPosition.RIGHT_BOTTOM}});
+    setMapStatus();
+    setTimeout(()=>{if(map)google.maps.event.trigger(map,"resize");},200);
+    return map;
+  }catch(error){
+    setMapStatus("Map unavailable",error&&error.message==="Google Maps browser key is not configured."?"Google Maps needs a browser-restricted key before it can load.":"Google Maps could not load right now. Please try again shortly.");
+    return null;
+  }
+}
+async function loadMapVenues(){
+  if(!await initMap())return;
+  const cui=$("#fCuisine").value;const q=cui||(discovery().q||"restaurants");let v=await fetchVenues(q);const bud=$("#fBudget").value;const hrs=$("#fHours").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);if(hrs==="open")v=v.filter(x=>x.openNow===true);DATA.map=v;clearMapOverlays();const pts=[];v.forEach((x)=>{if(x.lat==null)return;const position={lat:Number(x.lat),lng:Number(x.lng)};markers.push(makePandaMarker(position,x.price||"•",x.name||"Venue",x));pts.push(position);});if(pts.length)fitMapToPoints(pts,50);if(!v.length)setMapStatus("No nearby spots","Try another category or move the map to explore a different area.");else setMapStatus();$("#mapCard").classList.remove("show");
+}
 let mapCardVenue=null;
 function showMapCard(v){mapCardVenue=v;$("#mcPhoto").innerHTML=ph(v,160);$("#mcName").textContent=v.name;$("#mcMeta").textContent=[fmtDist(v.distanceMeters),fmtWalk(v.distanceMeters),v.price,v.type].filter(Boolean).join(" · ");$("#mapCard").classList.add("show");}
 
@@ -1117,7 +1175,7 @@ function buildCats(){const order=[0].concat(catOrder());$("#cats").innerHTML=ord
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
-function showScreen(n){ if(!window.__authed && !isAuthed()){ showLogin(); return; } Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap();setTimeout(()=>{map.invalidateSize();if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}},60);}if(n==="profile")renderSaved();}
+function showScreen(n){ if(!window.__authed && !isAuthed()){ showLogin(); return; } Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap().then(()=>{if(!map)return;if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}});}if(n==="profile")renderSaved();}
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
@@ -1292,7 +1350,7 @@ async function fetchPlanIntro(cfg){
   const n=DATA.plan.map(v=>v.name);
   try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty going-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
 }
-function drawPlanRoute(){if(!DATA.plan||!DATA.plan.length)return;markers.clearLayers();const pts=[];DATA.plan.forEach((v,i)=>{if(v.lat==null)return;const mk=L.marker([v.lat,v.lng],{icon:pinIcon(String(i+1))}).addTo(markers);mk.on("click",()=>showMapCard(v));pts.push([v.lat,v.lng]);});if(pts.length>1)L.polyline(pts,{color:"#0F6B4F",weight:4,opacity:.85,dashArray:"1 9"}).addTo(markers);if(pts.length){try{map.fitBounds(pts,{padding:[70,70],maxZoom:15});}catch(e){}}}
+async function drawPlanRoute(){if(!DATA.plan||!DATA.plan.length||!await initMap())return;clearMapOverlays();const pts=[];DATA.plan.forEach((v,i)=>{if(v.lat==null)return;const position={lat:Number(v.lat),lng:Number(v.lng)};markers.push(makePandaMarker(position,String(i+1),v.name||("Stop "+(i+1)),v));pts.push(position);});if(pts.length>1)routePath=new google.maps.Polyline({path:pts,geodesic:true,strokeColor:"#0F6B4F",strokeOpacity:.85,strokeWeight:4,icons:[{icon:{path:"M 0,-1 0,1",strokeOpacity:1,scale:3},offset:"0",repeat:"12px"}],map});if(pts.length)fitMapToPoints(pts,70);}
 function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();var _c=$("#chat");if(_c)_c.classList.remove("open");pendingPlanRoute=true;showScreen("map");}
 
 function openCropper(dataUrl){
@@ -1564,7 +1622,7 @@ document.addEventListener("DOMContentLoaded",boot);
   var locationBusy=false,locationTimer=null;
   function updateLocationUi(mode,text){var bar=document.getElementById("pandaLocationBar"),copy=document.getElementById("pandaLocationCopy"),button=document.getElementById("pandaLocationButton");if(!bar)return;bar.classList.remove("ready","busy","error");if(mode)bar.classList.add(mode);if(copy)copy.textContent=text;if(button)button.textContent=mode==='ready'?"Location on":mode==='busy'?"Finding…":"Use my location";}
   function ensureLocationUi(){var search=document.querySelector(".search");if(!search||document.getElementById("pandaLocationBar"))return;search.insertAdjacentHTML("afterend",'<div class="location-bar" id="pandaLocationBar" role="status" aria-live="polite"><span class="loc-dot" aria-hidden="true"></span><span class="loc-copy" id="pandaLocationCopy">Allow location to see the closest spots around you</span><button id="pandaLocationButton" type="button" onclick="window.pandaRequestLocation&&window.pandaRequestLocation()">Use my location</button></div>');document.getElementById("pandaLocationButton").addEventListener("click",requestLocation);if(COORDS)updateLocationUi("ready","Showing the closest spots around you");else if(locationBusy)updateLocationUi("busy","Finding the closest spots around you…");}
-  function requestLocation(){if(locationBusy){updateLocationUi("busy","Finding the closest spots around you…");return;}if(!navigator.geolocation){updateLocationUi("error","Location is not available in this browser");return;}locationBusy=true;updateLocationUi("busy","Finding the closest spots around you…");var settled=false;clearTimeout(locationTimer);locationTimer=setTimeout(function(){if(!settled){locationBusy=false;updateLocationUi("error","Location is taking too long — tap to try again");}},11000);navigator.geolocation.getCurrentPosition(function(position){settled=true;clearTimeout(locationTimer);COORDS={lat:position.coords.latitude,lng:position.coords.longitude};locationBusy=false;updateLocationUi("ready","Showing the closest spots around you");resolveCity(COORDS);refreshHome();if(map){map.setView([COORDS.lat,COORDS.lng],14);loadMapVenues();}},function(){settled=true;clearTimeout(locationTimer);locationBusy=false;updateLocationUi("error","Location is off — allow it to see nearby spots");},{enableHighAccuracy:true,timeout:10000,maximumAge:120000});}
+  function requestLocation(){if(locationBusy){updateLocationUi("busy","Finding the closest spots around you…");return;}if(!navigator.geolocation){updateLocationUi("error","Location is not available in this browser");return;}locationBusy=true;updateLocationUi("busy","Finding the closest spots around you…");var settled=false;clearTimeout(locationTimer);locationTimer=setTimeout(function(){if(!settled){locationBusy=false;updateLocationUi("error","Location is taking too long — tap to try again");}},11000);navigator.geolocation.getCurrentPosition(function(position){settled=true;clearTimeout(locationTimer);COORDS={lat:position.coords.latitude,lng:position.coords.longitude};locationBusy=false;updateLocationUi("ready","Showing the closest spots around you");resolveCity(COORDS);refreshHome();if(map){map.setCenter({lat:COORDS.lat,lng:COORDS.lng});map.setZoom(14);loadMapVenues();}},function(){settled=true;clearTimeout(locationTimer);locationBusy=false;updateLocationUi("error","Location is off — allow it to see nearby spots");},{enableHighAccuracy:true,timeout:10000,maximumAge:120000});}
   window.getLocation=requestLocation;window.pandaRequestLocation=requestLocation;
   if(document.readyState==='loading')document.addEventListener("DOMContentLoaded",ensureLocationUi);else ensureLocationUi();
 })();
@@ -1753,7 +1811,6 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
-
 
 
 
