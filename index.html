@@ -2027,6 +2027,17 @@ document.addEventListener("DOMContentLoaded",boot);
     color:#0e3b2f !important;
   }
 </style>
+<style id="panda-bottom-sheet-nav-gap-fix">
+  .banging-carousel-sheet,
+  [data-component="banging-carousel"],
+  .bottom-sheet-container,
+  .plan{
+    margin-bottom:0 !important;
+    bottom:env(safe-area-inset-bottom, 0px) !important;
+    border-bottom-left-radius:0 !important;
+    border-bottom-right-radius:0 !important;
+  }
+</style>
 <style id="panda-planner-detail-stack-style">
   #sheet{z-index:1100}
 </style>
@@ -2058,6 +2069,8 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
+
+
 
 
 
