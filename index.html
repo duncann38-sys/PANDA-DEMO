@@ -2030,7 +2030,12 @@ document.addEventListener("DOMContentLoaded",boot);
   .banging-carousel-sheet,
   [data-component="banging-carousel"],
   .bottom-sheet-container,
-  .trend-drawer,
+  .trend-drawer{
+    margin-bottom:0 !important;
+    bottom:var(--panda-tabbar-height, 78px) !important;
+    border-bottom-left-radius:0 !important;
+    border-bottom-right-radius:0 !important;
+  }
   .plan{
     margin-bottom:0 !important;
     bottom:env(safe-area-inset-bottom, 0px) !important;
@@ -2038,6 +2043,18 @@ document.addEventListener("DOMContentLoaded",boot);
     border-bottom-right-radius:0 !important;
   }
 </style>
+<script id="panda-banging-nav-alignment">
+(function(){
+  var nav=document.querySelector(".tabbar");
+  if(!nav)return;
+  function sync(){
+    document.documentElement.style.setProperty("--panda-tabbar-height",nav.getBoundingClientRect().height+"px");
+  }
+  sync();
+  if(window.ResizeObserver)new ResizeObserver(sync).observe(nav);
+  window.addEventListener("resize",sync);
+})();
+</script>
 <style id="panda-planner-detail-stack-style">
   #sheet{z-index:1100}
 </style>
@@ -2069,6 +2086,9 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
+
+
+
 
 
 
