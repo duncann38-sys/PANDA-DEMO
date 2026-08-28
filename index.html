@@ -321,14 +321,14 @@ img{display:block}a{color:inherit;text-decoration:none}
 .plan-cta:active{transform:scale(.98)}
 .plan-cta .em{font-size:17px}
 .plan-cta .gold{color:var(--gold-soft)}
-.plan{position:absolute;left:0;right:0;bottom:0;z-index:82;background:var(--app-bg);border-radius:26px 26px 0 0;transform:translateY(101%);transition:transform .34s cubic-bezier(.2,.8,.2,1);max-height:94%;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.plan{position:absolute;left:0;right:0;bottom:var(--panda-keyboard-bottom,0px);z-index:1000;background:var(--app-bg);border-radius:26px 26px 0 0;transform:translateY(101%);transition:transform .34s cubic-bezier(.2,.8,.2,1);max-height:min(85dvh,calc(100% - var(--panda-keyboard-bottom,0px)));display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
 .plan.open{transform:translateY(0)}
 .plan .grip{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:42px;height:5px;border-radius:3px;background:#c3d8cb}
 .plan-head{display:flex;align-items:center;gap:12px;padding:18px 20px 8px}
 .plan-head b{font-size:20px;font-weight:800;letter-spacing:-.02em;display:block}
 .plan-head small{color:var(--muted);font-weight:600;font-size:13px}
 .plan-head .x{margin-left:auto;width:36px;height:36px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center}
-.plan-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 0 8px}
+.plan-body{flex:1 1 auto;min-height:0;max-height:50vh;overflow-y:auto;overflow-x:hidden;padding:6px 0 8px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .plan-intro{margin:4px 18px 12px;font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.4;background:var(--card-soft);border-radius:14px;padding:12px 14px;border-left:3px solid var(--gold)}
 .plan-loading{padding:44px 24px;text-align:center;color:var(--muted);font-weight:700;line-height:1.5}
 .stop-badge{margin:8px 18px 6px;font-size:12.5px;font-weight:800;color:var(--green-700);letter-spacing:.02em}
@@ -1045,6 +1045,11 @@ let COORDS=null;
 let CITY=null;
 let plannerState={location:"",locationCoords:null,resolvedLocation:"",locationLabel:"",locationMode:"current",priceFilter:"££",timeOfDay:"Night",requestId:0};
 let plannerDebounce=null,plannerLocationPromise=null;
+function syncPlannerViewport(){
+  const app=$("#app"),viewport=window.visualViewport;if(!app)return;
+  const rect=app.getBoundingClientRect(),visibleBottom=viewport?viewport.offsetTop+viewport.height:window.innerHeight;
+  app.style.setProperty("--panda-keyboard-bottom",Math.max(0,rect.bottom-visibleBottom)+"px");
+}
 // Remembered "my work" location for the session/device (used by "near my work").
 let WORK=store.lget("panda_work")||null;
 function saveWork(obj){ WORK=obj; try{store.lset("panda_work",obj);}catch(e){} }
@@ -1424,7 +1429,7 @@ async function resolvePlannerLocation(){
   if(!query){if(plannerState.locationCoords)return plannerState.locationCoords;if(COORDS){plannerState.locationCoords=COORDS;return COORDS;}return requestPlannerCurrentLocation();}
   if(plannerState.resolvedLocation===query&&plannerState.locationCoords)return plannerState.locationCoords;
   setPlannerFilterStatus("Finding "+query+" with Google Maps…","busy");await loadGoogleMaps();
-  const result=await new Promise((resolve,reject)=>{try{new google.maps.Geocoder().geocode({address:query},(results,status)=>{if(status==="OK"&&results&&results.length)resolve(results[0]);else reject(new Error("We couldn’t find that location. Try a city, area or postcode."));});}catch(error){reject(error);}});
+  const result=await new Promise((resolve,reject)=>{const candidates=[];const city=(CITY||"").trim();const simple=!/[,\d]/.test(query);if(simple&&city&&query.toLowerCase()!==city.toLowerCase())candidates.push(query+", "+city);candidates.push(query);let index=0;function geocode(){const address=candidates[index++];if(!address)return reject(new Error("We couldn’t find that location. Try a city, area or postcode."));try{new google.maps.Geocoder().geocode({address},(results,status)=>{if(status==="OK"&&results&&results.length)return resolve(results[0]);geocode();});}catch(error){reject(error);}}geocode();});
   const point=result.geometry&&result.geometry.location;
   const coords={lat:point&&typeof point.lat==="function"?point.lat():point&&point.lat,lng:point&&typeof point.lng==="function"?point.lng():point&&point.lng};
   if(!Number.isFinite(coords.lat)||!Number.isFinite(coords.lng))throw new Error("Google Maps returned an invalid location.");
@@ -1526,6 +1531,9 @@ function wirePfEdit(){
   $("#pfEditBack").addEventListener("click",close);
 }
 function boot(){
+  syncPlannerViewport();
+  if(window.visualViewport){window.visualViewport.addEventListener("resize",syncPlannerViewport);window.visualViewport.addEventListener("scroll",syncPlannerViewport);}
+  window.addEventListener("resize",syncPlannerViewport);
   buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();wireGender();
   $("#fCuisine").innerHTML=CATEGORIES.map((c,i)=>'<option value="'+esc(c.q)+'">'+(i===0?"All cuisines":c.label)+'</option>').join('');
   $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;if(b.classList.contains("plan-chip")){buildPlan(defaultMode());return;}sendMessage(b.textContent)});
@@ -1938,6 +1946,8 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
+
+
 
 
 
