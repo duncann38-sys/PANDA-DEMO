@@ -1690,11 +1690,12 @@ document.addEventListener("DOMContentLoaded",boot);
       .trend-drawer.open{max-height:38vh!important}
       .banging-carousel-card,.banging-carousel-sheet .card-item,.carousel-card,.trend-drawer .rail-sm .vcard{width:260px!important;transform:scale(.88);transform-origin:top center;margin-top:-8px}
       .carousel-card img,.banging-carousel-sheet img,.trend-drawer .rail-sm .vcard .vphoto{height:130px!important;object-fit:cover}
-      /* Gold and black navigation accents. */
-      .bottom-nav,nav[class*="bottom"],.fixed-bottom-nav,.tabbar{background:#000!important;border-top:1px solid rgba(212,175,55,.3)!important}
+      /* Restore the original light navigation with restrained gold accents. */
+      .bottom-nav,nav[class*="bottom"],.fixed-bottom-nav,.tabbar{background:#fff!important;border-top:1px solid rgba(198,161,91,.28)!important}
       .bottom-nav .nav-item.active,.bottom-nav a.active,.bottom-nav button.active,.tab.on{color:#D4AF37!important}
       .bottom-nav .nav-item.active svg,.bottom-nav a.active svg,.bottom-nav button.active svg,.tab.on .tic svg{fill:#D4AF37!important;stroke:#D4AF37!important;filter:drop-shadow(0 0 4px rgba(212,175,55,.4))}
-      .tabbar .tab{color:#aeb7b1}.tabbar .tab.center,.tabbar .tab.center.on{color:#D4AF37}
+      .tabbar .tab{color:#8aa094}.tabbar .tab.center,.tabbar .tab.center.on{color:#D4AF37}
+      .tabbar .tab.center .tic svg{fill:#fff!important;stroke:#fff!important;filter:none}
       .bottom-nav button:active,.tabbar .tab:active,.carousel-card:active,.banging-carousel-card:active,.trend-drawer .rail-sm .vcard:active{transform:scale(.96)!important;transition:transform .1s ease!important}
       .trend-drawer .rail-sm .vcard:active{transform:scale(.8448)!important}
       .header-bar,.search-container-sticky,.home-top,.dhead,.search{background:rgba(255,255,255,.85)!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important}
@@ -1845,6 +1846,7 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
+
 
 
 
