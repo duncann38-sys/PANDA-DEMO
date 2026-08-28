@@ -302,6 +302,21 @@ img{display:block}a{color:inherit;text-decoration:none}
 .plan-modes{display:flex;gap:8px;padding:2px 18px 8px}
 .plan-modes button{flex:1;padding:9px 4px;border-radius:11px;font-weight:800;font-size:12px;background:var(--card-soft);color:var(--muted);border:1px solid var(--line)}
 .plan-modes button.on{background:linear-gradient(120deg,var(--gold),var(--gold-deep));color:#fff;border-color:transparent}
+.planner-filter-bar{display:flex;align-items:center;gap:8px;padding:6px 18px 12px;margin-bottom:8px;border-bottom:1px solid rgba(212,175,55,.2)}
+.planner-location-wrap{display:flex;align-items:center;gap:5px;min-width:0;flex:1;background:#f4f6f3;border:1px solid #e0e4df;border-radius:20px;padding:2px 4px 2px 12px}
+.planner-location-wrap:focus-within{border-color:var(--gold)}
+.planner-location-label{font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap}
+.planner-location-input{min-width:0;flex:1;background:transparent;border:0;border-radius:20px;padding:6px 4px;font-size:13px;color:#2c3e2d;outline:none}
+.planner-location-input::placeholder{color:#78867d}
+.planner-location-button{width:28px;height:28px;flex:0 0 28px;border:0;border-radius:50%;display:grid;place-items:center;background:transparent;color:var(--green-700);font-size:16px;font-weight:800}
+.planner-location-button:active{background:var(--gold-soft);transform:scale(.94)}
+.price-filter-group{display:flex;flex:0 0 auto;background:#f4f6f3;border-radius:20px;padding:2px;border:1px solid #e0e4df}
+.price-btn{background:transparent;border:0;border-radius:16px;padding:6px 8px;font-size:12px;font-weight:700;color:#666;cursor:pointer;transition:all .2s}
+.price-btn.active{background:#1b362d;color:var(--gold)!important}
+.price-btn:focus-visible,.planner-location-button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.planner-filter-status{min-height:16px;margin:-3px 18px 7px;color:var(--muted);font-size:11.5px;font-weight:700;line-height:1.35}
+.planner-filter-status.busy{color:var(--green-700)}
+.planner-filter-status.error{color:#a64545}
 .plan-cta{display:flex;align-items:center;justify-content:center;gap:9px;margin:8px 18px 2px;padding:12px;border-radius:16px;background:linear-gradient(120deg,var(--green-700),var(--green-600));color:#fff;font-weight:800;font-size:14.5px;box-shadow:0 8px 20px rgba(10,79,58,.28)}
 .plan-cta:active{transform:scale(.98)}
 .plan-cta .em{font-size:17px}
@@ -707,6 +722,13 @@ body.gated #login{pointer-events:auto}
     <div class="grip"></div>
     <div class="plan-head"><div><b id="planTitle">Plan my night</b><small id="planWhen">Tap a stop · re-roll with Panda Shuffle</small></div><button class="x" id="planClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="plan-modes" id="planModes"><button data-mode="morning">🌅 Morning</button><button data-mode="lunch">🍽️ Lunch</button><button data-mode="night">🌙 Night</button></div>
+    <div class="planner-filter-bar" id="plannerFilterBar">
+      <label class="planner-location-wrap"><span class="planner-location-label">Near</span><input class="planner-location-input" id="plannerLocation" type="search" autocomplete="off" enterkeyhint="search" placeholder="Current location or search anywhere" aria-label="Planner location" /><button class="planner-location-button" id="plannerUseLocation" type="button" aria-label="Use my current location" title="Use my current location">⌖</button></label>
+      <div class="price-filter-group" role="group" aria-label="Maximum price">
+        <button class="price-btn" type="button" data-price="£" aria-pressed="false">£</button><button class="price-btn active" type="button" data-price="££" aria-pressed="true">££</button><button class="price-btn" type="button" data-price="£££" aria-pressed="false">£££</button>
+      </div>
+    </div>
+    <div class="planner-filter-status" id="plannerFilterStatus" role="status" aria-live="polite">Using your current location when available · Up to ££</div>
     <div class="plan-body" id="planBody"></div>
     <div class="plan-actions"><button class="shuf" id="planShuffle">🔀 Panda Shuffle</button><button class="mapb" id="planMap">View route on map</button></div>
   </div>
@@ -1021,6 +1043,8 @@ function toggleSave(v){if(SAVED[v.id])delete SAVED[v.id];else SAVED[v.id]=v;stor
 
 let COORDS=null;
 let CITY=null;
+let plannerState={location:"",locationCoords:null,resolvedLocation:"",locationLabel:"",locationMode:"current",priceFilter:"££",timeOfDay:"Night",requestId:0};
+let plannerDebounce=null,plannerLocationPromise=null;
 // Remembered "my work" location for the session/device (used by "near my work").
 let WORK=store.lget("panda_work")||null;
 function saveWork(obj){ WORK=obj; try{store.lset("panda_work",obj);}catch(e){} }
@@ -1040,9 +1064,11 @@ function resolveCity(c){
       CITY=d.city||d.locality||d.principalSubdivision||d.countryName||null;
       if(d.countryName) PANDA_COUNTRY=d.countryName;
       if(CITY){var hl=$("#hello");if(hl)hl.textContent="Welcome back · "+CITY;}
+      if(plannerState.locationMode==="current"){plannerState.locationLabel=CITY||"";plannerState.locationCoords=COORDS;updatePlannerFilterUi();}
     }).catch(function(){});
 }
-function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{COORDS={lat:p.coords.latitude,lng:p.coords.longitude};resolveCity(COORDS);refreshHome();if(map){map.setCenter({lat:COORDS.lat,lng:COORDS.lng});map.setZoom(14);loadMapVenues();}},()=>{},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
+function setPlannerCurrentCoords(coords){COORDS=coords;plannerState.locationMode="current";plannerState.location="";plannerState.locationCoords=coords;plannerState.resolvedLocation="";plannerState.locationLabel=CITY||"";updatePlannerFilterUi();}
+function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{setPlannerCurrentCoords({lat:p.coords.latitude,lng:p.coords.longitude});resolveCity(COORDS);refreshHome();if(map){map.setCenter({lat:COORDS.lat,lng:COORDS.lng});map.setZoom(14);loadMapVenues();}},()=>{updatePlannerFilterUi();},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
 
 function discovery(){const h=new Date().getHours();if(h<11)return{label:"Breakfast time",q:"breakfast"};if(h<16)return{label:"Lunch spots",q:"lunch"};if(h<23)return{label:"Dinner & drinks",q:"dinner restaurants bars"};return{label:"Out out",q:"nightlife bars clubs"};}
 const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Spanish",em:"🥘",q:"spanish tapas"},{label:"French",em:"🥖",q:"french restaurants"},{label:"British",em:"🥧",q:"modern british restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Mexican",em:"🌮",q:"mexican restaurants"},{label:"Turkish",em:"🥙",q:"turkish restaurants"},{label:"Pub Food",em:"🍺",q:"gastropub pub food"},{label:"American",em:"🌭",q:"american diner"},{label:"Lebanese",em:"🧆",q:"lebanese middle eastern"},{label:"Thai",em:"🍜",q:"thai restaurants"},{label:"Chicken",em:"🍗",q:"fried chicken"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Dessert",em:"🍰",q:"dessert"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Breakfast",em:"🍳",q:"breakfast"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Brunch",em:"🥐",q:"brunch"},{label:"Bottomless",em:"🍾",q:"bottomless brunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Sports",em:"⚽",q:"sports bars showing live football"},{label:"Live Music",em:"🎵",q:"live music venues bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"}];
@@ -1352,21 +1378,86 @@ const PLAN_MODES={
 let planMode="night";
 function defaultMode(){const h=new Date().getHours();if(h>=5&&h<11)return"morning";if(h>=11&&h<16)return"lunch";return"night";}
 function updateModeChips(){$$("#planModes button").forEach(b=>b.classList.toggle("on",b.dataset.mode===planMode));}
+function plannerPriceLevel(v){const raw=v&&(v.price!=null?v.price:(v.priceLevel!=null?v.priceLevel:v.price_level));if(typeof raw==="number"&&Number.isFinite(raw))return Math.max(1,Math.round(raw));const count=(String(raw||"").match(/[£$€]/g)||[]).length;return count||2;}
+function plannerPriceLabel(){return "Up to "+plannerState.priceFilter;}
+function updatePlannerFilterUi(){
+  const input=$("#plannerLocation"),status=$("#plannerFilterStatus");
+  if(input){input.value=plannerState.locationMode==="current"?(plannerState.locationLabel||""):plannerState.location;input.placeholder=plannerState.locationMode==="current"?"Current location or search anywhere":"City, area, postcode or place";}
+  $$("#plannerFilterBar .price-btn").forEach(b=>{const active=b.dataset.price===plannerState.priceFilter;b.classList.toggle("active",active);b.setAttribute("aria-pressed",active?"true":"false");});
+  if(!status)return;
+  status.classList.remove("busy","error");
+  if(plannerState.locationMode==="typed"&&plannerState.locationLabel)status.textContent="Near "+plannerState.locationLabel+" · "+plannerPriceLabel();
+  else if(plannerState.locationMode==="typed"&&plannerState.location.trim())status.textContent="Search with Google Maps to plan near "+plannerState.location.trim()+" · "+plannerPriceLabel();
+  else if(plannerState.locationCoords||COORDS)status.textContent="Using your current location · "+plannerPriceLabel();
+  else status.textContent="Allow location access or search for any city, area or postcode · "+plannerPriceLabel();
+}
+function setPlannerFilterStatus(text,mode){const status=$("#plannerFilterStatus");if(!status)return;status.textContent=text;status.classList.remove("busy","error");if(mode)status.classList.add(mode);}
+function updatePlannerFilter(key,value){
+  if(key==="location"){plannerState.location=String(value||"");plannerState.locationMode=plannerState.location.trim()?"typed":"current";plannerState.locationCoords=plannerState.locationMode==="typed"?null:(COORDS||null);plannerState.resolvedLocation="";plannerState.locationLabel="";}
+  if(key==="priceFilter"&&["£","££","£££"].includes(value))plannerState.priceFilter=value;
+  updatePlannerFilterUi();clearTimeout(plannerDebounce);
+  if(key==="priceFilter"){if($("#planSheet").classList.contains("open"))buildPlan(planMode);return;}
+  plannerDebounce=setTimeout(()=>{if($("#planSheet").classList.contains("open"))buildPlan(planMode);},650);
+}
+function wirePlannerFilters(){
+  const input=$("#plannerLocation"),useLocation=$("#plannerUseLocation"),bar=$("#plannerFilterBar");if(!input||!useLocation||!bar)return;
+  input.addEventListener("input",()=>updatePlannerFilter("location",input.value));
+  input.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();clearTimeout(plannerDebounce);buildPlan(planMode);input.blur();}});
+  useLocation.addEventListener("click",()=>{clearTimeout(plannerDebounce);plannerState.location="";plannerState.locationMode="current";plannerState.locationLabel="";plannerState.locationCoords=null;updatePlannerFilterUi();requestPlannerCurrentLocation().then(()=>buildPlan(planMode)).catch(()=>{});});
+  bar.addEventListener("click",event=>{const button=event.target.closest(".price-btn");if(button)updatePlannerFilter("priceFilter",button.dataset.price);});
+  updatePlannerFilterUi();
+}
+function requestPlannerCurrentLocation(){
+  if(plannerLocationPromise)return plannerLocationPromise;
+  if(!navigator.geolocation){setPlannerFilterStatus("Location is not available in this browser — search for a city or area instead.","error");return Promise.reject(new Error("Location is not available in this browser."));}
+  setPlannerFilterStatus("Finding your current location…","busy");
+  plannerLocationPromise=new Promise((resolve,reject)=>{
+    navigator.geolocation.getCurrentPosition(position=>{
+      const coords={lat:position.coords.latitude,lng:position.coords.longitude};
+      setPlannerCurrentCoords(coords);resolveCity(coords);refreshHome();if(map){map.setCenter(coords);map.setZoom(14);loadMapVenues();}resolve(coords);
+    },()=>{updatePlannerFilterUi();setPlannerFilterStatus("Location is off — allow access or search for a city, area or postcode.","error");reject(new Error("Location permission was not granted."));},{enableHighAccuracy:true,timeout:10000,maximumAge:120000});
+  }).finally(()=>{plannerLocationPromise=null;});
+  return plannerLocationPromise;
+}
+async function resolvePlannerLocation(){
+  const query=plannerState.location.trim();
+  if(!query){if(plannerState.locationCoords)return plannerState.locationCoords;if(COORDS){plannerState.locationCoords=COORDS;return COORDS;}return requestPlannerCurrentLocation();}
+  if(plannerState.resolvedLocation===query&&plannerState.locationCoords)return plannerState.locationCoords;
+  setPlannerFilterStatus("Finding "+query+" with Google Maps…","busy");await loadGoogleMaps();
+  const result=await new Promise((resolve,reject)=>{try{new google.maps.Geocoder().geocode({address:query},(results,status)=>{if(status==="OK"&&results&&results.length)resolve(results[0]);else reject(new Error("We couldn’t find that location. Try a city, area or postcode."));});}catch(error){reject(error);}});
+  const point=result.geometry&&result.geometry.location;
+  const coords={lat:point&&typeof point.lat==="function"?point.lat():point&&point.lat,lng:point&&typeof point.lng==="function"?point.lng():point&&point.lng};
+  if(!Number.isFinite(coords.lat)||!Number.isFinite(coords.lng))throw new Error("Google Maps returned an invalid location.");
+  plannerState.locationMode="typed";plannerState.locationCoords=coords;plannerState.resolvedLocation=query;plannerState.locationLabel=result.formatted_address||query;updatePlannerFilterUi();return coords;
+}
+async function fetchPlannerVenues(q,coords){
+  const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:coords})});
+  if(!r.ok)throw new Error("Panda couldn’t load venues for that location.");
+  const d=await r.json();return Array.isArray(d.venues)?d.venues:[];
+}
 async function buildPlan(mode){
-  planMode=PLAN_MODES[mode]?mode:defaultMode();openPlan();updateModeChips();
+  const requestId=++plannerState.requestId;
+  planMode=PLAN_MODES[mode]?mode:defaultMode();plannerState.timeOfDay=planMode;openPlan();updateModeChips();updatePlannerFilterUi();
   const cfg=PLAN_MODES[planMode];
-  const lists=await Promise.all(cfg.stops.map(st=>fetchVenues(st[2])));
-  const F=lists.map(l=>l.filter(v=>v.lat!=null));
-  if(F.some(l=>!l.length)){$("#planBody").innerHTML='<div class="plan-loading">Could not find enough nearby spots right now - try again shortly.</div>';return;}
+  let coords;
+  try{coords=await resolvePlannerLocation();}catch(error){if(requestId!==plannerState.requestId)return;setPlannerFilterStatus(error.message||"Choose a location to build your plan.","error");$("#planBody").innerHTML='<div class="plan-loading">Choose a location or allow access to your current location, then try again.</div>';return;}
+  if(requestId!==plannerState.requestId)return;
+  setPlannerFilterStatus((plannerState.locationMode==="typed"?"Near "+(plannerState.locationLabel||plannerState.location):"Using your current location")+" · "+plannerPriceLabel(),"busy");
+  let lists;
+  try{lists=await Promise.all(cfg.stops.map(st=>fetchPlannerVenues(st[2],coords)));}catch(error){if(requestId!==plannerState.requestId)return;setPlannerFilterStatus(error.message||"Could not load venues for that location.","error");$("#planBody").innerHTML='<div class="plan-loading">Panda couldn’t load that location right now — please try again.</div>';return;}
+  if(requestId!==plannerState.requestId)return;
+  const F=lists.map(l=>l.filter(v=>v.lat!=null&&plannerPriceLevel(v)<=plannerState.priceFilter.length));
+  if(F.some(l=>!l.length)){setPlannerFilterStatus("No matching spots found · try a nearby area or a higher price limit.","error");$("#planBody").innerHTML='<div class="plan-loading">No spots match those filters yet. Try another location or price limit.</div>';return;}
   const topFirst=pickTop(F[0],6);const chosen=[topFirst[Math.floor(Math.random()*Math.min(topFirst.length,4))]];
   for(let k=1;k<F.length;k++){const ex=chosen.map(c=>c&&c.id);chosen.push(nearestTo(chosen[k-1]||chosen[0],pickTop(F[k],8),ex)||pickTop(F[k],1)[0]);}
   DATA.plan=chosen.filter(Boolean);
-  renderPlan(cfg);fetchPlanIntro(cfg);
+  setPlannerFilterStatus((plannerState.locationMode==="typed"?"Near "+(plannerState.locationLabel||plannerState.location):"Using your current location")+" · "+plannerPriceLabel(),"");
+  renderPlan(cfg);fetchPlanIntro(cfg,coords);
 }
 function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;var _pt=$("#planTitle");if(_pt)_pt.textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">Sorted 🐼</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan");if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
-async function fetchPlanIntro(cfg){
+async function fetchPlanIntro(cfg,coords){
   const n=DATA.plan.map(v=>v.name);
-  try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty going-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
+  try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty going-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:coords||plannerState.locationCoords||COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
 }
 async function drawPlanRoute(){if(!DATA.plan||!DATA.plan.length||!await initMap())return;clearMapOverlays();const pts=[];DATA.plan.forEach((v,i)=>{if(v.lat==null)return;const position={lat:Number(v.lat),lng:Number(v.lng)};markers.push(makePandaMarker(position,String(i+1),v.name||("Stop "+(i+1)),v));pts.push(position);});if(pts.length>1)routePath=new google.maps.Polyline({path:pts,geodesic:true,strokeColor:"#0F6B4F",strokeOpacity:.85,strokeWeight:4,icons:[{icon:{path:"M 0,-1 0,1",strokeOpacity:1,scale:3},offset:"0",repeat:"12px"}],map});if(pts.length)fitMapToPoints(pts,70);}
 function showPlanOnMap(){if(!DATA.plan||!DATA.plan.length)return;closePlan();var _c=$("#chat");if(_c)_c.classList.remove("open");pendingPlanRoute=true;showScreen("map");}
@@ -1491,6 +1582,7 @@ function boot(){
   $("#planShuffle").addEventListener("click",()=>buildPlan(planMode));
   $("#planMap").addEventListener("click",showPlanOnMap);
   $("#planModes").addEventListener("click",e=>{const b=e.target.closest("button");if(b)buildPlan(b.dataset.mode);});
+  wirePlannerFilters();
   renderSaved();refreshHome();getLocation();checkFormGate();initAuth();loadSponsored();
   setTimeout(()=>{$("#loader").classList.add("gone");setTimeout(()=>$("#loader").remove(),600);},1200);
 }
@@ -1846,6 +1938,7 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
+
 
 
 
