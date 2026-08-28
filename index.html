@@ -1119,17 +1119,17 @@ function interleaveSponsored(list){
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
 async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
- function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
- function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
- function getRotatedBangingCards(localVenues,neighboringVenues){
+function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
+function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
+function getRotatedBangingCards(localVenues,neighboringVenues){
   const eliteLocal=(localVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const eliteNeighbors=(neighboringVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const seen=new Set(),pool=[];
   eliteLocal.concat(eliteNeighbors).forEach(v=>{const id=venuePlaceId(v)||v.name;if(!id||seen.has(id))return;seen.add(id);pool.push(v);});
   const seed=editorialDaySeed();
   return pool.sort((a,b)=>venueEditorialHash(a,seed)%100-venueEditorialHash(b,seed)%100);
- }
- function renderTrend(){
+}
+function renderTrend(){
   let organic=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
   // Banging venues come from the directly-fetched sponsored list. Rotate real
   // Premium venues daily; never synthesize cards without a real venue identity.
@@ -1149,7 +1149,7 @@ let TREND_ORGANIC=[];
   DATA.trend=t;
   $("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('');
   observeSponsored();
- }
+}
 let ringStage=0;const RING_KM=[1.6,3.2,4.8];
 function ringCenters(km){const c=[];if(!COORDS)return c;const dLat=km/111;const dLng=km/(111*Math.cos(COORDS.lat*Math.PI/180));for(let a=0;a<360;a+=60){const r=a*Math.PI/180;c.push({lat:COORDS.lat+dLat*Math.sin(r),lng:COORDS.lng+dLng*Math.cos(r)});}return c;}
 async function fetchVenuesAt(q,lat,lng){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:{lat,lng}})});if(!r.ok)return[];const d=await r.json();return d.venues||[];}catch(e){return[];}}
@@ -1980,6 +1980,35 @@ document.addEventListener("DOMContentLoaded",boot);
   })();
 </script>
 <script src="./auth.js"></script>
+<style id="panda-planner-detail-stack-style">
+  #sheet{z-index:1100}
+</style>
+<script id="panda-planner-detail-stack-script">
+(function(){
+  var previousOpenSheet=window.openSheet;
+  if(typeof previousOpenSheet!=="function")return;
+  window.openSheet=function(venue){
+    var plan=document.getElementById("planSheet");
+    var keepPlan=!!(plan&&plan.classList.contains("open"));
+    var result=previousOpenSheet.apply(this,arguments);
+    if(keepPlan){
+      plan.classList.add("open");
+      plan.setAttribute("aria-hidden","false");
+      var scrim=document.getElementById("scrim");
+      if(scrim)scrim.classList.add("show");
+    }
+    return result;
+  };
+  document.addEventListener("click",function(event){
+    var closeButton=event.target&&event.target.closest?event.target.closest("#sheetX"):null;
+    if(!closeButton)return;
+    window.setTimeout(function(){
+      var plan=document.getElementById("planSheet"),sheet=document.getElementById("sheet"),scrim=document.getElementById("scrim");
+      if(plan&&plan.classList.contains("open")&&sheet&&!sheet.classList.contains("open")&&scrim)scrim.classList.add("show");
+    },0);
+  },true);
+})();
+</script>
 </body>
 </html>
 
