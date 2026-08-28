@@ -1083,15 +1083,33 @@ function interleaveSponsored(list){
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
 async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
+function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
+function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
+function getRotatedBangingCards(localVenues,neighboringVenues){
+  const eliteLocal=(localVenues||[]).filter(v=>Number(v&&v.rating)>=4);
+  const eliteNeighbors=(neighboringVenues||[]).filter(v=>Number(v&&v.rating)>=4);
+  const seen=new Set(),pool=[];
+  eliteLocal.concat(eliteNeighbors).forEach(v=>{const id=venuePlaceId(v)||v.name;if(!id||seen.has(id))return;seen.add(id);pool.push(v);});
+  const seed=editorialDaySeed();
+  return pool.sort((a,b)=>venueEditorialHash(a,seed)%100-venueEditorialHash(b,seed)%100);
+}
 function renderTrend(){
-  let t=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
-  // Banging venues come from the directly-fetched BANGING_VENUES list so they
-  // always show, not just when the feed query happened to include them.
+  let organic=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
+  // Banging venues come from the directly-fetched sponsored list. Rotate real
+  // Premium venues daily; never synthesize cards without a real venue identity.
   const bang=(BANGING_VENUES&&BANGING_VENUES.length?BANGING_VENUES.slice():(homeRaw||[]).filter(x=>sponsorTier(x)==="banging"));
   bang.forEach(x=>x.__sponsor="banging");
-  if(bang.length){const out=[];let bi=0;for(let i=0;i<t.length;i++){if(out.length>0&&out.length%5===2&&bi<bang.length){out.push(bang[bi++]);}out.push(t[i]);}while(bi<bang.length)out.push(bang[bi++]);t=out;}
-  // Preserve the banging flag on injected venues; only tag the rest normally.
-  t.forEach(x=>{ if(x.__sponsor!=="banging") x.__sponsor=sponsorEligible(x); });
+  const localBang=bang.filter(v=>v.distanceMeters==null||v.distanceMeters<=3200);
+  const neighboringBang=bang.filter(v=>v.distanceMeters!=null&&v.distanceMeters>3200);
+  const premium=getRotatedBangingCards(localBang,neighboringBang);
+  const t=[];let bi=0,oi=0;
+  while(oi<organic.length||bi<premium.length){
+    if((t.length+1)%5===0&&bi<premium.length)t.push(premium[bi++]);
+    else if(oi<organic.length)t.push(organic[oi++]);
+    else if(bi<premium.length)t.push(premium[bi++]);
+  }
+  // Preserve the sponsored flag on Premium cards; tag the rest normally.
+  t.forEach(x=>{if(x.__sponsor!=="banging")x.__sponsor=sponsorEligible(x);});
   DATA.trend=t;
   $("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('');
   observeSponsored();
@@ -1668,8 +1686,20 @@ document.addEventListener("DOMContentLoaded",boot);
       @media(max-width:370px){.trend-drawer .rail-sm .vcard.discovery-card,.trend-drawer .rail-sm .vcard.banging-card{width:220px;height:220px}.trend-drawer .rail-sm .vcard.discovery-card .vphoto,.trend-drawer .rail-sm .vcard.banging-card .vphoto{height:132px}.sheet.panda-premium-sheet .hero{height:250px}.panda-gallery-title{font-size:18px}}
       /* Compact Banging carousel proportions for smaller mobile screens. */
       .banging-carousel-sheet,[data-component="banging-carousel"],.carousel-container,.trend-drawer{max-height:38vh!important;padding:.5rem 1rem!important;gap:12px!important;box-sizing:border-box}
+      .trend-drawer{bottom:calc(env(safe-area-inset-bottom,0px) + 80px)!important;max-height:66px!important;overflow:hidden;transform:none!important;transition:max-height .34s cubic-bezier(.2,.8,.2,1)}
+      .trend-drawer.open{max-height:38vh!important}
       .banging-carousel-card,.banging-carousel-sheet .card-item,.carousel-card,.trend-drawer .rail-sm .vcard{width:260px!important;transform:scale(.88);transform-origin:top center;margin-top:-8px}
       .carousel-card img,.banging-carousel-sheet img,.trend-drawer .rail-sm .vcard .vphoto{height:130px!important;object-fit:cover}
+      /* Gold and black navigation accents. */
+      .bottom-nav,nav[class*="bottom"],.fixed-bottom-nav,.tabbar{background:#000!important;border-top:1px solid rgba(212,175,55,.3)!important}
+      .bottom-nav .nav-item.active,.bottom-nav a.active,.bottom-nav button.active,.tab.on{color:#D4AF37!important}
+      .bottom-nav .nav-item.active svg,.bottom-nav a.active svg,.bottom-nav button.active svg,.tab.on .tic svg{fill:#D4AF37!important;stroke:#D4AF37!important;filter:drop-shadow(0 0 4px rgba(212,175,55,.4))}
+      .tabbar .tab{color:#aeb7b1}.tabbar .tab.center,.tabbar .tab.center.on{color:#D4AF37}
+      .bottom-nav button:active,.tabbar .tab:active,.carousel-card:active,.banging-carousel-card:active,.trend-drawer .rail-sm .vcard:active{transform:scale(.96)!important;transition:transform .1s ease!important}
+      .trend-drawer .rail-sm .vcard:active{transform:scale(.8448)!important}
+      .header-bar,.search-container-sticky,.home-top,.dhead,.search{background:rgba(255,255,255,.85)!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important}
+      .dhead{border-bottom:1px solid rgba(212,175,55,.15);position:relative;z-index:2}
+      .search{border-bottom:1px solid rgba(212,175,55,.15)}
     </style>
     <script id="panda-premium-gallery-script">
     (function(){
@@ -1815,10 +1845,6 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
-
-
-
-
 
 
 
