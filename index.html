@@ -25,7 +25,7 @@
 :root{
   --green-950:#052018;--green-900:#062E22;--green-800:#0A4F3A;--green-700:#0F6B4F;
   --green-600:#12855F;--green-500:#1AA06E;--mint-300:#9FD3B6;--mint-100:#D2ECDC;
-  --app-bg:#DCEDE2;--app-bg-2:#CFE6D6;--card:#FFFFFF;--card-soft:#E9F5EE;
+  --app-bg:#f0f4f1;--app-bg-2:#f0f4f1;--card:#FFFFFF;--card-soft:#E9F5EE;
   --ink:#0A211A;--muted:#5C7568;--line:#E2EFE6;
   --honey:#F4B43C;--honey-soft:#FCE9C4;--honey-ink:#8a5a12;
   --gold:#C6A15B;--gold-soft:#F4E8CC;--gold-deep:#8a6a28;--gold-line:#E7D6A8;
@@ -594,6 +594,11 @@ body.gated #login{pointer-events:auto}
     .lcard .lp{width:62px;height:62px;flex:0 0 62px;border-radius:11px}.lcard .lp::after{border-radius:11px}.lcard .lb{box-sizing:border-box;flex:1 1 0;min-width:0;height:62px;min-height:62px;max-height:62px;padding-right:40px;gap:1px;justify-content:space-between;overflow:hidden}.lcard .ln{display:block;width:100%;min-width:0;min-height:16px;max-height:16px;font-size:14px;line-height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lcard .la{box-sizing:border-box;display:flex;min-height:14px;max-height:14px;font-size:11.5px;line-height:14px;overflow:hidden;white-space:nowrap}.lcard .la-t{display:block;min-width:0;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.lcard .la svg{width:12px;height:12px;flex:0 0 12px}.lcard .lm{min-height:14px;max-height:14px;font-size:11.5px;line-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lcard .heart{top:7px;right:7px;z-index:2;width:29px;height:29px}.lcard .heart svg{width:18px;height:18px}.newpill,.promoted{font-size:8px;padding:2px 5px;margin-right:4px}
     @media(max-width:370px){.lcard{width:calc(100% - 26px);max-width:calc(100% - 26px);height:75px;min-height:75px;max-height:75px;margin-left:13px;margin-right:13px}.lcard .lp{width:59px;height:59px;flex-basis:59px}.lcard .lb{height:59px;min-height:59px;max-height:59px}.lcard .ln{font-size:13.5px}.lcard .la,.lcard .lm{font-size:11px}}
     </style>
+<style id="panda-cool-pale-sage-theme">
+    body,#app,.screen.home,.home-top,.home-feed{background-color:#f0f4f1 !important;background-image:none !important}
+    .search{background-color:#ffffff !important;border:1px solid rgba(27,54,45,.1) !important;box-shadow:0 6px 18px rgba(27,54,45,.08)}
+    .search input{background-color:transparent !important}
+</style>
 </head>
 <body class="notranslate">
 <div class="device"><div id="app">
@@ -1829,9 +1834,9 @@ document.addEventListener("DOMContentLoaded",boot);
       .tabbar .tab.center .tic svg{fill:#fff!important;stroke:#fff!important;filter:none}
       .bottom-nav button:active,.tabbar .tab:active,.carousel-card:active,.banging-carousel-card:active,.trend-drawer .rail-sm .vcard:active{transform:scale(.96)!important;transition:transform .1s ease!important}
       .trend-drawer .rail-sm .vcard:active{transform:scale(.8448)!important}
-      .header-bar,.search-container-sticky,.home-top,.dhead,.search{background:rgba(255,255,255,.85)!important;backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important}
+      body,#app,.screen.home,.home-top,.home-feed,.header-bar,.search-container-sticky,.top-section-container,.dhead{background:#f0f4f1!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+      .search,.search-input-wrapper,.search-bar{background:#fff!important;background-color:#fff!important;background-image:none!important;border:1px solid rgba(27,54,45,.1)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
       .dhead{border-bottom:1px solid rgba(212,175,55,.15);position:relative;z-index:2}
-      .search{border-bottom:1px solid rgba(212,175,55,.15)}
     </style>
     <script id="panda-premium-gallery-script">
     (function(){
@@ -1977,6 +1982,8 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
+
+
 
 
 
