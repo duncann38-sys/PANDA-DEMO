@@ -1,6 +1,6 @@
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-2026-08-27-discovery-detail-v16';
+const CACHE = 'panda-cache-2026-08-28-google-maps-v17';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
