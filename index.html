@@ -1429,7 +1429,7 @@ async function resolvePlannerLocation(){
   if(!query){if(plannerState.locationCoords)return plannerState.locationCoords;if(COORDS){plannerState.locationCoords=COORDS;return COORDS;}return requestPlannerCurrentLocation();}
   if(plannerState.resolvedLocation===query&&plannerState.locationCoords)return plannerState.locationCoords;
   setPlannerFilterStatus("Finding "+query+" with Google Maps…","busy");await loadGoogleMaps();
-  const result=await new Promise((resolve,reject)=>{const candidates=[];const city=(CITY||"").trim();const simple=!/[,\d]/.test(query);if(simple&&city&&query.toLowerCase()!==city.toLowerCase())candidates.push(query+", "+city);candidates.push(query);let index=0;function geocode(){const address=candidates[index++];if(!address)return reject(new Error("We couldn’t find that location. Try a city, area or postcode."));try{new google.maps.Geocoder().geocode({address},(results,status)=>{if(status==="OK"&&results&&results.length)return resolve(results[0]);geocode();});}catch(error){reject(error);}}geocode();});
+  const result=await new Promise((resolve,reject)=>{const candidates=[];const city=(CITY||"").trim();const simple=!/[,\d]/.test(query);if(simple){if(city&&query.toLowerCase()!==city.toLowerCase())candidates.push(query+", "+city);if(!city)candidates.push(query+", London");}candidates.push(query);let index=0;function geocode(){const address=candidates[index++];if(!address)return reject(new Error("We couldn’t find that location. Try a city, area or postcode."));try{new google.maps.Geocoder().geocode({address},(results,status)=>{if(status==="OK"&&results&&results.length)return resolve(results[0]);geocode();});}catch(error){reject(error);}}geocode();});
   const point=result.geometry&&result.geometry.location;
   const coords={lat:point&&typeof point.lat==="function"?point.lat():point&&point.lat,lng:point&&typeof point.lng==="function"?point.lng():point&&point.lng};
   if(!Number.isFinite(coords.lat)||!Number.isFinite(coords.lng))throw new Error("Google Maps returned an invalid location.");
@@ -1946,7 +1946,6 @@ document.addEventListener("DOMContentLoaded",boot);
 <script src="./auth.js"></script>
 </body>
 </html>
-
 
 
 
