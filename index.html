@@ -1114,17 +1114,17 @@ function interleaveSponsored(list){
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
 async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
-function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
-function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
-function getRotatedBangingCards(localVenues,neighboringVenues){
+ function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
+ function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
+ function getRotatedBangingCards(localVenues,neighboringVenues){
   const eliteLocal=(localVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const eliteNeighbors=(neighboringVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const seen=new Set(),pool=[];
   eliteLocal.concat(eliteNeighbors).forEach(v=>{const id=venuePlaceId(v)||v.name;if(!id||seen.has(id))return;seen.add(id);pool.push(v);});
   const seed=editorialDaySeed();
   return pool.sort((a,b)=>venueEditorialHash(a,seed)%100-venueEditorialHash(b,seed)%100);
-}
-function renderTrend(){
+ }
+ function renderTrend(){
   let organic=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
   // Banging venues come from the directly-fetched sponsored list. Rotate real
   // Premium venues daily; never synthesize cards without a real venue identity.
@@ -1144,7 +1144,7 @@ function renderTrend(){
   DATA.trend=t;
   $("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('');
   observeSponsored();
-}
+ }
 let ringStage=0;const RING_KM=[1.6,3.2,4.8];
 function ringCenters(km){const c=[];if(!COORDS)return c;const dLat=km/111;const dLng=km/(111*Math.cos(COORDS.lat*Math.PI/180));for(let a=0;a<360;a+=60){const r=a*Math.PI/180;c.push({lat:COORDS.lat+dLat*Math.sin(r),lng:COORDS.lng+dLng*Math.cos(r)});}return c;}
 async function fetchVenuesAt(q,lat,lng){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:{lat,lng}})});if(!r.ok)return[];const d=await r.json();return d.venues||[];}catch(e){return[];}}
@@ -1322,7 +1322,7 @@ function loadProfile(){const p=store.lget("panda_profile")||{};
   const pfp=$("#pfp"),img=store.lget("panda_pfp"),initial=((p.name||"P")[0]||"P").toUpperCase();pfp.innerHTML="";if(img){const image=document.createElement("img");image.src=img;image.alt="Profile photo";pfp.appendChild(image);}else{const letter=document.createElement("span");letter.id="pfpInitial";letter.textContent=initial;pfp.appendChild(letter);}const cam=document.createElement("span");cam.className="pf-cam";cam.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>';pfp.appendChild(cam);pfp.setAttribute("aria-label",img?"Change profile photo":"Add a profile photo");pfp.classList.toggle("has-photo",!!img);}
 function saveProfile(){/* replaced by edit-sheet flow */}
 
-function openSheet(v){if(!v)return;$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View official website &amp; menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
+function openSheet(v){if(!v)return;closePlan();$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View official website &amp; menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
 // Always track detail_open and every action-button click for THIS venue,
   // regardless of sponsor/distance gating. Real interactions are always recorded.
   track("detail_open",v);
@@ -1381,10 +1381,20 @@ const PLAN_MODES={
   night:{title:"Plan my night",stops:[["🍽️","Dinner","dinner restaurants"],["🍸","Drinks","cocktail bars"],["🌙","Late night","late night bars"]]}
 };
 let planMode="night";
+const PLANNER_POOL_TARGET=7,PLANNER_FETCH_ROUNDS=5,PLANNER_AREA_CACHE_LIMIT=8;
+const plannerAreaStates=new Map();
 function defaultMode(){const h=new Date().getHours();if(h>=5&&h<11)return"morning";if(h>=11&&h<16)return"lunch";return"night";}
 function updateModeChips(){$$("#planModes button").forEach(b=>b.classList.toggle("on",b.dataset.mode===planMode));}
-function plannerPriceLevel(v){const raw=v&&(v.price!=null?v.price:(v.priceLevel!=null?v.priceLevel:v.price_level));if(typeof raw==="number"&&Number.isFinite(raw))return Math.max(1,Math.round(raw));const count=(String(raw||"").match(/[£$€]/g)||[]).length;return count||2;}
+function plannerVenueKey(v){if(!v)return"";const id=v.id||v.googlePlaceId||v.google_place_id||v.placeId||v.place_id;if(id)return"id:"+id;const name=rtext(v.name||"");const lat=Number(v.lat),lng=Number(v.lng);return name&&Number.isFinite(lat)&&Number.isFinite(lng)?name+"|"+lat.toFixed(4)+"|"+lng.toFixed(4):name;}
+function plannerPriceLevel(v){const raw=v&&(v.price!=null?v.price:(v.priceLevel!=null?v.priceLevel:v.price_level));if(typeof raw==="number"&&Number.isFinite(raw))return Math.max(1,Math.min(4,Math.round(raw)||1));const text=String(raw==null?"":raw).trim();if(!text)return null;const enumLevel={PRICE_LEVEL_FREE:1,PRICE_LEVEL_INEXPENSIVE:1,PRICE_LEVEL_MODERATE:2,PRICE_LEVEL_EXPENSIVE:3,PRICE_LEVEL_VERY_EXPENSIVE:4}[text.toUpperCase()];if(enumLevel)return enumLevel;const count=(text.match(/[£$€]/g)||[]).length;if(count)return Math.min(4,count);const numeric=Number(text);return Number.isFinite(numeric)?Math.max(1,Math.min(4,Math.round(numeric)||1)):null;}
 function plannerPriceLabel(){return "Up to "+plannerState.priceFilter;}
+function plannerSearchPoints(coords){const points=[{lat:coords.lat,lng:coords.lng}],rings=[.7,1.4,2.4];rings.forEach(km=>{const dLat=km/111,dLng=km/(111*Math.max(.25,Math.cos(coords.lat*Math.PI/180)));for(let angle=0;angle<360;angle+=60){const a=angle*Math.PI/180;points.push({lat:coords.lat+dLat*Math.sin(a),lng:coords.lng+dLng*Math.cos(a)});}});return points;}
+function plannerQueryVariants(query,limit){const variants=limit===1?["cheap "+query,"budget "+query,"affordable "+query,query]:[query,"popular "+query,"best "+query,"independent "+query];return Array.from(new Set(variants));}
+function plannerSources(query,coords,limit){const out=[];plannerSearchPoints(coords).forEach(point=>plannerQueryVariants(query,limit).forEach(q=>out.push({query:q,coords:point})));return out;}
+function plannerAreaState(coords){const key=Number(coords.lat).toFixed(3)+","+Number(coords.lng).toFixed(3);let state=plannerAreaStates.get(key);if(!state){state={served:new Set(),modes:{},usedAt:Date.now()};plannerAreaStates.set(key,state);if(plannerAreaStates.size>PLANNER_AREA_CACHE_LIMIT){let oldestKey=null,oldest=Infinity;plannerAreaStates.forEach((value,stateKey)=>{if(value.usedAt<oldest){oldest=value.usedAt;oldestKey=stateKey;}});if(oldestKey&&oldestKey!==key)plannerAreaStates.delete(oldestKey);}}state.usedAt=Date.now();return state;}
+function plannerModeState(area,cfg,coords,limit){const key=planMode+"|"+limit;let state=area.modes[key];if(!state){state={planCount:0,pools:cfg.stops.map(stop=>({venues:[],keys:new Set(),sources:plannerSources(stop[2],coords,limit),sourceIndex:0,pageToken:null,exhausted:false}))};area.modes[key]=state;}return state;}
+function plannerEligible(v,limit){const level=plannerPriceLevel(v);return v&&v.lat!=null&&v.lng!=null&&level!=null&&level<=limit;}
+function plannerUnused(pool,served,limit,chosen){chosen=chosen||new Set();return pool.venues.filter(v=>plannerEligible(v,limit)&&!served.has(plannerVenueKey(v))&&!chosen.has(plannerVenueKey(v)));}
 function updatePlannerFilterUi(){
   const input=$("#plannerLocation"),status=$("#plannerFilterStatus");
   if(input){input.value=plannerState.locationMode==="current"?(plannerState.locationLabel||""):plannerState.location;input.placeholder=plannerState.locationMode==="current"?"Current location or search anywhere":"City, area, postcode or place";}
@@ -1435,10 +1445,28 @@ async function resolvePlannerLocation(){
   if(!Number.isFinite(coords.lat)||!Number.isFinite(coords.lng))throw new Error("Google Maps returned an invalid location.");
   plannerState.locationMode="typed";plannerState.locationCoords=coords;plannerState.resolvedLocation=query;plannerState.locationLabel=result.formatted_address||query;updatePlannerFilterUi();return coords;
 }
-async function fetchPlannerVenues(q,coords){
-  const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:coords})});
+async function fetchPlannerVenues(q,coords,pageToken){
+  const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:coords,pageToken:pageToken||undefined})});
   if(!r.ok)throw new Error("Panda couldn’t load venues for that location.");
-  const d=await r.json();return Array.isArray(d.venues)?d.venues:[];
+  const d=await r.json();return{venues:Array.isArray(d.venues)?d.venues:[],nextPageToken:d.nextPageToken||null};
+}
+async function expandPlannerPool(pool,served,limit){
+  let rounds=0;
+  while(!pool.exhausted&&plannerUnused(pool,served,limit).length<PLANNER_POOL_TARGET&&rounds<PLANNER_FETCH_ROUNDS){
+    const source=pool.sources[pool.sourceIndex];if(!source){pool.exhausted=true;break;}
+    try{
+      const page=await fetchPlannerVenues(source.query,source.coords,pool.pageToken);
+      page.venues.forEach(v=>{const key=plannerVenueKey(v);if(key&&!pool.keys.has(key)){pool.keys.add(key);pool.venues.push(v);}});
+      if(page.nextPageToken)pool.pageToken=page.nextPageToken;else{pool.pageToken=null;pool.sourceIndex++;}
+    }catch(error){pool.pageToken=null;pool.sourceIndex++;}
+    rounds++;
+  }
+  if(pool.sourceIndex>=pool.sources.length&&!pool.pageToken)pool.exhausted=true;
+}
+function pickPlannerVenue(list,offset){const ranked=pickTop(list,Math.min(18,list.length));if(!ranked.length)return null;return ranked[offset%Math.min(6,ranked.length)];}
+function nearestPlannerVenue(from,list,chosen){let best=null,bd=Infinity;for(const v of list){if(chosen.has(plannerVenueKey(v)))continue;const d=haversine(from.lat,from.lng,v.lat,v.lng);if(d<bd){bd=d;best=v;}}return best;}
+async function fillPlannerPools(modeState,area,limit){
+  await Promise.all(modeState.pools.map(pool=>expandPlannerPool(pool,area.served,limit)));
 }
 async function buildPlan(mode){
   const requestId=++plannerState.requestId;
@@ -1448,14 +1476,17 @@ async function buildPlan(mode){
   try{coords=await resolvePlannerLocation();}catch(error){if(requestId!==plannerState.requestId)return;setPlannerFilterStatus(error.message||"Choose a location to build your plan.","error");$("#planBody").innerHTML='<div class="plan-loading">Choose a location or allow access to your current location, then try again.</div>';return;}
   if(requestId!==plannerState.requestId)return;
   setPlannerFilterStatus((plannerState.locationMode==="typed"?"Near "+(plannerState.locationLabel||plannerState.location):"Using your current location")+" · "+plannerPriceLabel(),"busy");
-  let lists;
-  try{lists=await Promise.all(cfg.stops.map(st=>fetchPlannerVenues(st[2],coords)));}catch(error){if(requestId!==plannerState.requestId)return;setPlannerFilterStatus(error.message||"Could not load venues for that location.","error");$("#planBody").innerHTML='<div class="plan-loading">Panda couldn’t load that location right now — please try again.</div>';return;}
+  const limit=plannerState.priceFilter.length,area=plannerAreaState(coords),modeState=plannerModeState(area,cfg,coords,limit);
+  try{await fillPlannerPools(modeState,area,limit);}catch(error){if(requestId!==plannerState.requestId)return;setPlannerFilterStatus(error.message||"Could not load venues for that location.","error");$("#planBody").innerHTML='<div class="plan-loading">Panda couldn’t load that location right now — please try again.</div>';return;}
   if(requestId!==plannerState.requestId)return;
-  const F=lists.map(l=>l.filter(v=>v.lat!=null&&plannerPriceLevel(v)<=plannerState.priceFilter.length));
-  if(F.some(l=>!l.length)){setPlannerFilterStatus("No matching spots found · try a nearby area or a higher price limit.","error");$("#planBody").innerHTML='<div class="plan-loading">No spots match those filters yet. Try another location or price limit.</div>';return;}
-  const topFirst=pickTop(F[0],6);const chosen=[topFirst[Math.floor(Math.random()*Math.min(topFirst.length,4))]];
-  for(let k=1;k<F.length;k++){const ex=chosen.map(c=>c&&c.id);chosen.push(nearestTo(chosen[k-1]||chosen[0],pickTop(F[k],8),ex)||pickTop(F[k],1)[0]);}
-  DATA.plan=chosen.filter(Boolean);
+  const chosen=[],chosenKeys=new Set();
+  for(let k=0;k<modeState.pools.length;k++){
+    const available=plannerUnused(modeState.pools[k],area.served,limit,chosenKeys);
+    const venue=k===0?pickPlannerVenue(available,modeState.planCount):nearestPlannerVenue(chosen[k-1]||chosen[0],pickTop(available,18),chosenKeys);
+    if(!venue){const exhausted=modeState.pools[k].exhausted;setPlannerFilterStatus(exhausted?"You’ve explored every matching spot Panda could find here. Try another area or price limit.":"No matching spots found · try a nearby area or a higher price limit.","error");$("#planBody").innerHTML='<div class="plan-loading">'+(exhausted?"That’s the full matching venue pool for this area — no repeats added.":"No spots match those filters yet. Try another location or price limit.")+'</div>';return;}
+    chosen.push(venue);chosenKeys.add(plannerVenueKey(venue));
+  }
+  chosenKeys.forEach(key=>area.served.add(key));modeState.planCount++;DATA.plan=chosen;
   setPlannerFilterStatus((plannerState.locationMode==="typed"?"Near "+(plannerState.locationLabel||plannerState.location):"Using your current location")+" · "+plannerPriceLabel(),"");
   renderPlan(cfg);fetchPlanIntro(cfg,coords);
 }
