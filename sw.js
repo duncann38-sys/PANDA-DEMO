@@ -1,6 +1,7 @@
+
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-2026-08-28-planner-keyboard-v19';
+const CACHE = 'panda-cache-2026-08-28-maps-bypass-v20';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
@@ -18,6 +19,9 @@ self.addEventListener('fetch', function(e){
   const req = e.request;
   if(req.method !== 'GET') return;
   const url = new URL(req.url);
+
+  /* Never intercept Google Maps or any other cross-origin request. */
+  if(url.origin !== self.location.origin) return;
 
   /* Never intercept API calls — always live from the network. */
   if(url.pathname.indexOf('/api/') > -1 || url.hostname.indexOf('vercel.app') > -1) return;
