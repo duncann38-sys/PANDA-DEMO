@@ -1346,7 +1346,7 @@ function loadProfile(){const p=store.lget("panda_profile")||{};
 function saveProfile(){/* replaced by edit-sheet flow */}
 
 let plannerDetailReturn=false;
-function openSheet(v){if(!v)return;plannerDetailReturn=$("#planSheet").classList.contains("open");closePlan();$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View official website &amp; menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
+ function openSheet(v){if(!v)return;plannerDetailReturn=$("#planSheet").classList.contains("open");closePlan();$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
 // Always track detail_open and every action-button click for THIS venue,
   // regardless of sponsor/distance gating. Real interactions are always recorded.
   track("detail_open",v);
@@ -1722,7 +1722,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-location-lock-actions-2026-08-29-v23",releaseKey="panda_app_release";
+       var release="panda-eight-stop-clean-actions-2026-08-29-v24",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
@@ -1924,7 +1924,7 @@ document.addEventListener("DOMContentLoaded",boot);
     var reservation=typeof resFor==="function"?resFor(activeVenue):null;
     var booking=safeUrl(reservation&&reservation.bookingUrl),menu=safeUrl(reservation&&reservation.menuUrl||activeVenue.website),maps=safeUrl(activeVenue.mapsUri);
     if(booking)action(actions,"Book on OpenTable",booking,"booking_click","booking","calendar",activeVenue);
-    if(menu)action(actions,"View official website & menu",menu,"menu_click","primary","globe",activeVenue);
+    if(menu)action(actions,"View menu",menu,"menu_click","primary","globe",activeVenue);
     if(maps)action(actions,"Directions",maps,"directions_click","","pin",activeVenue);
     var phone=activeVenue.phone?String(activeVenue.phone).replace(/[^\d+]/g,""):"";if(phone)action(actions,"Call","tel:"+phone,"call_click","","phone",activeVenue);
     if(actions.childNodes.length)card.appendChild(actions);
@@ -2174,6 +2174,9 @@ document.addEventListener("DOMContentLoaded",boot);
     venues=Array.isArray(venues)?venues:[];
     venues.forEach(function(venue){if(venue)venue.__pandaAi=true;});
     if(!isThemedQuery(query))return venues.slice(0,20).map(function(v){return richVenue(v);});
+    if(/\b(?:pub|bar|drinks?)?\s*crawl\b/i.test(String(query||""))){
+      return venues.slice(0,8).map(function(v,index){var result=richVenue(v);result.stopNumber=index+1;return result;});
+    }
     var terms=String(query||"").toLowerCase().split(/[^a-z0-9]+/).filter(function(term){return term.length>2&&!/^(find|some|somewhere|with|near|please|want|give|me|for|the|and|pub|crawl)$/.test(term);});
     var matched=venues.filter(function(v){
       var hay=[v&&v.name,v&&v.tags,v&&v.description,v&&v.summary,v&&v.type].filter(Boolean).join(" ").toLowerCase();
@@ -2256,7 +2259,7 @@ document.addEventListener("DOMContentLoaded",boot);
       directions.dataset.pandaAiDirections="1";directions.href=r.directions;directions.hidden=false;
       if(!menu)menu=actions.querySelector("a.act.primary");
       if(!menu){menu=document.createElement("a");menu.className="act primary";menu.target="_blank";menu.rel="noopener";menu.textContent="View menu";actions.insertBefore(menu,actions.firstChild);}
-      menu.dataset.pandaAiMenu="1";menu.href=r.menu;menu.hidden=false;
+      menu.dataset.pandaAiMenu="1";menu.href=r.menu;menu.textContent="View menu";menu.hidden=false;
     }
     if(actions)body.insertBefore(detail,actions);else body.appendChild(detail);
   }
@@ -2294,6 +2297,8 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
+
+
 
 
 
