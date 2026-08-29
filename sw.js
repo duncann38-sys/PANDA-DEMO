@@ -1,7 +1,6 @@
-
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-2026-08-28-maps-bypass-v20';
+const CACHE = 'panda-cache-hours-map-2026-08-29-v21';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
