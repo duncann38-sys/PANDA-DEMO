@@ -1722,7 +1722,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-planner-return-hype-2026-08-29-v22",releaseKey="panda_app_release";
+       var release="panda-location-lock-actions-2026-08-29-v23",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
@@ -2251,10 +2251,12 @@ document.addEventListener("DOMContentLoaded",boot);
     if(r.hasMusic){var musicRow=document.createElement("div");musicRow.className="panda-ai-rich-detail-row";musicRow.innerHTML='<span class="music">🎵</span><span class="music">'+esc(r.musicBadge)+"</span>";detail.appendChild(musicRow);}
     var actions=body.querySelector(".actions");
     if(actions){var directions=actions.querySelector("[data-panda-ai-directions]"),menu=actions.querySelector("[data-panda-ai-menu]");
-      if(!directions){directions=document.createElement("a");directions.className="act ghost";directions.dataset.pandaAiDirections="1";directions.target="_blank";directions.rel="noopener";directions.textContent="Directions";actions.appendChild(directions);}
-      directions.href=r.directions;
-      if(!menu){menu=document.createElement("a");menu.className="act primary";menu.dataset.pandaAiMenu="1";menu.target="_blank";menu.rel="noopener";menu.textContent="View menu";actions.insertBefore(menu,actions.firstChild);}
-      menu.href=r.menu;
+      if(!directions){var directionCandidates=actions.querySelectorAll("a.act.ghost");for(var di=0;di<directionCandidates.length;di++){if((directionCandidates[di].textContent||"").trim()==="Directions"){directions=directionCandidates[di];break;}}}
+      if(!directions){directions=document.createElement("a");directions.className="act ghost";directions.target="_blank";directions.rel="noopener";directions.textContent="Directions";actions.appendChild(directions);}
+      directions.dataset.pandaAiDirections="1";directions.href=r.directions;directions.hidden=false;
+      if(!menu)menu=actions.querySelector("a.act.primary");
+      if(!menu){menu=document.createElement("a");menu.className="act primary";menu.target="_blank";menu.rel="noopener";menu.textContent="View menu";actions.insertBefore(menu,actions.firstChild);}
+      menu.dataset.pandaAiMenu="1";menu.href=r.menu;menu.hidden=false;
     }
     if(actions)body.insertBefore(detail,actions);else body.appendChild(detail);
   }
@@ -2292,6 +2294,7 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
+
 
 
 
