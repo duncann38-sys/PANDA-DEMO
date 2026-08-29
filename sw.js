@@ -1,6 +1,6 @@
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-hours-map-2026-08-29-v21';
+const CACHE = 'panda-cache-planner-return-hype-2026-08-29-v22';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
