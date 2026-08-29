@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -112,6 +111,8 @@ img{display:block}a{color:inherit;text-decoration:none}
 .lcard .lm{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
 .lcard .lm .price{color:var(--gold-deep);font-weight:800}.lcard .lm .sep{opacity:.38;color:var(--muted)}
 .lcard .ostat{font-weight:800}.lcard .ostat.o{color:#0c7a45}.lcard .ostat.c{color:#9aa8a0}
+.planner-walk-link{display:flex;align-items:center;justify-content:center;min-height:34px;margin:0 16px 8px;padding:0 12px;border:1px solid rgba(18,78,63,.16);border-radius:11px;background:var(--mint-100);color:var(--green-800);font-size:12px;font-weight:800;text-decoration:none}
+.planner-walk-link:active{background:var(--gold-soft);border-color:var(--gold-line)}
 .newpill{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;font-size:9px;font-weight:800;letter-spacing:.05em;padding:2px 6px;border-radius:6px;margin-right:6px;vertical-align:middle;box-shadow:0 2px 6px rgba(198,161,91,.4)}
 .promoted{display:inline-block;background:var(--gold-soft,rgba(198,161,91,.16));color:var(--gold-deep);font-size:8.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;padding:2px 6px;border-radius:5px;margin-right:6px;vertical-align:middle}
 .promoted-card{border-color:var(--gold-line);box-shadow:0 3px 14px rgba(198,161,91,.16),inset 3px 0 0 var(--gold)}
@@ -1225,10 +1226,17 @@ function mapDirectionsUrl(v){
   try{const url=raw&&new URL(raw,window.location.href);if(url&&(url.protocol==="http:"||url.protocol==="https:"))return url.href;}catch(e){}
   return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(((v&&v.name)||"Venue")+" "+((v&&v.fullAddress)|| (v&&v.address)||""));
 }
+function plannerWalkingDirectionsUrl(v){
+  const name=(v&&v.name)||"Venue",address=(v&&v.fullAddress)||(v&&v.address)||"";
+  let url="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(name+" "+address)+"&travelmode=walking";
+  if(v&&v.id)url+="&destination_place_id="+encodeURIComponent(v.id);
+  return url;
+}
 function showMapCard(v){
   mapCardVenue=v;if(v)v.__pandaPlannerMap=true;
   $("#mcPhoto").innerHTML=ph(v,160);$("#mcName").textContent=v.name;$("#mcMeta").textContent=[fmtDist(v.distanceMeters),fmtWalk(v.distanceMeters),v.price,v.type].filter(Boolean).join(" · ");
-  const directions=$("#mcDirections");if(directions){directions.href=mapDirectionsUrl(v);directions.hidden=false;}
+  const plannerMap=$("#plannerMapBack")&&!$("#plannerMapBack").hidden;
+  const directions=$("#mcDirections");if(directions){directions.href=plannerMap?plannerWalkingDirectionsUrl(v):mapDirectionsUrl(v);directions.textContent=plannerMap?"Walking directions":"Directions";directions.setAttribute("aria-label",plannerMap?"Walking directions to "+(v.name||"venue"):"Directions to "+(v.name||"venue"));directions.hidden=false;}
   $("#mapCard").classList.add("show");
 }
 
@@ -1505,7 +1513,7 @@ async function buildPlan(mode){
   setPlannerFilterStatus((plannerState.locationMode==="typed"?"Near "+(plannerState.locationLabel||plannerState.location):"Using your current location")+" · "+plannerPriceLabel(),"");
   renderPlan(cfg);fetchPlanIntro(cfg,coords);
 }
-function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;var _pt=$("#planTitle");if(_pt)_pt.textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">Sorted 🐼</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan");if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
+function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;var _pt=$("#planTitle");if(_pt)_pt.textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">Sorted 🐼</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan")+'<a class="planner-walk-link" href="'+esc(plannerWalkingDirectionsUrl(v))+'" target="_blank" rel="noopener">🚶 Walking directions</a>';if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
 async function fetchPlanIntro(cfg,coords){
   const n=DATA.plan.map(v=>v.name);
   try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty going-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:coords||plannerState.locationCoords||COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
@@ -2152,7 +2160,7 @@ document.addEventListener("DOMContentLoaded",boot);
      var closing=closingLabel(venue.openingHours||venue.hours||venue.regularOpeningHours);
     var open=typeof venue.isOpenNow==="boolean"?venue.isOpenNow:venue.openNow;
     var searchable=[venue.name,venue.type,venue.primaryType,venue.tags,venue.description,venue.summary].filter(Boolean).join(" ").toLowerCase();
-    var hasMusic=venue.hasMusic===true||venue.musicBadge||/\b(night[_ ]club|live music|dj|music|bar)\b/i.test(searchable);
+    var hasMusic=venue.hasMusic===true||venue.musicBadge||/\b(night[_ ]club|live music|dj|music)\b/i.test(searchable);
      return {venue:venue,address:address,directions:directions,menu:menu,hours:hours,closing:closing,open:open,hasMusic:hasMusic,musicBadge:venue.musicBadge||"🎵 Live Music / DJ"};
   }
   function isThemedQuery(query){
@@ -2167,7 +2175,7 @@ document.addEventListener("DOMContentLoaded",boot);
       var hay=[v&&v.name,v&&v.tags,v&&v.description,v&&v.summary,v&&v.type].filter(Boolean).join(" ").toLowerCase();
       return terms.some(function(term){return hay.indexOf(term)>=0;})||(/\b(live music|dj|music)\b/i.test(String(query||""))&&richVenue(v).hasMusic);
     });
-    var selected=(matched.length?matched:venues).slice(0,6);
+    var selected=(matched.length?matched:venues).slice(0,8);
     return selected.map(function(v,index){
       var result=richVenue(v);
       result.stopNumber=index+1;
@@ -2214,7 +2222,7 @@ document.addEventListener("DOMContentLoaded",boot);
         var payload=JSON.parse(init.body);
         payload.globalSearch=true;
         payload.richMetadata=true;
-        payload.clientCapabilities={openingHours:true,directionsLink:true,menuLink:true,musicBadge:true,themedCrawl:true,maxCards:6};
+        payload.clientCapabilities={openingHours:true,directionsLink:true,menuLink:true,musicBadge:true,themedCrawl:true,maxCards:8};
         payload.searchLocation=payload.location||null;
         init=Object.assign({},init,{body:JSON.stringify(payload)});
       }catch(error){}
@@ -2280,6 +2288,8 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
+
+
 
 
 
