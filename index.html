@@ -150,6 +150,8 @@ img{display:block}a{color:inherit;text-decoration:none}
 .mapcard .mb{flex:1;min-width:0}
 .mapcard .mn{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .mapcard .mm{font-size:12.5px;color:var(--muted);font-weight:600;margin-top:3px}
+.mapcard .map-directions{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:0 10px;border-radius:10px;background:var(--honey);color:#5a3c05;font-size:11px;font-weight:900;white-space:nowrap}
+.mapcard .map-directions[hidden]{display:none}
 .mapcard .go{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--green-800);color:#fff;display:grid;place-items:center}
 .mapcard .mcx{position:absolute;top:-9px;right:-9px;width:26px;height:26px;border-radius:50%;background:#fff;color:var(--ink);box-shadow:var(--shadow);display:grid;place-items:center;font-size:15px;font-weight:800}
 .credit-hero{margin:16px 18px;background:linear-gradient(150deg,var(--green-700),var(--green-800));color:#fff;border-radius:26px;padding:26px 22px;position:relative;overflow:hidden;box-shadow:0 16px 34px rgba(10,79,58,.34)}
@@ -322,6 +324,7 @@ img{display:block}a{color:inherit;text-decoration:none}
 .plan-cta .em{font-size:17px}
 .plan-cta .gold{color:var(--gold-soft)}
 .plan{position:absolute;left:0;right:0;bottom:var(--panda-keyboard-bottom,0px);z-index:1000;background:var(--app-bg);border-radius:26px 26px 0 0;transform:translateY(101%);transition:transform .34s cubic-bezier(.2,.8,.2,1);max-height:min(85dvh,calc(100% - var(--panda-keyboard-bottom,0px)));display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.plan[hidden]{display:none}
 .plan.open{transform:translateY(0)}
 .plan .grip{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:42px;height:5px;border-radius:3px;background:#c3d8cb}
 .plan-head{display:flex;align-items:center;gap:12px;padding:18px 20px 8px}
@@ -627,17 +630,13 @@ body.gated #login{pointer-events:auto}
 
   <!-- MAP -->
   <section id="s-map" class="screen" hidden style="padding-bottom:0">
-    <div class="mapfilters">
-      <select id="fCuisine"></select>
-      <select id="fBudget"><option value="">Any budget</option><option value="1">£</option><option value="2">££</option><option value="3">£££</option></select>
-      <select id="fHours"><option value="">Any time</option><option value="open">Open now</option></select>
-    </div>
     <button class="map-back-to-planner-btn" id="plannerMapBack" type="button" hidden>← Back to Planner</button>
     <div id="map-canvas"><div class="google-map" id="googleMap" aria-label="Map of nearby venues"></div><div class="map-status" id="mapStatus" role="status" aria-live="polite" hidden></div></div>
     <button class="map-x" id="mapX" aria-label="Close map">✕</button>
     <div class="mapcard" id="mapCard">
       <div class="mp" id="mcPhoto"></div>
       <div class="mb" id="mcOpen"><div class="mn" id="mcName"></div><div class="mm" id="mcMeta"></div></div>
+      <a class="map-directions" id="mcDirections" target="_blank" rel="noopener" hidden>Directions</a>
       <button class="go" id="mcGo" aria-label="Details"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
       <button class="mcx" id="mcClose" aria-label="Close">×</button>
     </div>
@@ -724,7 +723,7 @@ body.gated #login{pointer-events:auto}
   </div>
 
   <button class="shuffle-handle" id="shuffleTab" aria-label="Open Panda Shuffle (swipe right)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
-  <div class="plan" id="planSheet" aria-hidden="true">
+  <div class="plan" id="planSheet" aria-hidden="true" hidden>
     <div class="grip"></div>
     <div class="plan-head"><div><b id="planTitle">Plan my night</b><small id="planWhen">Tap a stop · re-roll with Panda Shuffle</small></div><button class="x" id="planClose" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="plan-modes" id="planModes"><button data-mode="morning">🌅 Morning</button><button data-mode="lunch">🍽️ Lunch</button><button data-mode="night">🌙 Night</button></div>
@@ -1120,17 +1119,17 @@ function interleaveSponsored(list){
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
 async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
- function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
- function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
- function getRotatedBangingCards(localVenues,neighboringVenues){
+function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
+function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
+function getRotatedBangingCards(localVenues,neighboringVenues){
   const eliteLocal=(localVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const eliteNeighbors=(neighboringVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const seen=new Set(),pool=[];
   eliteLocal.concat(eliteNeighbors).forEach(v=>{const id=venuePlaceId(v)||v.name;if(!id||seen.has(id))return;seen.add(id);pool.push(v);});
   const seed=editorialDaySeed();
   return pool.sort((a,b)=>venueEditorialHash(a,seed)%100-venueEditorialHash(b,seed)%100);
- }
- function renderTrend(){
+}
+function renderTrend(){
   let organic=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
   // Banging venues come from the directly-fetched sponsored list. Rotate real
   // Premium venues daily; never synthesize cards without a real venue identity.
@@ -1150,7 +1149,7 @@ let TREND_ORGANIC=[];
   DATA.trend=t;
   $("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('');
   observeSponsored();
- }
+}
 let ringStage=0;const RING_KM=[1.6,3.2,4.8];
 function ringCenters(km){const c=[];if(!COORDS)return c;const dLat=km/111;const dLng=km/(111*Math.cos(COORDS.lat*Math.PI/180));for(let a=0;a<360;a+=60){const r=a*Math.PI/180;c.push({lat:COORDS.lat+dLat*Math.sin(r),lng:COORDS.lng+dLng*Math.cos(r)});}return c;}
 async function fetchVenuesAt(q,lat,lng){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:{lat,lng}})});if(!r.ok)return[];const d=await r.json();return d.venues||[];}catch(e){return[];}}
@@ -1218,10 +1217,20 @@ async function initMap(){
 }
 async function loadMapVenues(){
   if(!await initMap())return;
-  const cui=$("#fCuisine").value;const q=cui||(discovery().q||"restaurants");let v=await fetchVenues(q);const bud=$("#fBudget").value;const hrs=$("#fHours").value;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);if(hrs==="open")v=v.filter(x=>x.openNow===true);DATA.map=v;clearMapOverlays();const pts=[];v.forEach((x)=>{if(x.lat==null)return;const position={lat:Number(x.lat),lng:Number(x.lng)};markers.push(makePandaMarker(position,x.price||"•",x.name||"Venue",x));pts.push(position);});if(pts.length)fitMapToPoints(pts,50);if(!v.length)setMapStatus("No nearby spots","Try another category or move the map to explore a different area.");else setMapStatus();$("#mapCard").classList.remove("show");
+  const q=discovery().q||"restaurants";const v=await fetchVenues(q);DATA.map=v;clearMapOverlays();const pts=[];v.forEach((x)=>{if(x.lat==null)return;const position={lat:Number(x.lat),lng:Number(x.lng)};markers.push(makePandaMarker(position,x.price||"•",x.name||"Venue",x));pts.push(position);});if(pts.length)fitMapToPoints(pts,50);if(!v.length)setMapStatus("No nearby spots","Try another category or move the map to explore a different area.");else setMapStatus();$("#mapCard").classList.remove("show");
 }
 let mapCardVenue=null;
-function showMapCard(v){mapCardVenue=v;$("#mcPhoto").innerHTML=ph(v,160);$("#mcName").textContent=v.name;$("#mcMeta").textContent=[fmtDist(v.distanceMeters),fmtWalk(v.distanceMeters),v.price,v.type].filter(Boolean).join(" · ");$("#mapCard").classList.add("show");}
+function mapDirectionsUrl(v){
+  const raw=v&&(v.directionsLink||v.mapsUri);
+  try{const url=raw&&new URL(raw,window.location.href);if(url&&(url.protocol==="http:"||url.protocol==="https:"))return url.href;}catch(e){}
+  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(((v&&v.name)||"Venue")+" "+((v&&v.fullAddress)|| (v&&v.address)||""));
+}
+function showMapCard(v){
+  mapCardVenue=v;if(v)v.__pandaPlannerMap=true;
+  $("#mcPhoto").innerHTML=ph(v,160);$("#mcName").textContent=v.name;$("#mcMeta").textContent=[fmtDist(v.distanceMeters),fmtWalk(v.distanceMeters),v.price,v.type].filter(Boolean).join(" · ");
+  const directions=$("#mcDirections");if(directions){directions.href=mapDirectionsUrl(v);directions.hidden=false;}
+  $("#mapCard").classList.add("show");
+}
 
 function renderSaved(){const arr=Object.values(SAVED);DATA.saved=arr;$("#savedCount").textContent=arr.length?arr.length+" saved":"";const list=arr.length?arr.map((x,i)=>listCard(x,i,"saved")).join(''):'<div class="empty">Tap the ♥ on any spot to build your favourites.</div>';const share=arr.length?'<div class="saved-share-card"><div class="saved-share-copy"><span>YOUR PANDA LIST</span><b>Send your saved places</b><small>Share '+arr.length+' favourite'+(arr.length===1?'':'s')+' with your people.</small></div><button type="button" class="saved-share-btn" data-share-favourites aria-label="Share saved places"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5"/></svg><span>Share</span></button></div>':'';$("#savedList").innerHTML=list+share;}
 function srcArr(s){return s==="home"?DATA.home:s==="trend"?DATA.trend:s==="map"?DATA.map:s==="plan"?DATA.plan:DATA.saved}
@@ -1230,7 +1239,7 @@ function buildCats(){const order=[0].concat(catOrder());$("#cats").innerHTML=ord
 function wireCards(){document.addEventListener("click",e=>{const h=e.target.closest(".heart");if(h){e.stopPropagation();const v=srcArr(h.dataset.src)[+h.dataset.heart];if(v){toggleSave(v);h.classList.toggle("on");h.querySelector("svg").setAttribute("fill",h.classList.contains("on")?"currentColor":"none");}return;}const c=e.target.closest(".lcard,.vcard");if(c){const v=srcArr(c.dataset.src)[+c.dataset.i];if(v)openSheet(v);}});}
 
 const SCREENS={home:"#s-home",map:"#s-map",credit:"#s-credit",profile:"#s-profile"};
-function showScreen(n){ if(!window.__authed && !isAuthed()){ showLogin(); return; } Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){initMap().then(()=>{if(!map)return;if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}});}if(n==="profile")renderSaved();}
+function showScreen(n){ if(!window.__authed && !isAuthed()){ showLogin(); return; } Object.values(SCREENS).forEach(s=>$(s).hidden=true);$(SCREENS[n]).hidden=false;$$(".tab").forEach(t=>t.classList.toggle("on",t.dataset.nav===n));$("#pandaFab").style.display=(n==="home")?"grid":"none";var _st=$("#shuffleTab");if(_st)_st.style.display=(n==="home")?"flex":"none";$("#trendDrawer").hidden=(n!=="home");if(n!=="home")$("#pandaFab").classList.remove("fab-hide");if(n==="map"){if($("#planSheet").classList.contains("open"))closePlan();var _chat=$("#chat");if(_chat)_chat.classList.remove("open");initMap().then(()=>{if(!map)return;if(pendingPlanRoute){pendingPlanRoute=false;drawPlanRoute();}else{loadMapVenues();}});}if(n==="profile")renderSaved();}
 function buildNav(){$$(".tab").forEach(t=>t.addEventListener("click",()=>{const n=t.dataset.nav;if(n==="panda"){openChat();return;}showScreen(n);}));if(store.flag("panda_used")){$("#pandaFab").classList.remove("hint");$("#tabPanda").classList.remove("hint");}}
 
 function applyNow(){window.open(FORM_URL,"_blank","noopener");store.setFlag("form_done");}
@@ -1379,8 +1388,8 @@ function haversine(aLat,aLng,bLat,bLng){const R=6371000,tr=x=>x*Math.PI/180;cons
 function planScore(v){return (v.rating||3.5)*Math.log((v.ratingCount||5)+10);}
 function pickTop(list,n){return list.slice().sort((a,b)=>planScore(b)-planScore(a)).slice(0,n);}
 function nearestTo(from,list,exclude){exclude=[].concat(exclude);let best=null,bd=Infinity;for(const v of list){if(exclude.indexOf(v.id)>=0)continue;const d=haversine(from.lat,from.lng,v.lat,v.lng);if(d<bd){bd=d;best=v;}}return best;}
-function openPlan(){$("#planBody").innerHTML='<div class="plan-loading">\uD83D\uDC3C Panda is planning your night...</div>';$("#scrim").classList.add("show");$("#planSheet").classList.add("open");}
-function closePlan(){$("#planSheet").classList.remove("open");$("#scrim").classList.remove("show");}
+function openPlan(){const plan=$("#planSheet");$("#planBody").innerHTML='<div class="plan-loading">\uD83D\uDC3C Panda is planning your night...</div>';plan.hidden=false;plan.setAttribute("aria-hidden","false");$("#scrim").classList.add("show");plan.classList.add("open");}
+function closePlan(){const plan=$("#planSheet");plan.classList.remove("open");plan.setAttribute("aria-hidden","true");plan.hidden=true;$("#scrim").classList.remove("show");}
 const PLAN_MODES={
   morning:{title:"Plan my morning",stops:[["☕","Coffee","coffee shops"],["🍳","Breakfast","breakfast"],["🥐","Brunch","brunch spots"]]},
   lunch:{title:"Plan my lunch",stops:[["🥗","Lunch","lunch restaurants"],["☕","Coffee","coffee shops"],["🍰","Something sweet","dessert cafe"]]},
@@ -1572,7 +1581,6 @@ function boot(){
   if(window.visualViewport){window.visualViewport.addEventListener("resize",syncPlannerViewport);window.visualViewport.addEventListener("scroll",syncPlannerViewport);}
   window.addEventListener("resize",syncPlannerViewport);
   buildCats();buildNav();wireCards();makeDraggable($("#pandaFab"));loadProfile();loadReservations();wireGender();
-  $("#fCuisine").innerHTML=CATEGORIES.map((c,i)=>'<option value="'+esc(c.q)+'">'+(i===0?"All cuisines":c.label)+'</option>').join('');
   $("#suggests").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;if(b.classList.contains("plan-chip")){buildPlan(defaultMode());return;}sendMessage(b.textContent)});
   $("#closeChat").addEventListener("click",closeChat);
   $("#scrim").addEventListener("click",function(){closeSheet();closePlan();});
@@ -1595,7 +1603,6 @@ function boot(){
   $("#rowLogout").addEventListener("click",logout);
   $("#rowInstall").addEventListener("click",()=>{ if(window.__pandaInstall)window.__pandaInstall(); });
   $("#swNotif").addEventListener("click",function(){this.classList.toggle("on");});
-  ["fCuisine","fBudget","fHours"].forEach(id=>$("#"+id).addEventListener("change",loadMapVenues));
   wireDropdown("ddBudget",applyHomeFilters);wireDropdown("ddSort",applyHomeFilters);
   var _mx=$("#mapX");if(_mx)_mx.addEventListener("click",()=>showScreen("home"));
   $(".home-feed").addEventListener("scroll",function(){if(this.scrollTop+this.clientHeight>=this.scrollHeight-520)loadMoreHome();});
@@ -1704,7 +1711,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-discovery-detail-v16",releaseKey="panda_app_release";
+       var release="panda-hours-map-2026-08-29-v21",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
@@ -2091,6 +2098,7 @@ document.addEventListener("DOMContentLoaded",boot);
   .cvcard .cv-rich-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;color:#d7f1e2;font-size:10.5px;line-height:1.3}
   .cvcard .cv-rich-badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.1);color:#e7fff0;font-weight:800}
   .cvcard .cv-rich-badge.music{background:rgba(244,215,143,.18);color:#ffe7a5}
+   .cvcard .cv-rich-badge.closing{background:linear-gradient(135deg,#f8df9b,#d8a94e);color:#4b350d;box-shadow:0 2px 5px rgba(0,0,0,.12)}
   .cvcard .cv-actions{display:flex;gap:6px;margin-top:9px}
   .cvcard .cv-actions a{display:inline-flex;align-items:center;justify-content:center;padding:6px 8px;border-radius:9px;background:#f4d78f;color:#163326;font-size:10px;font-weight:900}
   .cvcard .cv-actions a.secondary{background:rgba(255,255,255,.12);color:#eafff2}
@@ -2104,86 +2112,174 @@ document.addEventListener("DOMContentLoaded",boot);
 </style>
 <script id="panda-ai-rich-search-script">
 (function(){
-  function validUrl(value){try{var url=value&&new URL(value,window.location.href);return url&&(url.protocol==="https:"||url.protocol==="http:")?url.href:"";}catch(error){return "";}}
+  function validUrl(value){
+    try{
+      var url=value&&new URL(value,window.location.href);
+      return url&&(url.protocol==="https:"||url.protocol==="http:")?url.href:"";
+    }catch(error){return "";}
+  }
   function textValue(value){
     if(Array.isArray(value))return value.filter(Boolean).join(" · ");
-    if(value&&typeof value==="object"){if(Array.isArray(value.weekdayDescriptions))return value.weekdayDescriptions.filter(Boolean).join(" · ");if(typeof value.text==="string")return value.text;}
+    if(value&&typeof value==="object"){
+      if(Array.isArray(value.weekdayDescriptions))return value.weekdayDescriptions.filter(Boolean).join(" · ");
+      if(typeof value.text==="string")return value.text;
+    }
     return value==null?"":String(value);
   }
+   function todayHours(value){
+     var list=Array.isArray(value)?value:(value&&Array.isArray(value.weekdayDescriptions)?value.weekdayDescriptions:[]);
+     if(list.length){
+       var index=(new Date().getDay()+6)%7;
+       return String(list[index]||list[0]||"").replace(/^[^:]+:\s*/,"").trim();
+     }
+     return textValue(value);
+   }
+   function closingLabel(value){
+     var text=todayHours(value);
+     if(!text||/closed/i.test(text))return "";
+     if(/24\s*hours/i.test(text))return "Open 24 hours";
+     var match=text.match(/(?:–|—|-)\s*(.+)$/);
+     return match?"Closes "+match[1]+" today":"Today: "+text;
+   }
   function richVenue(venue){
     venue=venue||{};
     var address=venue.fullAddress||venue.formattedAddress||venue.address||venue.area||"";
-    var directions=validUrl(venue.directionsLink||venue.directionsUrl||venue.mapsUri)||("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((venue.name||"Venue")+" "+address));
-    var menu=validUrl(venue.menuLink||venue.menuUrl||venue.menuUri||venue.website)||("https://www.google.com/search?q="+encodeURIComponent((venue.name||"Venue")+" menu"));
-    var hours=textValue(venue.openingHours||venue.hours||venue.regularOpeningHours)||"Hours available on Google";
+    var directions=validUrl(venue.directionsLink||venue.directionsUrl||venue.mapsUri);
+    if(!directions)directions="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((venue.name||"Venue")+" "+address);
+    var menu=validUrl(venue.menuLink||venue.menuUrl||venue.menuUri||venue.website);
+    if(!menu)menu="https://www.google.com/search?q="+encodeURIComponent((venue.name||"Venue")+" menu");
+     var hours=todayHours(venue.openingHours||venue.hours||venue.regularOpeningHours);
+     var closing=closingLabel(venue.openingHours||venue.hours||venue.regularOpeningHours);
     var open=typeof venue.isOpenNow==="boolean"?venue.isOpenNow:venue.openNow;
     var searchable=[venue.name,venue.type,venue.primaryType,venue.tags,venue.description,venue.summary].filter(Boolean).join(" ").toLowerCase();
     var hasMusic=venue.hasMusic===true||venue.musicBadge||/\b(night[_ ]club|live music|dj|music|bar)\b/i.test(searchable);
-    return {venue:venue,directions:directions,menu:menu,hours:hours,open:open,hasMusic:hasMusic,musicBadge:venue.musicBadge||"🎵 Live Music / DJ"};
+     return {venue:venue,address:address,directions:directions,menu:menu,hours:hours,closing:closing,open:open,hasMusic:hasMusic,musicBadge:venue.musicBadge||"🎵 Live Music / DJ"};
   }
-  function isThemedQuery(query){return /\b(pub crawl|crawl|cozy|cosy|cheap|expensive|christmas|theme|live music|dj|music)\b/i.test(String(query||""));}
+  function isThemedQuery(query){
+    return /\b(pub crawl|crawl|cozy|cosy|cheap|expensive|christmas|theme|live music|dj|music)\b/i.test(String(query||""));
+  }
   function themedVenues(venues,query){
     venues=Array.isArray(venues)?venues:[];
     venues.forEach(function(venue){if(venue)venue.__pandaAi=true;});
-    if(!isThemedQuery(query))return venues.slice(0,20).map(richVenue);
+    if(!isThemedQuery(query))return venues.slice(0,20).map(function(v){return richVenue(v);});
     var terms=String(query||"").toLowerCase().split(/[^a-z0-9]+/).filter(function(term){return term.length>2&&!/^(find|some|somewhere|with|near|please|want|give|me|for|the|and|pub|crawl)$/.test(term);});
-    var matched=venues.filter(function(v){var hay=[v&&v.name,v&&v.tags,v&&v.description,v&&v.summary,v&&v.type].filter(Boolean).join(" ").toLowerCase();return terms.some(function(term){return hay.indexOf(term)>=0;})||(/\b(live music|dj|music)\b/i.test(String(query||""))&&richVenue(v).hasMusic);});
-    return (matched.length?matched:venues).slice(0,6).map(function(v,index){var result=richVenue(v);result.stopNumber=index+1;return result;});
+    var matched=venues.filter(function(v){
+      var hay=[v&&v.name,v&&v.tags,v&&v.description,v&&v.summary,v&&v.type].filter(Boolean).join(" ").toLowerCase();
+      return terms.some(function(term){return hay.indexOf(term)>=0;})||(/\b(live music|dj|music)\b/i.test(String(query||""))&&richVenue(v).hasMusic);
+    });
+    var selected=(matched.length?matched:venues).slice(0,6);
+    return selected.map(function(v,index){
+      var result=richVenue(v);
+      result.stopNumber=index+1;
+      return result;
+    });
   }
   function cardHtml(item,index){
-    var v=item.venue,badges=[];
-    if(item.stopNumber)badges.push('<span class="cv-rich-badge">Stop '+item.stopNumber+'</span>');
-    if(item.open===true)badges.push('<span class="cv-rich-badge">Open now</span>');else if(item.open===false)badges.push('<span class="cv-rich-badge">Closed now</span>');
-    if(item.hasMusic)badges.push('<span class="cv-rich-badge music">'+esc(item.musicBadge)+'</span>');
-    badges.push('<span class="cv-rich-badge">'+esc(item.hours)+'</span>');
-    return '<div class="cvcard" data-v="'+index+'"><div class="vphoto">'+ph(v,400)+'</div><div class="cvb"><div class="cvn">'+esc(v.name)+'</div><div class="cvm">'+(v.rating?'★ '+v.rating:'')+(v.distanceMeters!=null?' · '+fmtDist(v.distanceMeters):'')+(v.price?' · '+esc(v.price):'')+'</div><div class="cv-rich-meta">'+badges.join("")+'</div><div class="cv-actions"><a href="'+esc(item.directions)+'" target="_blank" rel="noopener">Directions</a><a class="secondary" href="'+esc(item.menu)+'" target="_blank" rel="noopener">Menu</a></div></div></div>';
+    var v=item.venue,r=item;
+    var badges=[];
+    if(r.stopNumber)badges.push('<span class="cv-rich-badge">Stop '+r.stopNumber+'</span>');
+    if(r.open===true)badges.push('<span class="cv-rich-badge">Open now</span>');
+    else if(r.open===false)badges.push('<span class="cv-rich-badge">Closed now</span>');
+    if(r.hasMusic)badges.push('<span class="cv-rich-badge music">'+esc(r.musicBadge)+'</span>');
+     if(r.closing)badges.push('<span class="cv-rich-badge closing">'+esc(r.closing)+'</span>');
+    return '<div class="cvcard" data-v="'+index+'"><div class="vphoto">'+ph(v,400)+'</div><div class="cvb"><div class="cvn">'+esc(v.name)+'</div><div class="cvm">'+(v.rating?'★ '+v.rating:'')+(v.distanceMeters!=null?' · '+fmtDist(v.distanceMeters):'')+(v.price?' · '+esc(v.price):'')+'</div><div class="cv-rich-meta">'+badges.join("")+'</div><div class="cv-actions"><a href="'+esc(r.directions)+'" target="_blank" rel="noopener">Directions</a><a class="secondary" href="'+esc(r.menu)+'" target="_blank" rel="noopener">Menu</a></div></div></div>';
   }
   function renderRichMessages(){
     var box=$("#msgs");
-    box.innerHTML=history.map(function(m,mi){if(m.role==="me")return '<div class="row me"><div class="bubble">'+esc(m.text)+'</div></div>';var previous=history[mi-1],query=m.query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(m.venues,query),cards=items.length?'<div class="chat-rail" data-mi="'+mi+'">'+items.map(cardHtml).join("")+'</div>':"";return '<div class="row ai"><div style="max-width:100%"><div class="bubble">'+esc(m.text)+'</div>'+cards+'</div></div>';}).join("");
-    $$(".chat-rail").forEach(function(rail){var mi=+rail.dataset.mi;rail.addEventListener("click",function(event){if(event.target.closest("a"))return;var b=event.target.closest(".cvcard"),previous=history[mi-1],query=history[mi].query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(history[mi].venues,query);if(b&&items[+b.dataset.v])openSheet(items[+b.dataset.v].venue);});});
+    box.innerHTML=history.map(function(m,mi){
+      if(m.role==="me")return '<div class="row me"><div class="bubble">'+esc(m.text)+'</div></div>';
+      var previous=history[mi-1],query=m.query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(m.venues,query);
+      var cards=items.length?'<div class="chat-rail" data-mi="'+mi+'">'+items.map(cardHtml).join("")+'</div>':"";
+      return '<div class="row ai"><div style="max-width:100%"><div class="bubble">'+esc(m.text)+'</div>'+cards+'</div></div>';
+    }).join("");
+    $$(".chat-rail").forEach(function(rail){
+      var mi=+rail.dataset.mi;
+      rail.addEventListener("click",function(event){
+        if(event.target.closest("a"))return;
+        var b=event.target.closest(".cvcard"),previous=history[mi-1],query=history[mi].query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(history[mi].venues,query);
+        if(b&&items[+b.dataset.v])openSheet(items[+b.dataset.v].venue);
+      });
+    });
     box.scrollTop=box.scrollHeight;
   }
-  if(typeof window.renderMsgs==="function"){window.renderMsgs=renderRichMessages;try{renderMsgs=renderRichMessages;}catch(error){}}
+  if(typeof window.renderMsgs==="function"){
+    window.renderMsgs=renderRichMessages;
+    try{renderMsgs=renderRichMessages;}catch(error){}
+  }
   var originalFetch=window.fetch;
   window.fetch=function(input,init){
     var url=typeof input==="string"?input:(input&&input.url)||"";
-    if(init&&typeof init.body==="string"&&url.indexOf("/api/panda-ai")>=0){try{var payload=JSON.parse(init.body);payload.globalSearch=true;payload.richMetadata=true;payload.clientCapabilities={openingHours:true,directionsLink:true,menuLink:true,musicBadge:true,themedCrawl:true,maxCards:6};payload.searchLocation=payload.location||null;init=Object.assign({},init,{body:JSON.stringify(payload)});}catch(error){}}
+    if(init&&typeof init.body==="string"&&url.indexOf("/api/panda-ai")>=0){
+      try{
+        var payload=JSON.parse(init.body);
+        payload.globalSearch=true;
+        payload.richMetadata=true;
+        payload.clientCapabilities={openingHours:true,directionsLink:true,menuLink:true,musicBadge:true,themedCrawl:true,maxCards:6};
+        payload.searchLocation=payload.location||null;
+        init=Object.assign({},init,{body:JSON.stringify(payload)});
+      }catch(error){}
+    }
     return originalFetch.call(this,input,init);
   };
   if(Array.isArray(CATEGORIES)){
     var dinnerIndex=CATEGORIES.findIndex(function(category){return category.label==="Dinner";});
-    if(!CATEGORIES.some(function(category){return category.label==="Meat";})){var additions=[{label:"Meat",em:"🥩",q:"meat steak restaurants"},{label:"Meat & Bar",em:"🥩🍸",q:"meat and cocktail bars"}];CATEGORIES.splice(dinnerIndex<0?CATEGORIES.length:dinnerIndex,0,additions[0],additions[1]);if(CAT_TIME){CAT_TIME.morning.push("Meat");CAT_TIME.midday.push("Meat");CAT_TIME.evening.push("Meat","Meat & Bar");CAT_TIME.late.push("Meat & Bar");}}
+    if(!CATEGORIES.some(function(category){return category.label==="Meat";})){
+      var additions=[{label:"Meat",em:"🥩",q:"meat steak restaurants"},{label:"Meat & Bar",em:"🥩🍸",q:"meat and cocktail bars"}];
+      CATEGORIES.splice(dinnerIndex<0?CATEGORIES.length:dinnerIndex,0,additions[0],additions[1]);
+      if(CAT_TIME){CAT_TIME.morning.push("Meat");CAT_TIME.midday.push("Meat");CAT_TIME.evening.push("Meat","Meat & Bar");CAT_TIME.late.push("Meat & Bar");}
+    }
   }
   function addRichDetail(venue){
     if(!venue||venue.__pandaAi!==true)return;
     var sheet=$("#sheet"),body=sheet&&sheet.querySelector(".sbody");if(!body)return;
-    var item=richVenue(venue),existing=body.querySelector(".panda-ai-rich-detail");if(existing)existing.remove();
+    var r=richVenue(venue),existing=body.querySelector(".panda-ai-rich-detail");
+    if(existing)existing.remove();
     var detail=document.createElement("div");detail.className="panda-ai-rich-detail";
-    var hoursRow=document.createElement("div");hoursRow.className="panda-ai-rich-detail-row";hoursRow.innerHTML="<span>🕒</span><span>"+esc(item.hours+(item.open===true?" · Open now":item.open===false?" · Closed now":""))+"</span>";detail.appendChild(hoursRow);
-    if(item.hasMusic){var musicRow=document.createElement("div");musicRow.className="panda-ai-rich-detail-row";musicRow.innerHTML='<span class="music">🎵</span><span class="music">'+esc(item.musicBadge)+"</span>";detail.appendChild(musicRow);}
+     var detailHours=(r.open===true?"Open now":r.open===false?"Closed now":"");if(r.closing)detailHours+=(detailHours?" · ":"")+r.closing;else if(!detailHours&&r.hours)detailHours=r.hours;if(detailHours){var hoursRow=document.createElement("div");hoursRow.className="panda-ai-rich-detail-row";hoursRow.innerHTML="<span>🕒</span><span>"+esc(detailHours)+"</span>";detail.appendChild(hoursRow);}
+    if(r.hasMusic){var musicRow=document.createElement("div");musicRow.className="panda-ai-rich-detail-row";musicRow.innerHTML='<span class="music">🎵</span><span class="music">'+esc(r.musicBadge)+"</span>";detail.appendChild(musicRow);}
     var actions=body.querySelector(".actions");
-    if(actions){
-      var directions=actions.querySelector("[data-panda-ai-directions]"),menu=actions.querySelector("[data-panda-ai-menu]");
-      if(!directions){directions=document.createElement("a");directions.className="act ghost";directions.dataset.pandaAiDirections="1";directions.target="_blank";directions.rel="noopener";directions.textContent="Directions";actions.appendChild(directions);}directions.href=item.directions;
-      if(!menu){menu=document.createElement("a");menu.className="act primary";menu.dataset.pandaAiMenu="1";menu.target="_blank";menu.rel="noopener";menu.textContent="View menu";actions.insertBefore(menu,actions.firstChild);}menu.href=item.menu;
+    if(actions){var directions=actions.querySelector("[data-panda-ai-directions]"),menu=actions.querySelector("[data-panda-ai-menu]");
+      if(!directions){directions=document.createElement("a");directions.className="act ghost";directions.dataset.pandaAiDirections="1";directions.target="_blank";directions.rel="noopener";directions.textContent="Directions";actions.appendChild(directions);}
+      directions.href=r.directions;
+      if(!menu){menu=document.createElement("a");menu.className="act primary";menu.dataset.pandaAiMenu="1";menu.target="_blank";menu.rel="noopener";menu.textContent="View menu";actions.insertBefore(menu,actions.firstChild);}
+      menu.href=r.menu;
     }
     if(actions)body.insertBefore(detail,actions);else body.appendChild(detail);
   }
   var originalOpenSheet=window.openSheet;
-  if(typeof originalOpenSheet==="function"){window.openSheet=function(venue){var result=originalOpenSheet.apply(this,arguments);window.setTimeout(function(){addRichDetail(venue);},0);return result;};try{openSheet=window.openSheet;}catch(error){}}
-  function returnToPlannerResults(){var back=$("#plannerMapBack");if(back)back.hidden=true;pendingPlanRoute=false;showScreen("home");if(DATA&&DATA.plan&&DATA.plan.length){$("#planSheet").classList.add("open");$("#planSheet").setAttribute("aria-hidden","false");$("#scrim").classList.add("show");}}
+  if(typeof originalOpenSheet==="function"){
+    window.openSheet=function(venue){var result=originalOpenSheet.apply(this,arguments);window.setTimeout(function(){addRichDetail(venue);},0);return result;};
+    try{openSheet=window.openSheet;}catch(error){}
+  }
+  function returnToPlannerResults(){
+    var back=$("#plannerMapBack");if(back)back.hidden=true;
+    pendingPlanRoute=false;
+    showScreen("home");
+    if(DATA&&DATA.plan&&DATA.plan.length){
+      $("#planSheet").hidden=false;
+      $("#planSheet").classList.add("open");
+      $("#planSheet").setAttribute("aria-hidden","false");
+      $("#scrim").classList.add("show");
+    }
+  }
   window.returnToPlannerResults=returnToPlannerResults;
   document.addEventListener("click",function(event){
     var planButton=event.target.closest&&event.target.closest("#planMap");
-    if(planButton){event.preventDefault();event.stopImmediatePropagation();if(!DATA.plan||!DATA.plan.length)return;closePlan();pendingPlanRoute=true;var back=$("#plannerMapBack");if(back)back.hidden=false;showScreen("map");return;}
-    var backButton=event.target.closest&&event.target.closest("#plannerMapBack");if(backButton){event.preventDefault();event.stopImmediatePropagation();returnToPlannerResults();}
+    if(planButton){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(!DATA.plan||!DATA.plan.length)return;
+      closePlan();pendingPlanRoute=true;
+      var back=$("#plannerMapBack");if(back)back.hidden=false;
+      showScreen("map");
+      return;
+    }
+    var backButton=event.target.closest&&event.target.closest("#plannerMapBack");
+    if(backButton){event.preventDefault();event.stopImmediatePropagation();returnToPlannerResults();}
   },true);
 })();
 </script>
 </body>
 </html>
-
 
 
 
