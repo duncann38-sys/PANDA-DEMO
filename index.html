@@ -1,4 +1,4 @@
-<!doctype html>
+so c<!doctype html>
 <html lang="en" translate="no">
 <head>
 <meta charset="utf-8" />
@@ -1114,6 +1114,39 @@ function sk(el,n,wide){el.innerHTML=Array.from({length:n}).map(()=>'<div class="
 let homeQuery="",homeToken=null,homeLoading=false,homeRaw=[];
 function wireDropdown(id,cb){const dd=$("#"+id);if(!dd)return;const btn=dd.querySelector(".dd-btn");btn.addEventListener("click",e=>{e.stopPropagation();document.querySelectorAll(".dd.open").forEach(o=>{if(o!==dd)o.classList.remove("open");});dd.classList.toggle("open");});dd.querySelectorAll(".dd-menu button").forEach(b=>{b.addEventListener("click",e=>{e.stopPropagation();dd.dataset.val=b.dataset.v;btn.firstChild.textContent=b.textContent+" ";dd.querySelectorAll(".dd-menu button").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");dd.classList.remove("open");cb&&cb();});});}
 document.addEventListener("click",()=>{document.querySelectorAll(".dd.open").forEach(o=>o.classList.remove("open"));});
+const SUGGESTION_WALK_CATCHMENT_M=3200;
+const BANGING_WALK_CATCHMENT_M=2400;
+function venueDistance(v){
+  if(!v)return Infinity;
+  if(COORDS&&v.lat!=null&&v.lng!=null){
+    const lat=Number(v.lat),lng=Number(v.lng);
+    if(Number.isFinite(lat)&&Number.isFinite(lng))v.distanceMeters=haversine(COORDS.lat,COORDS.lng,lat,lng);
+  }
+  const distance=Number(v.distanceMeters);
+  return Number.isFinite(distance)?distance:Infinity;
+}
+function compareVenueQuality(a,b){
+  const ar=Number(a&&a.rating)||0,br=Number(b&&b.rating)||0;
+  return br-ar||(Number(b&&b.ratingCount)||0)-(Number(a&&a.ratingCount)||0)||venueDistance(a)-venueDistance(b);
+}
+function bangingQualityTier(v){
+  const rating=Number(v&&v.rating)||0;
+  return rating>=4.95?0:rating>=4?1:2;
+}
+function compareBangingQuality(a,b){
+  return bangingQualityTier(a)-bangingQualityTier(b)||venueDistance(a)-venueDistance(b)||compareVenueQuality(a,b);
+}
+function rankSuggestions(list,preferRating){
+  const local=[],wider=[];
+  (list||[]).forEach(v=>(venueDistance(v)<=SUGGESTION_WALK_CATCHMENT_M?local:wider).push(v));
+  const localCompare=preferRating?compareVenueQuality:(a,b)=>venueDistance(a)-venueDistance(b)||compareVenueQuality(a,b);
+  return local.sort(localCompare).concat(wider.sort(compareVenueQuality));
+}
+function rankBangingFeed(list){
+  const local=[],wider=[];
+  (list||[]).forEach(v=>(venueDistance(v)<=BANGING_WALK_CATCHMENT_M?local:wider).push(v));
+  return local.sort(compareBangingQuality).concat(wider.sort(compareBangingQuality));
+}
 function interleaveSponsored(list){
   const spon=[],organic=[];
   list.forEach(x=>{const t=sponsorEligible(x);x.__sponsor=t;(t?spon:organic).push(x);});
@@ -1126,8 +1159,21 @@ function interleaveSponsored(list){
   while(si<spon.length) out.push(spon[si++]);
   return out;
 }
-function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length)await loadTrendOrganic();}
+function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;v=rankSuggestions(v,sort==="rating");v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
+async function refreshHome(){
+  const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";
+  homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);
+  const first=await fetchVenuesPaged(homeQuery,null);mergeHome(first.venues);homeToken=first.nextPageToken;
+  if(homeToken){
+    const second=await fetchVenuesPaged(homeQuery,homeToken);mergeHome(second.venues);homeToken=second.nextPageToken;
+  }
+  if(COORDS){
+    const nearby=await Promise.all(ringCenters(1.6).map(c=>fetchVenuesAt(homeQuery,c.lat,c.lng)));
+    mergeHome([].concat.apply([],nearby));ringStage=1;
+  }
+  applyHomeFilters();
+  await loadTrendOrganic();
+}
 let TREND_ORGANIC=[];
 const BANGING_ROW_LIMIT=35;
 const BANGING_PREMIUM_INTERVAL=5;
@@ -1154,7 +1200,7 @@ async function loadTrendOrganic(){
     ]);
     extras.forEach(result=>mergeTrendVenues(venues,result.venues));
   }
-  TREND_ORGANIC=venues.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));
+  TREND_ORGANIC=rankBangingFeed(venues);
   renderTrend();
 }
 function editorialDaySeed(){return new Date().toISOString().slice(0,10);}
@@ -1176,41 +1222,26 @@ function bangingRotationContext(){
   return {deviceId:deviceId,number:Number(session.number)||1,day:editorialDaySeed()};
 }
 function getRotatedBangingCards(localVenues,neighboringVenues){
-  const seen=new Set(),pool=[];
-  (localVenues||[]).concat(neighboringVenues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);pool.push(v);});
-  if(pool.length<2)return pool;
+  const seen=new Set(),buckets=[[],[],[],[],[],[]];
+  (localVenues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);buckets[bangingQualityTier(v)].push(v);});
+  (neighboringVenues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);buckets[3+bangingQualityTier(v)].push(v);});
   const context=bangingRotationContext();
   const seed=context.day+"|"+context.deviceId;
-  pool.sort((a,b)=>bangingRating(b)-bangingRating(a)||(Number(b&&b.ratingCount)||0)-(Number(a&&a.ratingCount)||0)||venueEditorialHash(a,seed)-venueEditorialHash(b,seed));
-  const poolKey=editorialHash(pool.map(editorialVenueId).sort().join("|"));
-  const sessionOffsetKey="panda_banging_order_v3_"+poolKey;
-  const storedOffset=store.get(sessionOffsetKey);
-  let offset=storedOffset==null?NaN:Number(storedOffset);
-  if(!Number.isInteger(offset)){
-    const state=store.lget(BANGING_ROTATION_STATE_KEY)||{};
-    const recent=Array.isArray(state.recentOrders)?state.recentOrders.slice(-3):[];
-    offset=(editorialHash(seed)+(context.number-1)*BANGING_PREMIUM_SLOTS)%pool.length;
-    for(let attempt=0;attempt<pool.length;attempt++){
-      const candidate=pool.slice(offset).concat(pool.slice(0,offset));
-      const signature=candidate.slice(0,BANGING_PREMIUM_SLOTS).map(editorialVenueId).join("|");
-      if(!recent.includes(signature)||pool.length===1)break;
-      offset=(offset+1)%pool.length;
-    }
-    const rotated=pool.slice(offset).concat(pool.slice(0,offset));
-    const signature=rotated.slice(0,BANGING_PREMIUM_SLOTS).map(editorialVenueId).join("|");
-    store.set(sessionOffsetKey,offset);
-    store.lset(BANGING_ROTATION_STATE_KEY,Object.assign({},state,{sessionNumber:context.number,recentOrders:recent.concat(signature).slice(-3)}));
-  }
-  return pool.slice(offset).concat(pool.slice(0,offset));
+  return [].concat.apply([],buckets.map((bucket,index)=>{
+    bucket.sort((a,b)=>venueDistance(a)-venueDistance(b)||(Number(b&&b.ratingCount)||0)-(Number(a&&a.ratingCount)||0)||venueEditorialHash(a,seed)-venueEditorialHash(b,seed));
+    if(bucket.length<2)return bucket;
+    const offset=(editorialHash(seed+"|"+index)+(context.number-1))%bucket.length;
+    return bucket.slice(offset).concat(bucket.slice(0,offset));
+  }));
 }
 function renderTrend(){
-  let organic=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
+  let organic=rankBangingFeed(TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging"));
   // Banging venues come from the directly-fetched sponsored list. Rotate real
   // Premium venues daily; never synthesize cards without a real venue identity.
   const bang=(BANGING_VENUES&&BANGING_VENUES.length?BANGING_VENUES.slice():(homeRaw||[]).filter(x=>sponsorTier(x)==="banging"));
   bang.forEach(x=>x.__sponsor="banging");
-  const localBang=bang.filter(v=>v.distanceMeters==null||v.distanceMeters<=3200);
-  const neighboringBang=bang.filter(v=>v.distanceMeters!=null&&v.distanceMeters>3200);
+  const localBang=bang.filter(v=>venueDistance(v)<=BANGING_WALK_CATCHMENT_M);
+  const neighboringBang=bang.filter(v=>venueDistance(v)>BANGING_WALK_CATCHMENT_M);
   const premium=getRotatedBangingCards(localBang,neighboringBang);
   const t=[];let bi=0,oi=0;
   while(t.length<BANGING_ROW_LIMIT&&(oi<organic.length||bi<premium.length)){
