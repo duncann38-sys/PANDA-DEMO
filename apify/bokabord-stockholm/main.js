@@ -122,25 +122,42 @@ try {
         }
       : undefined,
   });
-  const page = await browser.newPage({ locale: "sv-SE" });
-  page.setDefaultTimeout(30_000);
-
   const venues = [];
   const seen = new Set();
   let fullPageSize = 0;
   for (let pageNumber = 1; pageNumber <= maxPages; pageNumber += 1) {
-    const response = await page.goto(listingPageUrl(startUrl, pageNumber), {
-      waitUntil: "domcontentloaded",
-      timeout: 60_000,
-    });
-    if (!response?.ok()) {
-      throw new Error(
-        `Bokabord page ${pageNumber} returned ${response?.status() || "no response"}.`,
-      );
+    let pageVenues;
+    let lastError;
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const page = await browser.newPage({ locale: "sv-SE" });
+      page.setDefaultTimeout(30_000);
+      try {
+        const response = await page.goto(
+          listingPageUrl(startUrl, pageNumber),
+          {
+            waitUntil: "domcontentloaded",
+            timeout: 60_000,
+          },
+        );
+        if (!response?.ok()) {
+          throw new Error(
+            `Bokabord page ${pageNumber} returned ${response?.status() || "no response"}.`,
+          );
+        }
+        await page.waitForSelector(CARD_SELECTOR);
+        await page.waitForTimeout(500);
+        pageVenues = await extractListings(page);
+        break;
+      } catch (error) {
+        lastError = error;
+        console.warn(
+          `Bokabord page ${pageNumber} attempt ${attempt} failed: ${error.message}`,
+        );
+      } finally {
+        await page.close().catch(() => {});
+      }
     }
-    await page.waitForSelector(CARD_SELECTOR);
-    await page.waitForTimeout(500);
-    const pageVenues = await extractListings(page);
+    if (!pageVenues) throw lastError;
     if (pageNumber === 1) fullPageSize = pageVenues.length;
     let added = 0;
     for (const venue of pageVenues) {
