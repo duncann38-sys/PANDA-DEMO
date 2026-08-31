@@ -1008,7 +1008,8 @@ function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll(
 function applySponsored(data){
   SPONSORED={};SPONSORED_BYNAME={};BANGING_LIST=[];BANGING_VENUES=[];
   const list=Array.isArray(data)?data:(data&&data.venues?data.venues:[]);
-  list.forEach(o=>{ if(!o)return; const tier=String(o.tier||o.sponsor_tier||"discovery").trim().toLowerCase(); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[rtext(o.name)]=tier; if(tier==="banging"&&o.name){ BANGING_LIST.push({name:o.name, place_id:id||null}); } });
+  const bangingSeen=new Set();
+  list.forEach(o=>{ if(!o)return; const tier=String(o.tier||o.sponsor_tier||"discovery").trim().toLowerCase(); const id=o.place_id||o.google_place_id||o.id; if(id)SPONSORED[id]=tier; if(o.name)SPONSORED_BYNAME[rtext(o.name)]=tier; if(tier==="banging"&&o.name){ const key=String(id||rtext(o.name)); if(!bangingSeen.has(key)){bangingSeen.add(key);BANGING_LIST.push({name:o.name,place_id:id||null,lat:o.lat??o.latitude??null,lng:o.lng??o.longitude??null,city:o.city||null,area:o.area||null});} } });
   fetchBangingVenues();
   if(typeof homeRaw!=="undefined" && homeRaw && homeRaw.length) applyHomeFilters();
   if(typeof TREND_ORGANIC!=="undefined" && TREND_ORGANIC.length) renderTrend();
@@ -1016,23 +1017,68 @@ function applySponsored(data){
 // Banging venues fetched directly by name so they ALWAYS appear in the carousel,
 // regardless of whether the feed query happened to return them near the user.
 let BANGING_LIST=[], BANGING_VENUES=[];
+const BANGING_ROW_LIMIT=40;
+const BANGING_PREMIUM_VISIBLE_LIMIT=10;
+const BANGING_RESOLVE_BATCH_LIMIT=60;
+const BANGING_RESOLVE_CONCURRENCY=6;
+const BANGING_ORGANIC_TARGET=BANGING_ROW_LIMIT+BANGING_PREMIUM_VISIBLE_LIMIT;
+const BANGING_ROTATION_STATE_KEY="panda_banging_rotation_v4";
+const BANGING_VENUE_CACHE_KEY="panda_banging_venue_cache_v1";
+let BANGING_FETCH_GENERATION=0;
+function bangingAreaKey(){
+  if(!COORDS)return "global";
+  return (Math.round(COORDS.lat*50)/50).toFixed(2)+","+(Math.round(COORDS.lng*50)/50).toFixed(2);
+}
+function premiumRotationSeed(label){
+  const context=bangingRotationContext();
+  return [bangingAreaKey(),context.deviceId,context.day,context.number,label||"premium"].join("|");
+}
+function premiumRotationCohort(length,count,seed){
+  return editorialHash(seed)%Math.max(1,Math.ceil(length/Math.max(1,count)));
+}
+function selectBangingSponsorCandidates(list){
+  if(list.length<=BANGING_RESOLVE_BATCH_LIMIT)return list.slice();
+  const metadata=list.map((venue,index)=>Object.assign({id:venue.place_id||("premium-"+index),__sponsor:"banging",__source:venue},venue));
+  const seed=premiumRotationSeed("resolve");
+  const cohort=premiumRotationCohort(metadata.length,BANGING_RESOLVE_BATCH_LIMIT,seed);
+  return rotatePremiumCohort(metadata,BANGING_RESOLVE_BATCH_LIMIT,cohort,bangingAreaKey()+"|resolve").map(venue=>venue.__source||venue);
+}
+async function mapBangingConcurrent(items,worker){
+  const results=new Array(items.length);let next=0;
+  const runners=Array.from({length:Math.min(BANGING_RESOLVE_CONCURRENCY,items.length)},async()=>{
+    while(next<items.length){const index=next++;results[index]=await worker(items[index],index);}
+  });
+  await Promise.all(runners);
+  return results;
+}
+function bangingCacheKey(venue){return String(venue.place_id||rtext(venue.name)||"");}
+async function resolveBangingVenue(venue,cache){
+  const key=bangingCacheKey(venue);
+  for(let attempt=0;attempt<2;attempt++){
+    const vs=await fetchVenues(venue.name);
+    if(vs&&vs.length){
+      let hit=venue.place_id?vs.find(v=>v.id===venue.place_id)||null:null;
+      if(!hit)hit=vs.find(v=>v.name&&rtext(v.name)===rtext(venue.name))||null;
+      if(!hit)hit=vs[0]||null;
+      if(hit){cache[key]={ts:Date.now(),venue:hit};return hit;}
+    }
+    if(attempt===0)await new Promise(resolve=>setTimeout(resolve,180));
+  }
+  return cache[key]&&cache[key].venue||null;
+}
 async function fetchBangingVenues(){
-  BANGING_VENUES=[];
+  const generation=++BANGING_FETCH_GENERATION;
   if(!BANGING_LIST.length){renderTrend();return;}
   try{
-    const results=await Promise.all(BANGING_LIST.map(async b=>{
-      try{
-        const vs=await fetchVenues(b.name);
-        if(!vs||!vs.length) return null;
-        // Prefer an exact place_id match; else exact name match; else first result.
-        let hit=null;
-        if(b.place_id) hit=vs.find(v=>v.id===b.place_id)||null;
-        if(!hit) hit=vs.find(v=>v.name&&v.name.toLowerCase().trim()===b.name.toLowerCase().trim())||null;
-        if(!hit) hit=vs[0];
-        return hit||null;
-      }catch(e){ return null; }
-    }));
+    const saved=store.lget(BANGING_VENUE_CACHE_KEY);
+    const cache=saved&&saved.venues&&typeof saved.venues==="object"?saved.venues:{};
+    const candidates=selectBangingSponsorCandidates(BANGING_LIST);
+    const results=await mapBangingConcurrent(candidates,async b=>{
+      try{return await resolveBangingVenue(b,cache);}catch(e){return cache[bangingCacheKey(b)]&&cache[bangingCacheKey(b)].venue||null;}
+    });
+    if(generation!==BANGING_FETCH_GENERATION)return;
     BANGING_VENUES=results.filter(Boolean);
+    store.lset(BANGING_VENUE_CACHE_KEY,{ts:Date.now(),venues:cache});
     // recompute distance if we have coords
     if(COORDS){ BANGING_VENUES.forEach(v=>{ if(v.lat!=null&&v.lng!=null) v.distanceMeters=haversine(COORDS.lat,COORDS.lng,v.lat,v.lng); }); }
     renderTrend();
@@ -1119,7 +1165,7 @@ function resolveCity(c){
     }).catch(function(){});
 }
 function setPlannerCurrentCoords(coords){COORDS=coords;plannerState.locationMode="current";plannerState.location="";plannerState.locationCoords=coords;plannerState.resolvedLocation="";plannerState.locationLabel=CITY||"";updatePlannerFilterUi();}
-function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{setPlannerCurrentCoords({lat:p.coords.latitude,lng:p.coords.longitude});resolveCity(COORDS);refreshHome();if(map){map.setCenter({lat:COORDS.lat,lng:COORDS.lng});map.setZoom(14);loadMapVenues();}},()=>{updatePlannerFilterUi();},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
+function getLocation(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(p=>{setPlannerCurrentCoords({lat:p.coords.latitude,lng:p.coords.longitude});resolveCity(COORDS);fetchBangingVenues();refreshHome();if(map){map.setCenter({lat:COORDS.lat,lng:COORDS.lng});map.setZoom(14);loadMapVenues();}},()=>{updatePlannerFilterUi();},{enableHighAccuracy:true,timeout:8000,maximumAge:120000});}
 
 function discovery(){const h=new Date().getHours();if(h<11)return{label:"Breakfast time",q:"breakfast"};if(h<16)return{label:"Lunch spots",q:"lunch"};if(h<23)return{label:"Dinner & drinks",q:"dinner restaurants bars"};return{label:"Out out",q:"nightlife bars clubs"};}
 const CATEGORIES=[{label:"All",em:"✨",q:""},{label:"Indian",em:"🍛",q:"indian restaurants"},{label:"Italian",em:"🍝",q:"italian restaurants"},{label:"Chinese",em:"🥡",q:"chinese restaurants"},{label:"Spanish",em:"🥘",q:"spanish tapas"},{label:"French",em:"🥖",q:"french restaurants"},{label:"British",em:"🥧",q:"modern british restaurants"},{label:"Japanese",em:"🍣",q:"japanese sushi"},{label:"Mexican",em:"🌮",q:"mexican restaurants"},{label:"Turkish",em:"🥙",q:"turkish restaurants"},{label:"Pub Food",em:"🍺",q:"gastropub pub food"},{label:"American",em:"🌭",q:"american diner"},{label:"Lebanese",em:"🧆",q:"lebanese middle eastern"},{label:"Thai",em:"🍜",q:"thai restaurants"},{label:"Chicken",em:"🍗",q:"fried chicken"},{label:"Pizza",em:"🍕",q:"pizza"},{label:"Burgers",em:"🍔",q:"burger restaurants"},{label:"Dessert",em:"🍰",q:"dessert"},{label:"Coffee",em:"☕",q:"coffee shops cafe"},{label:"Breakfast",em:"🍳",q:"breakfast"},{label:"Lunch",em:"🥗",q:"lunch"},{label:"Brunch",em:"🥐",q:"brunch"},{label:"Bottomless",em:"🍾",q:"bottomless brunch"},{label:"Dinner",em:"🍽️",q:"dinner restaurants"},{label:"Drinks",em:"🍸",q:"cocktail bars wine bars"},{label:"Sports",em:"⚽",q:"sports bars showing live football"},{label:"Live Music",em:"🎵",q:"live music venues bars"},{label:"Nightlife",em:"🌙",q:"nightlife bars clubs"}];
@@ -1207,11 +1253,6 @@ async function refreshHome(){
   await loadTrendOrganic();
 }
 let TREND_ORGANIC=[];
-const BANGING_ROW_LIMIT=40;
-const BANGING_PREMIUM_INTERVAL=5;
-const BANGING_PREMIUM_SLOTS=Math.floor(BANGING_ROW_LIMIT/BANGING_PREMIUM_INTERVAL);
-const BANGING_ORGANIC_TARGET=BANGING_ROW_LIMIT+BANGING_PREMIUM_SLOTS;
-const BANGING_ROTATION_STATE_KEY="panda_banging_rotation_v3";
 function mergeTrendVenues(target,venues){
   const seen=new Set(target.map(editorialVenueId));
   (venues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);target.push(v);});
@@ -1232,7 +1273,7 @@ async function loadTrendOrganic(){
     ]);
     extras.forEach(result=>mergeTrendVenues(venues,result.venues));
   }
-  const premiumCount=Math.min(BANGING_LIST.length,BANGING_ROW_LIMIT);
+  const premiumCount=Math.min(BANGING_LIST.length,BANGING_PREMIUM_VISIBLE_LIMIT);
   const organicNeeded=Math.max(0,BANGING_ROW_LIMIT-premiumCount);
   const luxuryQueries=[
     "fine dining restaurants",
@@ -1281,23 +1322,42 @@ function bangingRotationContext(){
   }
   return {deviceId:deviceId,number:Number(session.number)||1,day:editorialDaySeed()};
 }
+function rotatePremiumCohort(venues,count,cohort,seed){
+  const seen=new Set();
+  const ordered=(venues||[]).filter(venue=>{const id=editorialVenueId(venue);if(!id||seen.has(id))return false;seen.add(id);return true;});
+  ordered.sort((a,b)=>venueEditorialHash(a,seed)-venueEditorialHash(b,seed));
+  if(ordered.length<=count)return ordered;
+  const cohortCount=Math.ceil(ordered.length/count);
+  const start=(Math.abs(Number(cohort))%cohortCount)*count;
+  const selected=ordered.slice(start,start+count);
+  if(selected.length<count)selected.push(...ordered.slice(0,count-selected.length));
+  return selected;
+}
 function getRotatedBangingCards(localVenues,neighboringVenues){
-  const seen=new Set(),buckets=[[],[],[],[],[],[]];
-  (localVenues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);buckets[bangingQualityTier(v)].push(v);});
-  (neighboringVenues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);buckets[3+bangingQualityTier(v)].push(v);});
+  const seen=new Set(),local=[],neighboring=[];
+  (localVenues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);local.push(v);});
+  (neighboringVenues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);neighboring.push(v);});
+  const count=Math.min(BANGING_PREMIUM_VISIBLE_LIMIT,local.length+neighboring.length);
+  if(!count)return[];
   const context=bangingRotationContext();
-  const seed=context.day+"|"+context.deviceId;
-  return [].concat.apply([],buckets.map((bucket,index)=>{
-    bucket.sort((a,b)=>venueDistance(a)-venueDistance(b)||(Number(b&&b.ratingCount)||0)-(Number(a&&a.ratingCount)||0)||venueEditorialHash(a,seed)-venueEditorialHash(b,seed));
-    if(bucket.length<2)return bucket;
-    const offset=(editorialHash(seed+"|"+index)+(context.number-1))%bucket.length;
-    return bucket.slice(offset).concat(bucket.slice(0,offset));
-  }));
+  const area=bangingAreaKey();
+  const seed=[area,context.deviceId,context.day,context.number].join("|");
+  let selected=[];
+  if(local.length>=count){
+    const cohort=premiumRotationCohort(local.length,count,seed+"|local");
+    selected=rotatePremiumCohort(local,count,cohort,area+"|local");
+  }else{
+    selected=local.slice();
+    const needed=count-selected.length;
+    const cohort=premiumRotationCohort(neighboring.length,needed,seed+"|wider");
+    selected.push(...rotatePremiumCohort(neighboring,needed,cohort,area+"|wider"));
+  }
+  return selected.sort(compareBangingQuality);
 }
 function assembleBangingCards(organic,premium,limit){
   const out=[];let oi=0,pi=0;
   while(out.length<limit&&(oi<organic.length||pi<premium.length)){
-    const premiumDue=(out.length+1)%BANGING_PREMIUM_INTERVAL===0&&pi<premium.length;
+    const premiumDue=pi<premium.length&&(out.length+1)>=Math.round((pi+1)*limit/premium.length);
     if(premiumDue||oi>=organic.length)out.push(premium[pi++]);
     else out.push(organic[oi++]);
   }
@@ -2478,6 +2538,8 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
+
+
 
 
 
