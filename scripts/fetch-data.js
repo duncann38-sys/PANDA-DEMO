@@ -82,12 +82,42 @@ async function run() {
       });
     }
     const outputPath = path.join(process.cwd(), 'venues.json');
-    fs.writeFileSync(outputPath, JSON.stringify(processedVenues, null, 2));
-    console.log(`\nSaved ${processedVenues.length} unique venues to ${outputPath}`);
-    if (processedVenues[0]) {
-      console.log('Sample venue:', JSON.stringify(processedVenues[0], null, 2));
-    }
-  } catch (error) {
+      let existingVenues = [];
+      try {
+        const parsed = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
+        existingVenues = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.venues) ? parsed.venues : []);
+      } catch (error) {
+        if (error.code !== 'ENOENT') console.warn('Could not read existing venues.json:', error.message);
+      }
+      const isOpenTable = venue => [venue && venue.source, venue && venue.bookingUrl, venue && venue.url]
+        .some(value => String(value || '').toLowerCase().includes('opentable'));
+      const recordKey = venue => {
+        const bookingUrl = String((venue && (venue.bookingUrl || venue.url)) || '').trim().toLowerCase().replace(/\/+$/, '');
+        if (bookingUrl) return 'url:' + bookingUrl;
+        const stableId = String((venue && (venue.id || venue.restaurantId || venue.placeId || venue.googlePlaceId)) || '').trim().toLowerCase();
+        if (stableId) return 'id:' + stableId;
+        const normal = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+        return 'name:' + normal(venue && venue.name) + '|address:' + normal(venue && venue.address);
+      };
+      const preservedVenues = existingVenues.filter(venue => !isOpenTable(venue));
+      const mergedVenues = [];
+      const mergedKeys = new Set();
+      for (const venue of [...processedVenues, ...preservedVenues]) {
+        if (!venue || !venue.name) continue;
+        const key = recordKey(venue);
+        if (mergedKeys.has(key)) continue;
+        mergedKeys.add(key);
+        mergedVenues.push(venue);
+      }
+      fs.writeFileSync(outputPath, JSON.stringify(mergedVenues, null, 2));
+      console.log(
+        '\nSaved ' + processedVenues.length + ' refreshed OpenTable venues and preserved ' +
+        preservedVenues.length + ' non-OpenTable venues (' + mergedVenues.length + ' total) to ' + outputPath
+      );
+      if (mergedVenues[0]) {
+        console.log('Sample venue:', JSON.stringify(mergedVenues[0], null, 2));
+      }
+      } catch (error) {
     console.error('Error fetching data from Apify:', error);
     process.exit(1);
   }
