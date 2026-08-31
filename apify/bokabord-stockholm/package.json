@@ -1,0 +1,13 @@
+{
+  "name": "panda-bokabord-stockholm-actor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "apify": "^3.4.5",
+    "playwright": "^1.62.1"
+  }
+}
