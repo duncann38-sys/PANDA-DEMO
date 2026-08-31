@@ -6,5 +6,8 @@ RUN npm --quiet set progress=false \
     && npm install --omit=dev --omit=optional
 
 COPY . ./
+RUN chown -R pwuser:pwuser /home/myuser
+
+USER pwuser
 
 CMD ["npm", "start", "--silent"]
