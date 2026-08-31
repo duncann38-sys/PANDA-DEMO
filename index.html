@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en" translate="no">
 <head>
@@ -885,9 +884,7 @@ const APP_SHARE_URL = "https://duncann38-sys.github.io/PANDA-DEMO/";
 const APP_SHARE_MESSAGE = APP_SHARE_TEXT+"\n\nOpen Panda: "+APP_SHARE_URL;
 const FORCE_FORM_AFTER_DAYS = 48;
 const RESERVATIONS_URL = "./venues.json";
-const PARTNER_API_BASE = /(^localhost$|^127\.0\.0\.1$|\.replit\.dev$)/.test(location.hostname)
-  ? location.origin
-  : "https://www.pandaindustry.co";
+const PARTNER_API_BASE = "https://panda-partners-api.vercel.app";
 const SPONSORED_URL = PARTNER_API_BASE + "/api/public/sponsored-venues";
 const STATIC_SPONSORED_URL = "./sponsored.json";
 const SPONSORED_TTL_MIN = 8;
@@ -1013,7 +1010,7 @@ async function fetchBangingVenues(){
 }
 async function loadSponsored(){
   try{
-    const c=store.lget("panda_sponsored_cache_v2");
+    const c=store.lget("panda_sponsored_cache_v3");
     if(c && (Date.now()-c.ts)<SPONSORED_TTL_MIN*60000){ applySponsored(c.data); return; }
     let data=null;
     try{
@@ -1025,7 +1022,7 @@ async function loadSponsored(){
       if(!fallback.ok) return;
       data=await fallback.json();
     }
-    store.lset("panda_sponsored_cache_v2",{ts:Date.now(),data});
+    store.lset("panda_sponsored_cache_v3",{ts:Date.now(),data});
     applySponsored(data);
   }catch(e){}
 }
@@ -1132,17 +1129,17 @@ function interleaveSponsored(list){
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
 async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
 let TREND_ORGANIC=[];
- function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
- function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
- function getRotatedBangingCards(localVenues,neighboringVenues){
+function editorialDaySeed(){const todaySeed=new Date().toISOString().slice(0,10);let seedNumber=0;for(let i=0;i<todaySeed.length;i++)seedNumber+=todaySeed.charCodeAt(i);return seedNumber;}
+function venueEditorialHash(v,seed){return String(v&&v.id||v&&v.name||"").split("").reduce((acc,char)=>acc+char.charCodeAt(0),0)+seed;}
+function getRotatedBangingCards(localVenues,neighboringVenues){
   const eliteLocal=(localVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const eliteNeighbors=(neighboringVenues||[]).filter(v=>Number(v&&v.rating)>=4);
   const seen=new Set(),pool=[];
   eliteLocal.concat(eliteNeighbors).forEach(v=>{const id=venuePlaceId(v)||v.name;if(!id||seen.has(id))return;seen.add(id);pool.push(v);});
   const seed=editorialDaySeed();
   return pool.sort((a,b)=>venueEditorialHash(a,seed)%100-venueEditorialHash(b,seed)%100);
- }
- function renderTrend(){
+}
+function renderTrend(){
   let organic=TREND_ORGANIC.slice().filter(x=>sponsorTier(x)!=="banging");
   // Banging venues come from the directly-fetched sponsored list. Rotate real
   // Premium venues daily; never synthesize cards without a real venue identity.
@@ -1162,7 +1159,7 @@ let TREND_ORGANIC=[];
   DATA.trend=t;
   $("#trendList").innerHTML=t.slice(0,30).map((x,i)=>railCard(x,i,"trend")).join('');
   observeSponsored();
- }
+}
 let ringStage=0;const RING_KM=[1.6,3.2,4.8];
 function ringCenters(km){const c=[];if(!COORDS)return c;const dLat=km/111;const dLng=km/(111*Math.cos(COORDS.lat*Math.PI/180));for(let a=0;a<360;a+=60){const r=a*Math.PI/180;c.push({lat:COORDS.lat+dLat*Math.sin(r),lng:COORDS.lng+dLng*Math.cos(r)});}return c;}
 async function fetchVenuesAt(q,lat,lng){try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({venuesOnly:true,query:q||"restaurants",location:{lat,lng}})});if(!r.ok)return[];const d=await r.json();return d.venues||[];}catch(e){return[];}}
@@ -1236,7 +1233,7 @@ let mapCardVenue=null;
 function mapDirectionsUrl(v){
   const raw=v&&(v.directionsLink||v.mapsUri);
   try{const url=raw&&new URL(raw,window.location.href);if(url&&(url.protocol==="http:"||url.protocol==="https:"))return url.href;}catch(e){}
-  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(((v&&v.name)||"Venue")+" "+((v&&v.fullAddress)||(v&&v.address)||""));
+  return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(((v&&v.name)||"Venue")+" "+((v&&v.fullAddress)|| (v&&v.address)||""));
 }
 function plannerWalkingDirectionsUrl(v){
   const name=(v&&v.name)||"Venue",address=(v&&v.fullAddress)||(v&&v.address)||"";
@@ -1358,8 +1355,7 @@ function loadProfile(){const p=store.lget("panda_profile")||{};
 function saveProfile(){/* replaced by edit-sheet flow */}
 
 let plannerDetailReturn=false;
-document.addEventListener("click",function(event){plannerDetailReturn=!!(event.target&&event.target.closest&&event.target.closest('.lcard[data-src="plan"]')&&!event.target.closest(".heart,.planner-walk-link"));},true);
-function openSheet(v){if(!v)return;closePlan();$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View official website &amp; menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
+ function openSheet(v){if(!v)return;plannerDetailReturn=$("#planSheet").classList.contains("open");closePlan();$("#mapCard").classList.remove("show");const bigOpen=v.openNow===true?'<span class="pill open">● Open now</span>':v.openNow===false?'<span class="pill closed">● Closed</span>':'';const r=resFor(v);let resv="";if(r&&r.slots&&r.slots.length){resv='<div class="resv"><h4>Book a table today</h4><div class="slots">'+r.slots.slice(0,6).map(s=>'<a class="slot" href="'+esc(s.url||r.bookingUrl||"#")+'" target="_blank" rel="noopener">'+esc(s.time)+'</a>').join('')+'</div></div>';}const menuHref=(r&&r.menuUrl)?r.menuUrl:v.website;const s=$("#sheet");s.innerHTML='<div class="hero">'+(v.photoName?'<img decoding="async" src="'+PHOTO_URL(v.photoName,1200)+'" alt="'+esc(v.name)+'" onerror="this.style.display=\'none\'"/>':'<div class="ph-init">'+esc((v.name||"?").charAt(0))+'</div>')+'<div class="grip"></div><button class="closeX" id="sheetX"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>'+(v.photoAttribution?'<div class="attr">Photo: '+esc(v.photoAttribution)+'</div>':'')+'</div><div class="sbody"><h3>'+esc(v.name)+'</h3><div class="smeta">'+(v.rating?'<span class="pill">★ '+v.rating+(v.ratingCount?' ('+v.ratingCount+')':'')+'</span>':'')+(v.price?'<span class="pill">'+esc(v.price)+'</span>':'')+(v.type?'<span class="pill">'+esc(v.type)+'</span>':'')+bigOpen+(v.distanceMeters!=null?'<span class="pill">'+fmtWalk(v.distanceMeters)+'</span>':'')+'</div>'+(v.fullAddress?'<div class="saddr"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>'+esc(v.fullAddress)+'</span></div>':'')+resv+'<div class="actions">'+((r&&r.bookingUrl)?'<a class="act book" href="'+esc(r.bookingUrl)+'" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>Book on OpenTable</a>':'')+'<a class="act primary" '+(menuHref?'href="'+esc(menuHref)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>View menu</a><a class="act ghost" '+(v.mapsUri?'href="'+esc(v.mapsUri)+'" target="_blank" rel="noopener"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Directions</a><a class="act ghost" '+(v.phone?'href="tel:'+esc(v.phone.replace(/\s/g,""))+'"':'hidden')+'><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-3 2a12 12 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>Call</a></div></div>';$("#scrim").classList.add("show");s.classList.add("open");$("#sheetX").addEventListener("click",closeSheet);
 // Always track detail_open and every action-button click for THIS venue,
   // regardless of sponsor/distance gating. Real interactions are always recorded.
   track("detail_open",v);
@@ -1527,9 +1523,9 @@ async function buildPlan(mode){
   setPlannerFilterStatus((plannerState.locationMode==="typed"?"Near "+(plannerState.locationLabel||plannerState.location):"Using your current location")+" · "+plannerPriceLabel(),"");
   renderPlan(cfg);
 }
-  const PLAN_HYPE_LINES={morning:["You’re up, you’re out, and Panda’s got the good vibes queued for a seriously lovely morning. 🐼","Coffee first, excellent choices next — Panda’s mapped out a little morning adventure for you.","Rise and shine, legend — this is your sign to make the morning count."],lunch:["Excellent choice — your lunch break just got promoted to main-character status. 🐼","A very tasty decision incoming: Panda’s lined up a lunch worth bragging about.","You deserve more than a sad desk lunch — go on, make this one count."],night:["You’ve got excellent taste — Panda’s lined up a night worth leaving the sofa for. 🐼","That’s a proper night out in the making — your good times are officially queued.","Consider the evening upgraded: good food, great drinks, and absolutely no boring plans."]};
-  function plannerHypeLine(){var lines=PLAN_HYPE_LINES[planMode]||PLAN_HYPE_LINES.night;return lines[Math.max(0,(plannerState.planCount||1)-1)%lines.length];}
-  function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;var _pt=$("#planTitle");if(_pt)_pt.textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">'+esc(plannerHypeLine())+'</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan")+'<a class="planner-walk-link" href="'+esc(plannerWalkingDirectionsUrl(v))+'" target="_blank" rel="noopener">🚶 Walking directions</a>';if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
+const PLAN_HYPE_LINES={morning:["You’re up, you’re out, and Panda’s got the good vibes queued for a seriously lovely morning. 🐼","Coffee first, excellent choices next — Panda’s mapped out a little morning adventure for you.","Rise and shine, legend — this is your sign to make the morning count."],lunch:["Excellent choice — your lunch break just got promoted to main-character status. 🐼","A very tasty decision incoming: Panda’s lined up a lunch worth bragging about.","You deserve more than a sad desk lunch — go on, make this one count."],night:["You’ve got excellent taste — Panda’s lined up a night worth leaving the sofa for. 🐼","That’s a proper night out in the making — your good times are officially queued.","Consider the evening upgraded: good food, great drinks, and absolutely no boring plans."]};
+function plannerHypeLine(){const lines=PLAN_HYPE_LINES[planMode]||PLAN_HYPE_LINES.night;return lines[Math.max(0,(plannerState.planCount||1)-1)%lines.length];}
+function renderPlan(cfg){cfg=cfg||PLAN_MODES[planMode]||PLAN_MODES.night;var _pt=$("#planTitle");if(_pt)_pt.textContent=cfg.title;let html='<div class="plan-intro" id="planIntro">'+esc(plannerHypeLine())+'</div>';DATA.plan.forEach((v,i)=>{const lb=cfg.stops[i]||["📍","Stop "+(i+1)];html+='<div class="stop-badge">'+lb[0]+' '+lb[1]+'</div>'+listCard(v,i,"plan")+'<a class="planner-walk-link" href="'+esc(plannerWalkingDirectionsUrl(v))+'" target="_blank" rel="noopener">🚶 Walking directions</a>';if(i<DATA.plan.length-1){html+='<div class="plan-walk">↓ '+fmtWalk(haversine(v.lat,v.lng,DATA.plan[i+1].lat,DATA.plan[i+1].lng))+' to the next stop</div>';}});$("#planBody").innerHTML=html;}
 async function fetchPlanIntro(cfg,coords){
   const n=DATA.plan.map(v=>v.name);
   try{const r=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({systemInstruction:{parts:[{text:"You are Panda, a cheeky witty going-out concierge. Reply with ONE short, funny, hype sentence (max 22 words, at most one emoji) introducing this plan. Do not list the venues again. Never call tools."}]},contents:[{role:"user",parts:[{text:"Plan: dinner at "+n[0]+", cocktails at "+n[1]+", then "+n[2]+"."}]}],generationConfig:{temperature:0.95,maxOutputTokens:80},location:coords||plannerState.locationCoords||COORDS})});const d=await r.json();if(d&&d.text&&$("#planIntro"))$("#planIntro").textContent=d.text.trim();}catch(e){}
@@ -2123,6 +2119,7 @@ document.addEventListener("DOMContentLoaded",boot);
   .cvcard .cv-rich-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;color:#d7f1e2;font-size:10.5px;line-height:1.3}
   .cvcard .cv-rich-badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.1);color:#e7fff0;font-weight:800}
   .cvcard .cv-rich-badge.music{background:rgba(244,215,143,.18);color:#ffe7a5}
+   .cvcard .cv-rich-badge.closing{background:linear-gradient(135deg,#f8df9b,#d8a94e);color:#4b350d;box-shadow:0 2px 5px rgba(0,0,0,.12)}
   .cvcard .cv-actions{display:flex;gap:6px;margin-top:9px}
   .cvcard .cv-actions a{display:inline-flex;align-items:center;justify-content:center;padding:6px 8px;border-radius:9px;background:#f4d78f;color:#163326;font-size:10px;font-weight:900}
   .cvcard .cv-actions a.secondary{background:rgba(255,255,255,.12);color:#eafff2}
@@ -2136,115 +2133,179 @@ document.addEventListener("DOMContentLoaded",boot);
 </style>
 <script id="panda-ai-rich-search-script">
 (function(){
-  function validUrl(value){try{var url=value&&new URL(value,window.location.href);return url&&(url.protocol==="https:"||url.protocol==="http:")?url.href:"";}catch(error){return "";}}
+  function validUrl(value){
+    try{
+      var url=value&&new URL(value,window.location.href);
+      return url&&(url.protocol==="https:"||url.protocol==="http:")?url.href:"";
+    }catch(error){return "";}
+  }
   function textValue(value){
     if(Array.isArray(value))return value.filter(Boolean).join(" · ");
-    if(value&&typeof value==="object"){if(Array.isArray(value.weekdayDescriptions))return value.weekdayDescriptions.filter(Boolean).join(" · ");if(typeof value.text==="string")return value.text;}
+    if(value&&typeof value==="object"){
+      if(Array.isArray(value.weekdayDescriptions))return value.weekdayDescriptions.filter(Boolean).join(" · ");
+      if(typeof value.text==="string")return value.text;
+    }
     return value==null?"":String(value);
   }
-  function todayHours(value){
-    var list=Array.isArray(value)?value:(value&&Array.isArray(value.weekdayDescriptions)?value.weekdayDescriptions:[]);
-    if(list.length){
-      var index=(new Date().getDay()+6)%7;
-      return String(list[index]||list[0]||"").replace(/^[^:]+:\s*/,"").trim();
-    }
-    return textValue(value);
-  }
-  function closingLabel(value){
-    var text=todayHours(value);
-    if(!text||/closed/i.test(text))return "";
-    if(/24\s*hours/i.test(text))return "Open 24 hours";
-    var match=text.match(/(?:–|—|-)\s*(.+)$/);
-    return match?"Closes "+match[1]+" today":"Today: "+text;
-  }
+   function todayHours(value){
+     var list=Array.isArray(value)?value:(value&&Array.isArray(value.weekdayDescriptions)?value.weekdayDescriptions:[]);
+     if(list.length){
+       var index=(new Date().getDay()+6)%7;
+       return String(list[index]||list[0]||"").replace(/^[^:]+:\s*/,"").trim();
+     }
+     return textValue(value);
+   }
+   function closingLabel(value){
+     var text=todayHours(value);
+     if(!text||/closed/i.test(text))return "";
+     if(/24\s*hours/i.test(text))return "Open 24 hours";
+     var match=text.match(/(?:–|—|-)\s*(.+)$/);
+     return match?"Closes "+match[1]+" today":"Today: "+text;
+   }
   function richVenue(venue){
     venue=venue||{};
     var address=venue.fullAddress||venue.formattedAddress||venue.address||venue.area||"";
-    var directions=validUrl(venue.directionsLink||venue.directionsUrl||venue.mapsUri)||("https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((venue.name||"Venue")+" "+address));
-    var menu=validUrl(venue.menuLink||venue.menuUrl||venue.menuUri||venue.website)||("https://www.google.com/search?q="+encodeURIComponent((venue.name||"Venue")+" menu"));
-    var hours=todayHours(venue.openingHours||venue.hours||venue.regularOpeningHours);
-    var closing=closingLabel(venue.openingHours||venue.hours||venue.regularOpeningHours);
+    var directions=validUrl(venue.directionsLink||venue.directionsUrl||venue.mapsUri);
+    if(!directions)directions="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((venue.name||"Venue")+" "+address);
+    var menu=validUrl(venue.menuLink||venue.menuUrl||venue.menuUri||venue.website);
+    if(!menu)menu="https://www.google.com/search?q="+encodeURIComponent((venue.name||"Venue")+" menu");
+     var hours=todayHours(venue.openingHours||venue.hours||venue.regularOpeningHours);
+     var closing=closingLabel(venue.openingHours||venue.hours||venue.regularOpeningHours);
     var open=typeof venue.isOpenNow==="boolean"?venue.isOpenNow:venue.openNow;
     var searchable=[venue.name,venue.type,venue.primaryType,venue.tags,venue.description,venue.summary].filter(Boolean).join(" ").toLowerCase();
-     var hasMusic=venue.hasMusic===true||venue.musicBadge||/\b(night[_ ]club|live music|dj|music)\b/i.test(searchable);
-    return {venue:venue,directions:directions,menu:menu,hours:hours,closing:closing,open:open,hasMusic:hasMusic,musicBadge:venue.musicBadge||"🎵 Live Music / DJ"};
+    var hasMusic=venue.hasMusic===true||venue.musicBadge||/\b(night[_ ]club|live music|dj|music)\b/i.test(searchable);
+     return {venue:venue,address:address,directions:directions,menu:menu,hours:hours,closing:closing,open:open,hasMusic:hasMusic,musicBadge:venue.musicBadge||"🎵 Live Music / DJ"};
   }
-  function isThemedQuery(query){return /\b(pub crawl|crawl|cozy|cosy|cheap|expensive|christmas|theme|live music|dj|music)\b/i.test(String(query||""));}
+  function isThemedQuery(query){
+    return /\b(pub crawl|crawl|cozy|cosy|cheap|expensive|christmas|theme|live music|dj|music)\b/i.test(String(query||""));
+  }
   function themedVenues(venues,query){
     venues=Array.isArray(venues)?venues:[];
     venues.forEach(function(venue){if(venue)venue.__pandaAi=true;});
-    if(!isThemedQuery(query))return venues.slice(0,20).map(richVenue);
+    if(!isThemedQuery(query))return venues.slice(0,20).map(function(v){return richVenue(v);});
     if(/\b(?:pub|bar|drinks?)?\s*crawl\b/i.test(String(query||""))){
       return venues.slice(0,8).map(function(v,index){var result=richVenue(v);result.stopNumber=index+1;return result;});
     }
     var terms=String(query||"").toLowerCase().split(/[^a-z0-9]+/).filter(function(term){return term.length>2&&!/^(find|some|somewhere|with|near|please|want|give|me|for|the|and|pub|crawl)$/.test(term);});
-    var matched=venues.filter(function(v){var hay=[v&&v.name,v&&v.tags,v&&v.description,v&&v.summary,v&&v.type].filter(Boolean).join(" ").toLowerCase();return terms.some(function(term){return hay.indexOf(term)>=0;})||(/\b(live music|dj|music)\b/i.test(String(query||""))&&richVenue(v).hasMusic);});
-     return (matched.length?matched:venues).slice(0,8).map(function(v,index){var result=richVenue(v);result.stopNumber=index+1;return result;});
+    var matched=venues.filter(function(v){
+      var hay=[v&&v.name,v&&v.tags,v&&v.description,v&&v.summary,v&&v.type].filter(Boolean).join(" ").toLowerCase();
+      return terms.some(function(term){return hay.indexOf(term)>=0;})||(/\b(live music|dj|music)\b/i.test(String(query||""))&&richVenue(v).hasMusic);
+    });
+    var selected=(matched.length?matched:venues).slice(0,8);
+    return selected.map(function(v,index){
+      var result=richVenue(v);
+      result.stopNumber=index+1;
+      return result;
+    });
   }
   function cardHtml(item,index){
-    var v=item.venue,badges=[];
-    if(item.stopNumber)badges.push('<span class="cv-rich-badge">Stop '+item.stopNumber+'</span>');
-    if(item.open===true)badges.push('<span class="cv-rich-badge">Open now</span>');else if(item.open===false)badges.push('<span class="cv-rich-badge">Closed now</span>');
-    if(item.hasMusic)badges.push('<span class="cv-rich-badge music">'+esc(item.musicBadge)+'</span>');
-    if(item.closing)badges.push('<span class="cv-rich-badge closing">'+esc(item.closing)+'</span>');
-    return '<div class="cvcard" data-v="'+index+'"><div class="vphoto">'+ph(v,400)+'</div><div class="cvb"><div class="cvn">'+esc(v.name)+'</div><div class="cvm">'+(v.rating?'★ '+v.rating:'')+(v.distanceMeters!=null?' · '+fmtDist(v.distanceMeters):'')+(v.price?' · '+esc(v.price):'')+'</div><div class="cv-rich-meta">'+badges.join("")+'</div><div class="cv-actions"><a href="'+esc(item.directions)+'" target="_blank" rel="noopener">Directions</a><a class="secondary" href="'+esc(item.menu)+'" target="_blank" rel="noopener">Menu</a></div></div></div>';
+    var v=item.venue,r=item;
+    var badges=[];
+    if(r.stopNumber)badges.push('<span class="cv-rich-badge">Stop '+r.stopNumber+'</span>');
+    if(r.open===true)badges.push('<span class="cv-rich-badge">Open now</span>');
+    else if(r.open===false)badges.push('<span class="cv-rich-badge">Closed now</span>');
+    if(r.hasMusic)badges.push('<span class="cv-rich-badge music">'+esc(r.musicBadge)+'</span>');
+     if(r.closing)badges.push('<span class="cv-rich-badge closing">'+esc(r.closing)+'</span>');
+    return '<div class="cvcard" data-v="'+index+'"><div class="vphoto">'+ph(v,400)+'</div><div class="cvb"><div class="cvn">'+esc(v.name)+'</div><div class="cvm">'+(v.rating?'★ '+v.rating:'')+(v.distanceMeters!=null?' · '+fmtDist(v.distanceMeters):'')+(v.price?' · '+esc(v.price):'')+'</div><div class="cv-rich-meta">'+badges.join("")+'</div><div class="cv-actions"><a href="'+esc(r.directions)+'" target="_blank" rel="noopener">Directions</a><a class="secondary" href="'+esc(r.menu)+'" target="_blank" rel="noopener">Menu</a></div></div></div>';
   }
   function renderRichMessages(){
     var box=$("#msgs");
-    box.innerHTML=history.map(function(m,mi){if(m.role==="me")return '<div class="row me"><div class="bubble">'+esc(m.text)+'</div></div>';var previous=history[mi-1],query=m.query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(m.venues,query),cards=items.length?'<div class="chat-rail" data-mi="'+mi+'">'+items.map(cardHtml).join("")+'</div>':"";return '<div class="row ai"><div style="max-width:100%"><div class="bubble">'+esc(m.text)+'</div>'+cards+'</div></div>';}).join("");
-    $$(".chat-rail").forEach(function(rail){var mi=+rail.dataset.mi;rail.addEventListener("click",function(event){if(event.target.closest("a"))return;var b=event.target.closest(".cvcard"),previous=history[mi-1],query=history[mi].query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(history[mi].venues,query);if(b&&items[+b.dataset.v])openSheet(items[+b.dataset.v].venue);});});
+    box.innerHTML=history.map(function(m,mi){
+      if(m.role==="me")return '<div class="row me"><div class="bubble">'+esc(m.text)+'</div></div>';
+      var previous=history[mi-1],query=m.query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(m.venues,query);
+      var cards=items.length?'<div class="chat-rail" data-mi="'+mi+'">'+items.map(cardHtml).join("")+'</div>':"";
+      return '<div class="row ai"><div style="max-width:100%"><div class="bubble">'+esc(m.text)+'</div>'+cards+'</div></div>';
+    }).join("");
+    $$(".chat-rail").forEach(function(rail){
+      var mi=+rail.dataset.mi;
+      rail.addEventListener("click",function(event){
+        if(event.target.closest("a"))return;
+        var b=event.target.closest(".cvcard"),previous=history[mi-1],query=history[mi].query||(previous&&previous.role==="me"?previous.text:""),items=themedVenues(history[mi].venues,query);
+        if(b&&items[+b.dataset.v])openSheet(items[+b.dataset.v].venue);
+      });
+    });
     box.scrollTop=box.scrollHeight;
   }
-  if(typeof window.renderMsgs==="function"){window.renderMsgs=renderRichMessages;try{renderMsgs=renderRichMessages;}catch(error){}}
+  if(typeof window.renderMsgs==="function"){
+    window.renderMsgs=renderRichMessages;
+    try{renderMsgs=renderRichMessages;}catch(error){}
+  }
   var originalFetch=window.fetch;
   window.fetch=function(input,init){
     var url=typeof input==="string"?input:(input&&input.url)||"";
-     if(init&&typeof init.body==="string"&&url.indexOf("/api/panda-ai")>=0){try{var payload=JSON.parse(init.body);payload.globalSearch=true;payload.richMetadata=true;payload.clientCapabilities={openingHours:true,directionsLink:true,menuLink:true,musicBadge:true,themedCrawl:true,maxCards:8};payload.searchLocation=payload.location||null;init=Object.assign({},init,{body:JSON.stringify(payload)});}catch(error){}}
+    if(init&&typeof init.body==="string"&&url.indexOf("/api/panda-ai")>=0){
+      try{
+        var payload=JSON.parse(init.body);
+        payload.globalSearch=true;
+        payload.richMetadata=true;
+        payload.clientCapabilities={openingHours:true,directionsLink:true,menuLink:true,musicBadge:true,themedCrawl:true,maxCards:8};
+        payload.searchLocation=payload.location||null;
+        init=Object.assign({},init,{body:JSON.stringify(payload)});
+      }catch(error){}
+    }
     return originalFetch.call(this,input,init);
   };
   if(Array.isArray(CATEGORIES)){
     var dinnerIndex=CATEGORIES.findIndex(function(category){return category.label==="Dinner";});
-    if(!CATEGORIES.some(function(category){return category.label==="Meat";})){var additions=[{label:"Meat",em:"🥩",q:"meat steak restaurants"},{label:"Meat & Bar",em:"🥩🍸",q:"meat and cocktail bars"}];CATEGORIES.splice(dinnerIndex<0?CATEGORIES.length:dinnerIndex,0,additions[0],additions[1]);if(CAT_TIME){CAT_TIME.morning.push("Meat");CAT_TIME.midday.push("Meat");CAT_TIME.evening.push("Meat","Meat & Bar");CAT_TIME.late.push("Meat & Bar");}}
+    if(!CATEGORIES.some(function(category){return category.label==="Meat";})){
+      var additions=[{label:"Meat",em:"🥩",q:"meat steak restaurants"},{label:"Meat & Bar",em:"🥩🍸",q:"meat and cocktail bars"}];
+      CATEGORIES.splice(dinnerIndex<0?CATEGORIES.length:dinnerIndex,0,additions[0],additions[1]);
+      if(CAT_TIME){CAT_TIME.morning.push("Meat");CAT_TIME.midday.push("Meat");CAT_TIME.evening.push("Meat","Meat & Bar");CAT_TIME.late.push("Meat & Bar");}
+    }
   }
   function addRichDetail(venue){
     if(!venue||venue.__pandaAi!==true)return;
     var sheet=$("#sheet"),body=sheet&&sheet.querySelector(".sbody");if(!body)return;
-    var item=richVenue(venue),existing=body.querySelector(".panda-ai-rich-detail");if(existing)existing.remove();
+    var r=richVenue(venue),existing=body.querySelector(".panda-ai-rich-detail");
+    if(existing)existing.remove();
     var detail=document.createElement("div");detail.className="panda-ai-rich-detail";
-    var detailHours=(item.open===true?"Open now":item.open===false?"Closed now":"");if(item.closing)detailHours+=(detailHours?" · ":"")+item.closing;else if(!detailHours&&item.hours)detailHours=item.hours;if(detailHours){var hoursRow=document.createElement("div");hoursRow.className="panda-ai-rich-detail-row";hoursRow.innerHTML="<span>🕒</span><span>"+esc(detailHours)+"</span>";detail.appendChild(hoursRow);}
-    if(item.hasMusic){var musicRow=document.createElement("div");musicRow.className="panda-ai-rich-detail-row";musicRow.innerHTML='<span class="music">🎵</span><span class="music">'+esc(item.musicBadge)+"</span>";detail.appendChild(musicRow);}
+     var detailHours=(r.open===true?"Open now":r.open===false?"Closed now":"");if(r.closing)detailHours+=(detailHours?" · ":"")+r.closing;else if(!detailHours&&r.hours)detailHours=r.hours;if(detailHours){var hoursRow=document.createElement("div");hoursRow.className="panda-ai-rich-detail-row";hoursRow.innerHTML="<span>🕒</span><span>"+esc(detailHours)+"</span>";detail.appendChild(hoursRow);}
+    if(r.hasMusic){var musicRow=document.createElement("div");musicRow.className="panda-ai-rich-detail-row";musicRow.innerHTML='<span class="music">🎵</span><span class="music">'+esc(r.musicBadge)+"</span>";detail.appendChild(musicRow);}
     var actions=body.querySelector(".actions");
-    if(actions){
-      var directions=actions.querySelector("[data-panda-ai-directions]"),menu=actions.querySelector("[data-panda-ai-menu]");
+    if(actions){var directions=actions.querySelector("[data-panda-ai-directions]"),menu=actions.querySelector("[data-panda-ai-menu]");
       if(!directions){var directionCandidates=actions.querySelectorAll("a.act.ghost");for(var di=0;di<directionCandidates.length;di++){if((directionCandidates[di].textContent||"").trim()==="Directions"){directions=directionCandidates[di];break;}}}
       if(!directions){directions=document.createElement("a");directions.className="act ghost";directions.target="_blank";directions.rel="noopener";directions.textContent="Directions";actions.appendChild(directions);}
-      directions.dataset.pandaAiDirections="1";directions.href=item.directions;directions.hidden=false;
+      directions.dataset.pandaAiDirections="1";directions.href=r.directions;directions.hidden=false;
       if(!menu)menu=actions.querySelector("a.act.primary");
       if(!menu){menu=document.createElement("a");menu.className="act primary";menu.target="_blank";menu.rel="noopener";menu.textContent="View menu";actions.insertBefore(menu,actions.firstChild);}
-      menu.dataset.pandaAiMenu="1";menu.href=item.menu;menu.textContent="View menu";menu.hidden=false;
+      menu.dataset.pandaAiMenu="1";menu.href=r.menu;menu.textContent="View menu";menu.hidden=false;
     }
     if(actions)body.insertBefore(detail,actions);else body.appendChild(detail);
   }
   var originalOpenSheet=window.openSheet;
-  if(typeof originalOpenSheet==="function"){window.openSheet=function(venue){var result=originalOpenSheet.apply(this,arguments);window.setTimeout(function(){addRichDetail(venue);},0);return result;};try{openSheet=window.openSheet;}catch(error){}}
-  function returnToPlannerResults(){var back=$("#plannerMapBack");if(back)back.hidden=true;pendingPlanRoute=false;showScreen("home");if(DATA&&DATA.plan&&DATA.plan.length){$("#planSheet").hidden=false;$("#planSheet").classList.add("open");$("#planSheet").setAttribute("aria-hidden","false");$("#scrim").classList.add("show");}}
+  if(typeof originalOpenSheet==="function"){
+    window.openSheet=function(venue){var result=originalOpenSheet.apply(this,arguments);window.setTimeout(function(){addRichDetail(venue);},0);return result;};
+    try{openSheet=window.openSheet;}catch(error){}
+  }
+  function returnToPlannerResults(){
+    var back=$("#plannerMapBack");if(back)back.hidden=true;
+    pendingPlanRoute=false;
+    showScreen("home");
+    if(DATA&&DATA.plan&&DATA.plan.length){
+      $("#planSheet").hidden=false;
+      $("#planSheet").classList.add("open");
+      $("#planSheet").setAttribute("aria-hidden","false");
+      $("#scrim").classList.add("show");
+    }
+  }
   window.returnToPlannerResults=returnToPlannerResults;
   document.addEventListener("click",function(event){
     var planButton=event.target.closest&&event.target.closest("#planMap");
-    if(planButton){event.preventDefault();event.stopImmediatePropagation();if(!DATA.plan||!DATA.plan.length)return;closePlan();pendingPlanRoute=true;var back=$("#plannerMapBack");if(back)back.hidden=false;showScreen("map");return;}
-    var backButton=event.target.closest&&event.target.closest("#plannerMapBack");if(backButton){event.preventDefault();event.stopImmediatePropagation();returnToPlannerResults();}
+    if(planButton){
+      event.preventDefault();event.stopImmediatePropagation();
+      if(!DATA.plan||!DATA.plan.length)return;
+      closePlan();pendingPlanRoute=true;
+      var back=$("#plannerMapBack");if(back)back.hidden=false;
+      showScreen("map");
+      return;
+    }
+    var backButton=event.target.closest&&event.target.closest("#plannerMapBack");
+    if(backButton){event.preventDefault();event.stopImmediatePropagation();returnToPlannerResults();}
   },true);
 })();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
