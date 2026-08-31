@@ -46,7 +46,7 @@ async function scrapeArea(area) {
       results_wanted: area.want,
       max_pages: 25,
       proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['RESIDENTIAL'] }
-    });
+    }, { timeout: 900, waitSecs: 900 });
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
     console.log(`${area.label}: ${items.length} raw results`);
     return items;
