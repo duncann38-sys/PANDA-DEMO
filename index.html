@@ -1232,6 +1232,34 @@ async function loadTrendOrganic(){
     ]);
     extras.forEach(result=>mergeTrendVenues(venues,result.venues));
   }
+  const premiumCount=Math.min(BANGING_LIST.length,BANGING_ROW_LIMIT);
+  const organicNeeded=Math.max(0,BANGING_ROW_LIMIT-premiumCount);
+  const luxuryQueries=[
+    "fine dining restaurants",
+    "luxury restaurants",
+    "upscale restaurants",
+    "exclusive cocktail bars",
+    "luxury rooftop bars",
+    "Michelin restaurants"
+  ];
+  for(const query of luxuryQueries){
+    if(curateBangingEditorialSection(venues).length>=organicNeeded)break;
+    const page=await fetchVenuesPaged(query,null);
+    mergeTrendVenues(venues,page.venues);
+    if(page.nextPageToken&&curateBangingEditorialSection(venues).length<organicNeeded){
+      const next=await fetchVenuesPaged(query,page.nextPageToken);
+      mergeTrendVenues(venues,next.venues);
+    }
+  }
+  if(COORDS&&curateBangingEditorialSection(venues).length<organicNeeded){
+    for(const km of [6,12]){
+      const widened=await Promise.all(
+        ringCenters(km).map(c=>fetchVenuesAt("fine dining luxury upscale restaurants bars",c.lat,c.lng))
+      );
+      widened.forEach(result=>mergeTrendVenues(venues,result));
+      if(curateBangingEditorialSection(venues).length>=organicNeeded)break;
+    }
+  }
   TREND_ORGANIC=curateBangingEditorialSection(venues);
   renderTrend();
 }
@@ -1266,6 +1294,15 @@ function getRotatedBangingCards(localVenues,neighboringVenues){
     return bucket.slice(offset).concat(bucket.slice(0,offset));
   }));
 }
+function assembleBangingCards(organic,premium,limit){
+  const out=[];let oi=0,pi=0;
+  while(out.length<limit&&(oi<organic.length||pi<premium.length)){
+    const premiumDue=(out.length+1)%BANGING_PREMIUM_INTERVAL===0&&pi<premium.length;
+    if(premiumDue||oi>=organic.length)out.push(premium[pi++]);
+    else out.push(organic[oi++]);
+  }
+  return out;
+}
 function renderTrend(){
   const organic=rankBangingFeed(TREND_ORGANIC.slice().filter(isBangingEditorialCandidate));
   // Paid Banging venues are inserted as Panda Premium cards. Discovery
@@ -1274,13 +1311,8 @@ function renderTrend(){
   bang.forEach(x=>{x.__sponsor="banging";});
   const localBang=bang.filter(v=>venueDistance(v)<=BANGING_WALK_CATCHMENT_M);
   const neighboringBang=bang.filter(v=>venueDistance(v)>BANGING_WALK_CATCHMENT_M);
-  const premium=getRotatedBangingCards(localBang,neighboringBang).filter(isBangingPremiumVenue).slice(0,BANGING_ROW_LIMIT);
-  const t=[];let bi=0,oi=0;
-  while(t.length<BANGING_ROW_LIMIT&&(oi<organic.length||bi<premium.length)){
-    if((t.length+1)%BANGING_PREMIUM_INTERVAL===0&&bi<premium.length)t.push(premium[bi++]);
-    else if(oi<organic.length)t.push(organic[oi++]);
-    else break;
-  }
+  const premium=getRotatedBangingCards(localBang,neighboringBang).filter(isBangingPremiumVenue);
+  const t=assembleBangingCards(organic,premium,BANGING_ROW_LIMIT);
   t.forEach(x=>{if(!isBangingPremiumVenue(x))x.__sponsor=null;});
   DATA.trend=t;
   $("#trendList").innerHTML=t.map((x,i)=>railCard(x,i,"trend")).join('');
