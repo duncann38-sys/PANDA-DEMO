@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const client = new ApifyClient({ token: process.env.APIFY_API_TOKEN });
-const BOKABORD_ACTOR_ID = process.env.BOKABORD_ACTOR_ID || 'shahidirfan/bokabord-stockholm';
+const BOKABORD_ACTOR_ID = process.env.BOKABORD_ACTOR_ID || 'receptional_difference/bokabord-stockholm';
 // Fresh future date each run so neighbourhood search URLs never go stale.
 function futureDateTime() {
   const d = new Date();
