@@ -11347,5 +11347,61 @@
     "timeSlots": [],
     "bookingUrl": "https://www.opentable.co.uk/r/wahaca-wimbledon-london",
     "menuUrl": null
+  },
+  {
+    "name": "Restaurang Hantverket",
+    "city": "Stockholm",
+    "cuisine": "Nordic",
+    "address": "Sturegatan 15, Stockholm",
+    "bookingUrl": "https://bokabord.se/sv/restaurang/restaurang-hantverket",
+    "source": "bokabord.se"
+  },
+  {
+    "name": "Sperling & Co",
+    "city": "Stockholm",
+    "cuisine": "International",
+    "address": "Sturegatan 6, Stockholm",
+    "bookingUrl": "https://bokabord.se/sv/restaurang/sperling-co",
+    "source": "bokabord.se"
+  },
+  {
+    "name": "TAK",
+    "city": "Stockholm",
+    "cuisine": "Japanese/Nordic",
+    "address": "Stockholm",
+    "bookingUrl": "https://bokabord.se/sv/restaurang/tak",
+    "source": "bokabord.se"
+  },
+  {
+    "name": "Thaiboat",
+    "city": "Stockholm",
+    "cuisine": "Thai",
+    "address": "Södermalm, Stockholm",
+    "bookingUrl": "https://bokabord.se/sv/restaurang/thaiboat",
+    "source": "bokabord.se"
+  },
+  {
+    "name": "Gondolen",
+    "city": "Stockholm",
+    "cuisine": "French/Swedish",
+    "address": "Stockholm",
+    "bookingUrl": "https://bokabord.se/sv/restaurang/gondolen",
+    "source": "bokabord.se"
+  },
+  {
+    "name": "Pelikan",
+    "city": "Stockholm",
+    "cuisine": "Swedish",
+    "address": "Stockholm",
+    "bookingUrl": "https://bokabord.se/sv/restaurang/pelikan",
+    "source": "bokabord.se"
+  },
+  {
+    "name": "Sturehof",
+    "city": "Stockholm",
+    "cuisine": "French/Swedish",
+    "address": "Stureplan, Stockholm",
+    "bookingUrl": "https://bokabord.se/sv/restaurang/sturehof",
+    "source": "bokabord.se"
   }
 ]
