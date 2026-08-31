@@ -1127,12 +1127,36 @@ function interleaveSponsored(list){
   return out;
 }
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;if(sort==="rating")v=v.sort((a,b)=>(b.rating||0)-(a.rating||0));else v=v.sort((a,b)=>(a.distanceMeters??9e9)-(b.distanceMeters??9e9));v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
-async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length){const p1=await fetchVenuesPaged("popular restaurants and bars",null);let t=p1.venues.slice();if(p1.nextPageToken){const p2=await fetchVenuesPaged("popular restaurants and bars",p1.nextPageToken);const seen=new Set(t.map(x=>x.id));p2.venues.forEach(v=>{if(!seen.has(v.id))t.push(v);});}t=t.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));TREND_ORGANIC=t;renderTrend();}}
+async function refreshHome(){const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);const {venues,nextPageToken}=await fetchVenuesPaged(homeQuery,null);homeRaw=venues;homeToken=nextPageToken;applyHomeFilters();if(!TREND_ORGANIC.length)await loadTrendOrganic();}
 let TREND_ORGANIC=[];
 const BANGING_ROW_LIMIT=35;
 const BANGING_PREMIUM_INTERVAL=5;
 const BANGING_PREMIUM_SLOTS=Math.floor(BANGING_ROW_LIMIT/BANGING_PREMIUM_INTERVAL);
+const BANGING_ORGANIC_TARGET=BANGING_ROW_LIMIT+BANGING_PREMIUM_SLOTS;
 const BANGING_ROTATION_STATE_KEY="panda_banging_rotation_v3";
+function mergeTrendVenues(target,venues){
+  const seen=new Set(target.map(editorialVenueId));
+  (venues||[]).forEach(v=>{const id=editorialVenueId(v);if(!id||seen.has(id))return;seen.add(id);target.push(v);});
+}
+async function loadTrendOrganic(){
+  const venues=[];
+  mergeTrendVenues(venues,homeRaw);
+  const popular=await fetchVenuesPaged("popular restaurants and bars",null);
+  mergeTrendVenues(venues,popular.venues);
+  if(popular.nextPageToken&&venues.length<BANGING_ORGANIC_TARGET){
+    const next=await fetchVenuesPaged("popular restaurants and bars",popular.nextPageToken);
+    mergeTrendVenues(venues,next.venues);
+  }
+  if(venues.length<BANGING_ORGANIC_TARGET){
+    const extras=await Promise.all([
+      fetchVenuesPaged("popular pubs and bars",null),
+      fetchVenuesPaged("popular cafes and restaurants",null)
+    ]);
+    extras.forEach(result=>mergeTrendVenues(venues,result.venues));
+  }
+  TREND_ORGANIC=venues.sort((a,b)=>(b.rating||0)*(b.ratingCount||0)-(a.rating||0)*(a.ratingCount||0));
+  renderTrend();
+}
 function editorialDaySeed(){return new Date().toISOString().slice(0,10);}
 function editorialHash(value){let hash=2166136261;const text=String(value||"");for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return hash>>>0;}
 function editorialVenueId(v){return String(venuePlaceId(v)||v&&v.name||"");}
@@ -2348,7 +2372,6 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
-
 
 
 
