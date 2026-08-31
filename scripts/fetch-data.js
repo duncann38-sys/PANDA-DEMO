@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const client = new ApifyClient({ token: process.env.APIFY_API_TOKEN });
+const BOKABORD_ACTOR_ID = process.env.BOKABORD_ACTOR_ID || 'shahidirfan/bokabord-stockholm';
 // Fresh future date each run so neighbourhood search URLs never go stale.
 function futureDateTime() {
   const d = new Date();
@@ -54,12 +55,61 @@ async function scrapeArea(area) {
     return []; // one area failing must not break the whole file
   }
 }
+async function scrapeBokabord() {
+  try {
+    console.log('\n--- Scraping Stockholm via Bokabord ---');
+    const run = await client.actor(BOKABORD_ACTOR_ID).call({
+      startUrl: 'https://www.bokabord.se/restauranger/stockholm',
+      maxPages: 20,
+      maxResults: 750,
+      proxyConfiguration: { useApifyProxy: true, apifyProxyGroups: ['RESIDENTIAL'] }
+    });
+    const { items } = await client.dataset(run.defaultDatasetId).listItems({ limit: 1000 });
+    console.log('Stockholm: ' + items.length + ' raw Bokabord results');
+    return { ok: true, items };
+  } catch (err) {
+    console.error('Stockholm Bokabord refresh failed (preserving existing records):', err.message);
+    return { ok: false, items: [] };
+  }
+}
+function normalizeBokabord(items) {
+  const venues = [];
+  const seen = new Set();
+  for (const item of items) {
+    if (!item || !item.name || !item.bookingUrl) continue;
+    const key = String(item.bookingUrl).trim().toLowerCase().replace(/\/+$/, '');
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    venues.push({
+      id: item.id || undefined,
+      name: item.name,
+      address: item.address || '',
+      city: item.city || 'Stockholm',
+      cuisine: item.cuisine || '',
+      image: item.image || '',
+      phone: item.phone || '',
+      timeSlots: Array.isArray(item.timeSlots) ? item.timeSlots : [],
+      bookingUrl: item.bookingUrl,
+      menuUrl: item.menuUrl || null,
+      provider: 'bokabord',
+      source: 'bokabord.se'
+    });
+  }
+  return venues;
+}
+function isBokabord(venue) {
+  return [venue && venue.source, venue && venue.provider, venue && venue.bookingUrl, venue && venue.url]
+    .some(value => String(value || '').toLowerCase().includes('bokabord'));
+}
 async function run() {
   try {
     console.log('Fetching live venue data from Apify per area (shahidirfan/opentable-scraper)...');
     // Run all areas in parallel, then merge.
-    const results = await Promise.all(AREAS.map(scrapeArea));
-    const allItems = results.flat();
+    const [areaResults, bokabordRefresh] = await Promise.all([
+      Promise.all(AREAS.map(scrapeArea)),
+      scrapeBokabord()
+    ]);
+    const allItems = areaResults.flat();
     const seen = new Set();
     const processedVenues = [];
     for (const item of allItems) {
@@ -78,9 +128,13 @@ async function run() {
         phone: item.phoneNumber || '',
         timeSlots: [],
         bookingUrl: item.url || '',
-        menuUrl: null
+        menuUrl: null,
+        provider: 'opentable',
+        source: 'opentable.co.uk'
       });
     }
+    const refreshedBokabordVenues = normalizeBokabord(bokabordRefresh.items);
+    const useBokabordRefresh = bokabordRefresh.ok && refreshedBokabordVenues.length > 0;
     const outputPath = path.join(process.cwd(), 'venues.json');
       let existingVenues = [];
       try {
@@ -99,10 +153,10 @@ async function run() {
         const normal = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
         return 'name:' + normal(venue && venue.name) + '|address:' + normal(venue && venue.address);
       };
-      const preservedVenues = existingVenues.filter(venue => !isOpenTable(venue));
+      const preservedVenues = existingVenues.filter(venue => !isOpenTable(venue) && !(useBokabordRefresh && isBokabord(venue)));
       const mergedVenues = [];
       const mergedKeys = new Set();
-      for (const venue of [...processedVenues, ...preservedVenues]) {
+      for (const venue of [...processedVenues, ...(useBokabordRefresh ? refreshedBokabordVenues : []), ...preservedVenues]) {
         if (!venue || !venue.name) continue;
         const key = recordKey(venue);
         if (mergedKeys.has(key)) continue;
@@ -111,8 +165,9 @@ async function run() {
       }
       fs.writeFileSync(outputPath, JSON.stringify(mergedVenues, null, 2));
       console.log(
-        '\nSaved ' + processedVenues.length + ' refreshed OpenTable venues and preserved ' +
-        preservedVenues.length + ' non-OpenTable venues (' + mergedVenues.length + ' total) to ' + outputPath
+        '\nSaved ' + processedVenues.length + ' refreshed OpenTable venues, ' +
+        (useBokabordRefresh ? refreshedBokabordVenues.length + ' refreshed Bokabord venues, ' : 'preserved the prior Bokabord records, ') +
+        'and preserved ' + preservedVenues.length + ' other venues (' + mergedVenues.length + ' total) to ' + outputPath
       );
       if (mergedVenues[0]) {
         console.log('Sample venue:', JSON.stringify(mergedVenues[0], null, 2));
