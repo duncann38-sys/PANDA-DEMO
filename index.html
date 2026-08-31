@@ -929,8 +929,8 @@ function isPromotedVenue(v){
 }
 function bangingVibeText(v){return [v&&v.tags,v&&v.description,v&&v.name].filter(Boolean).join(" ").toLowerCase();}
 function bangingPrice(v){return String(v&&(v.price!=null?v.price:(v.price_level!=null?v.price_level:v.priceLevel))||"").trim();}
-function isBangingEditorialCandidate(v){
-  if(!v||isPromotedVenue(v))return false;
+function isBangingLuxuryVenue(v){
+  if(!v)return false;
   const price=bangingPrice(v),vibe=bangingVibeText(v);
   const highPrice=price.includes("£££")||Number(v.price_level)>=3||Number(v.priceLevel)>=3;
   const cheap=price==="£"||vibe.includes("casual pub")||vibe.includes("budget");
@@ -938,6 +938,7 @@ function isBangingEditorialCandidate(v){
     vibe.includes("exclusive")||vibe.includes("upscale")||v.isEditorialFeatured===true;
   return (highPrice||eliteVibe)&&!cheap;
 }
+function isBangingEditorialCandidate(v){return !isPromotedVenue(v)&&isBangingLuxuryVenue(v);}
 function curateBangingEditorialSection(list){
   return (list||[]).filter(isBangingEditorialCandidate).sort((a,b)=>{
     const ad=venueDistance(a),bd=venueDistance(b);
@@ -1206,7 +1207,7 @@ async function refreshHome(){
   await loadTrendOrganic();
 }
 let TREND_ORGANIC=[];
-const BANGING_ROW_LIMIT=35;
+const BANGING_ROW_LIMIT=40;
 const BANGING_PREMIUM_INTERVAL=5;
 const BANGING_PREMIUM_SLOTS=Math.floor(BANGING_ROW_LIMIT/BANGING_PREMIUM_INTERVAL);
 const BANGING_ORGANIC_TARGET=BANGING_ROW_LIMIT+BANGING_PREMIUM_SLOTS;
@@ -2445,8 +2446,6 @@ document.addEventListener("DOMContentLoaded",boot);
 </script>
 </body>
 </html>
-
-
 
 
 
