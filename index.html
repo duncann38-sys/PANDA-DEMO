@@ -1,4 +1,4 @@
-so c<!doctype html>
+<!doctype html>
 <html lang="en" translate="no">
 <head>
 <meta charset="utf-8" />
@@ -1049,8 +1049,9 @@ function reservationPlaceId(o){return [o.googlePlaceId,o.google_place_id,o.place
 function venuePlaceId(v){return [v.googlePlaceId,v.google_place_id,v.placeId,v.place_id,v.id].find(id=>typeof id==="string"&&id.trim())||"";}
 function venueAddress(v){return v&&((v.fullAddress||v.address||v.formattedAddress||v.vicinity)||"");}
 function sameAddress(a,b){const ap=rpostcode(a),bp=rpostcode(b);if(ap||bp)return !!ap&&!!bp&&ap===bp;const an=raddress(a),bn=raddress(b);return an.length>=12&&bn.length>=12&&(an===bn||an.includes(bn)||bn.includes(an));}
-async function loadReservations(){try{const r=await fetch(RESERVATIONS_URL,{cache:"no-store"});if(!r.ok)return;const raw=await r.json();const list=Array.isArray(raw)?raw:(raw&&raw.venues?raw.venues:[]);RESLIST=list.filter(o=>o&&o.name).map(o=>({nameKey:rname(o.name),address:o.address||o.fullAddress||o.formattedAddress||"",placeId:reservationPlaceId(o),slots:(o.timeSlots||[]).map(t=>({time:t.time,url:t.url})),bookingUrl:o.bookingUrl||"",menuUrl:o.menuUrl||""}));}catch(e){}}
-function resFor(v){const placeId=venuePlaceId(v);if(placeId){const byId=RESLIST.filter(e=>e.placeId===placeId);if(byId.length===1)return byId[0];}const nameKey=rname(v&&v.name),address=venueAddress(v);if(!nameKey||!address)return null;const byNameAndAddress=RESLIST.filter(e=>e.nameKey===nameKey&&sameAddress(address,e.address));return byNameAndAddress.length===1?byNameAndAddress[0]:null;}
+function sameReservationCity(city,address){const c=rtext(city),a=rtext(address);return !!c&&!!a&&a.includes(c);}
+async function loadReservations(){try{const r=await fetch(RESERVATIONS_URL,{cache:"no-store"});if(!r.ok)return;const raw=await r.json();const list=Array.isArray(raw)?raw:(raw&&raw.venues?raw.venues:[]);RESLIST=list.filter(o=>o&&o.name).map(o=>({nameKey:rname(o.name),address:o.address||o.fullAddress||o.formattedAddress||"",city:o.city||o.location||"",placeId:reservationPlaceId(o),slots:(o.timeSlots||[]).map(t=>({time:t.time,url:t.url})),bookingUrl:o.bookingUrl||"",menuUrl:o.menuUrl||""}));}catch(e){}}
+function resFor(v){const placeId=venuePlaceId(v);if(placeId){const byId=RESLIST.filter(e=>e.placeId===placeId);if(byId.length===1)return byId[0];}const nameKey=rname(v&&v.name),address=venueAddress(v);if(!nameKey)return null;const byName=RESLIST.filter(e=>e.nameKey===nameKey);const byNameAndAddress=byName.filter(e=>sameAddress(address,e.address));if(byNameAndAddress.length===1)return byNameAndAddress[0];const byNameAndCity=byName.filter(e=>!e.city||sameReservationCity(e.city,address));if(byNameAndCity.length===1)return byNameAndCity[0];return byName.length===1&&(!byName[0].city||!address)?byName[0]:null;}
 
 let SAVED=store.lget("panda_saved")||{};
 function isSaved(id){return !!SAVED[id]}
@@ -1140,7 +1141,8 @@ function rankSuggestions(list,preferRating){
   const local=[],wider=[];
   (list||[]).forEach(v=>(venueDistance(v)<=SUGGESTION_WALK_CATCHMENT_M?local:wider).push(v));
   const localCompare=preferRating?compareVenueQuality:(a,b)=>venueDistance(a)-venueDistance(b)||compareVenueQuality(a,b);
-  return local.sort(localCompare).concat(wider.sort(compareVenueQuality));
+  const widerCompare=(a,b)=>venueDistance(a)-venueDistance(b)||compareVenueQuality(a,b);
+  return local.sort(localCompare).concat(wider.sort(widerCompare));
 }
 function rankBangingFeed(list){
   const local=[],wider=[];
@@ -2399,6 +2401,18 @@ document.addEventListener("DOMContentLoaded",boot);
     var backButton=event.target.closest&&event.target.closest("#plannerMapBack");
     if(backButton){event.preventDefault();event.stopImmediatePropagation();returnToPlannerResults();}
   },true);
+})();
+</script>
+<script id="panda-reservation-copy">
+(function(){
+  function update(){
+    document.querySelectorAll("a.act.book,.panda-gallery-action.booking").forEach(function(link){
+      Array.prototype.forEach.call(link.childNodes,function(node){if(node.nodeType===3&&/OpenTable/.test(node.nodeValue||""))node.nodeValue="Reserve a table";});
+    });
+    document.querySelectorAll(".resv h4").forEach(function(title){if(/OpenTable/i.test(title.textContent||""))title.textContent="Reserve a table today";});
+  }
+  update();
+  if(window.MutationObserver)new MutationObserver(update).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 </body>
