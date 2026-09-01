@@ -232,12 +232,12 @@
   function load(key, isRetry){
     err.textContent = '';
     dash.querySelector('.big').classList.add('spin');
-    return fetch(API + '?key=' + encodeURIComponent(key))
+    return fetch(API, { cache: 'no-store', headers: { Authorization: 'Bearer ' + key } })
       .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, status:r.status, j:j}; }); })
       .then(function(res){
         if(res.status === 401 || (res.j && res.j.error === 'unauthorized')){ throw new Error('Key not recognised. Check for typos or extra spaces.'); }
         if(res.j && res.j.error){ throw new Error(res.j.error); }
-        localStorage.setItem(LS_KEY, key);
+        sessionStorage.setItem(LS_KEY, key);
         gate.style.display = 'none'; dash.style.display = 'block';
         dash.querySelector('.big').classList.remove('spin');
         paint(res.j);
@@ -246,7 +246,7 @@
         dash.querySelector('.big').classList.remove('spin');
         if(dash.style.display === 'block'){ document.getElementById('updated').textContent = 'Error: ' + e.message; }
         else { err.textContent = e.message; }
-        if(isRetry){ localStorage.removeItem(LS_KEY); gate.style.display='block'; dash.style.display='none'; }
+        if(isRetry){ sessionStorage.removeItem(LS_KEY); gate.style.display='block'; dash.style.display='none'; }
       });
   }
 
@@ -256,9 +256,9 @@
     load(k, false);
   });
   keyInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ document.getElementById('go').click(); } });
-  document.getElementById('refresh').addEventListener('click', function(){ var k=localStorage.getItem(LS_KEY); if(k) load(k,false); });
+  document.getElementById('refresh').addEventListener('click', function(){ var k=sessionStorage.getItem(LS_KEY); if(k) load(k,false); });
   document.getElementById('logout').addEventListener('click', function(){
-    localStorage.removeItem(LS_KEY); dash.style.display='none'; gate.style.display='block'; keyInput.value='';
+    sessionStorage.removeItem(LS_KEY); dash.style.display='none'; gate.style.display='block'; keyInput.value='';
   });
   document.getElementById('emailsHead').addEventListener('click', function(){ document.getElementById('emailsBox').classList.toggle('open'); });
    document.getElementById('signInHead').addEventListener('click', function(){ document.getElementById('signInBox').classList.toggle('open'); });
@@ -269,8 +269,9 @@
     var b=e.target; var old=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){ b.textContent=old; },1400);
   });
 
-  var saved = localStorage.getItem(LS_KEY);
+  var saved = sessionStorage.getItem(LS_KEY);
   if(saved){ gate.style.display='none'; dash.style.display='block'; load(saved, true); }
 </script>
 </body>
 </html>
+
