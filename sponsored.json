@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-24T00:00:00.000Z",
+  "updated": "2026-09-23T17:35:10.041Z",
   "note": "Sponsored venues. Match by exact 'name' (as shown in the app) or 'place_id'. tier 'discovery' = promoted in Suggestions (every 5th slot). tier 'banging' = promoted in Suggestions AND the Banging trending row. Written automatically by the Stripe webhook; can also be edited by hand.",
   "venues": [
     {
@@ -31,6 +31,11 @@
       "name": "Colbert",
       "place_id": "ChIJGZHDPhYFdkgRys_AGmXvKsk",
       "tier": "banging"
+    },
+    {
+      "name": "",
+      "place_id": "",
+      "tier": "discovery"
     }
   ]
 }
