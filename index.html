@@ -1951,7 +1951,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-partner-feed-2026-08-31-v25",releaseKey="panda_app_release";
+       var release="panda-partner-feed-2026-10-11-stats-v26",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
@@ -2227,7 +2227,7 @@ document.addEventListener("DOMContentLoaded",boot);
     };
   })();
 </script>
-<script src="./auth.js"></script>
+<script src="./auth.js?v=2026-10-11-stats-profile"></script>
 <style id="panda-pastel-emerald-theme">
   body,
   #app,

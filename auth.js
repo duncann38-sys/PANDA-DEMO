@@ -106,6 +106,36 @@
     if (beforeBirthday) age--;
     return Number.isInteger(age) && age >= 16 && age <= 100 ? age : null;
   }
+  function ensureLocationFields() {
+    if (byId('authCountry')) return;
+    const gender = byId('authGender'); if (!gender) return;
+    let anchor = gender; while (anchor.parentElement && anchor.parentElement !== byId('authModal') && !anchor.parentElement.contains(byId('authGo'))) anchor = anchor.parentElement;
+    const wrap = document.createElement('div'); wrap.id = 'authLocation'; wrap.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px';
+    function field(id, labelText, placeholder, list) {
+      const box = document.createElement('div');
+      const label = document.createElement('label'); label.htmlFor = id; label.textContent = labelText; label.style.cssText = 'display:block;font-size:12px;opacity:.75;margin-bottom:4px';
+      const input = document.createElement('input'); input.id = id; input.type = 'text'; input.placeholder = placeholder; input.maxLength = 80; input.autocomplete = list ? 'country-name' : 'address-level1';
+      input.style.cssText = 'width:100%;box-sizing:border-box;padding:10px 12px;border-radius:10px;border:1px solid rgba(127,127,127,.35);background:transparent;color:inherit;font:inherit';
+      if (list) input.setAttribute('list', list);
+      box.appendChild(label); box.appendChild(input); return box;
+    }
+    const countries = ['United Kingdom', 'Ireland', 'United States', 'Canada', 'France', 'Germany', 'Spain', 'Italy', 'Portugal', 'Netherlands', 'Australia', 'India', 'Nigeria', 'China', 'Japan', 'United Arab Emirates'];
+    const dl = document.createElement('datalist'); dl.id = 'authCountryList';
+    countries.forEach(function (c) { const o = document.createElement('option'); o.value = c; dl.appendChild(o); });
+    wrap.appendChild(field('authCountry', 'Country of residence (optional)', 'Choose or type', 'authCountryList'));
+    wrap.appendChild(field('authRegion', 'Region / city (optional)', 'e.g. London'));
+    wrap.appendChild(dl);
+    const note = document.createElement('p'); note.id = 'authLocationNote'; note.textContent = 'These details are optional and only used for anonymous audience reporting. Leave them blank if you prefer.';
+    note.style.cssText = 'grid-column:1 / -1;font-size:12px;opacity:.7;margin:0';
+    wrap.appendChild(note);
+    anchor.parentNode.insertBefore(wrap, anchor.nextSibling);
+  }
+  function locationAnswers(profile) {
+    const c = byId('authCountry'), r = byId('authRegion');
+    const country = c ? c.value.trim().slice(0, 80) : '';
+    const region = r ? r.value.trim().slice(0, 80) : '';
+    return { country: country || (profile && profile.country) || '', region: region || (profile && profile.region) || '', answered: Boolean(country || (profile && profile.countrySource === 'self_reported' && profile.country)) };
+  }
   function configureSheet(user, provider) {
     if (!user || !user.email) { status('Your sign-in provider did not return an email address. Please try another account.', true); return; }
     pendingUser = user;
@@ -116,6 +146,9 @@
     const email = byId('authEmail'); email.value = user.email; email.readOnly = true; email.setAttribute('aria-readonly', 'true');
     selectedGender = profile.gender || '';
     all('#authGender button').forEach(function (button) { button.classList.toggle('on', button.dataset.g === selectedGender); });
+    ensureLocationFields();
+    if (byId('authCountry')) byId('authCountry').value = profile.countrySource === 'self_reported' ? (profile.country || '') : '';
+    if (byId('authRegion')) byId('authRegion').value = profile.region || '';
     profileError('');
     const modal = byId('authModal'); modal.classList.add('show'); modal.setAttribute('aria-hidden', 'false');
     setTimeout(function () { byId('authName').focus(); }, 180);
@@ -166,12 +199,12 @@
     const deviceId = localStorage.getItem('panda_device_id') || ('d_' + Math.random().toString(36).slice(2) + Date.now().toString(36)); localStorage.setItem('panda_device_id', deviceId);
     try {
       const token = await user.getIdToken(true);
-      const profile = typeof store !== 'undefined' ? (store.lget('panda_profile') || {}) : {}; const age = ageFromProfile(profile);
-      const response = await fetch(SESSION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify({ name: name, gender: selectedGender, country: typeof PANDA_COUNTRY === 'undefined' ? null : PANDA_COUNTRY, age: age, deviceId: deviceId }) });
+      const profile = typeof store !== 'undefined' ? (store.lget('panda_profile') || {}) : {}; const age = ageFromProfile(profile); const loc = locationAnswers(profile);
+      const response = await fetch(SESSION_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(Object.assign({ name: name, gender: selectedGender, age: age, deviceId: deviceId, platform: 'website' }, loc.answered ? { country: loc.country, countrySource: 'self_reported' } : {}, loc.region ? { region: loc.region } : {})) });
       const payload = await response.json().catch(function () { return {}; });
       if (!response.ok || !payload.user) { const failure = new Error((payload && payload.error) || 'account-save-failed'); failure.code = 'auth/session-' + ((payload && payload.error) || 'account-save-failed'); throw failure; }
       const account = payload.user;
-      if (typeof store !== 'undefined') { store.lset('panda_auth', { uid: account.uid, name: account.name || name, email: account.email, gender: selectedGender, age: age, provider: account.provider, providerVerified: true, stored: true, ts: Date.now() }); const profile = store.lget('panda_profile') || {}; profile.name = account.name || name; profile.email = account.email; if (selectedGender) profile.gender = selectedGender; store.lset('panda_profile', profile); }
+      if (typeof store !== 'undefined') { store.lset('panda_auth', { uid: account.uid, name: account.name || name, email: account.email, gender: selectedGender, age: age, provider: account.provider, providerVerified: true, stored: true, ts: Date.now() }); const profile = store.lget('panda_profile') || {}; profile.name = account.name || name; profile.email = account.email; if (selectedGender) profile.gender = selectedGender; if (loc.answered) { profile.country = loc.country; profile.countrySource = 'self_reported'; } if (loc.region) profile.region = loc.region; store.lset('panda_profile', profile); }
       localStorage.setItem('panda_signup_sent', '1'); pendingUser = null; window.__authed = true; if (typeof loadProfile === 'function') loadProfile(); closeSheet(); hideLogin(); if (typeof showWelcome === 'function') showWelcome(account.name || name); if (window.__a2hsRetry) setTimeout(window.__a2hsRetry, 1400);
       try { if (!sessionStorage.getItem('panda_open_sent')) { sessionStorage.setItem('panda_open_sent', '1'); fetch('https://panda-partners-api.vercel.app/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ events: [{ type: 'app_open', deviceId: deviceId, ts: Date.now() }] }), keepalive: true }).catch(function () {}); } } catch (error) {}
     } catch (error) { const code = String((error && error.code) || ''); const message = code === 'auth/session-invalid_or_expired_token' ? 'Google signed in, but Panda could not verify that session. Please try again. (Code: session verification)' : code === 'auth/session-account_save_failed' ? 'Google signed in, but Panda could not save the account yet. Please try again shortly. (Code: account save)' : code.indexOf('auth/session-') === 0 ? 'Google signed in, but Panda could not complete account setup. Please try again. (Code: account setup)' : 'We couldn’t verify your sign-in. Please try again.'; profileError(message); status(message, true); }

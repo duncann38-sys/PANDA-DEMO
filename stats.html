@@ -3,275 +3,106 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Panda · User Stats</title>
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="no-referrer" />
+<meta http-equiv="Cache-Control" content="no-store" />
+<title>Panda Ledger · Private stats</title>
+<link rel="icon" type="image/svg+xml" href="./stats-favicon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
-<style>
-  :root{--bg:#0a0a0a;--panel:#141210;--line:#2a2621;--gold:#d9b45b;--gold-bright:#f2d488;--ink:#f4efe6;--muted:#8b8377}
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif}
-  body{min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px 60px}
-  .brand{display:flex;align-items:center;gap:10px;margin:8px 0 4px}
-  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 14px var(--gold)}
-  .brand span{font-family:'Fraunces',serif;font-weight:600;font-size:20px}
-  .sub{color:var(--muted);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:36px}
-  .gate{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px 24px;margin-top:40px}
-  .gate h1{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:6px}
-  .gate p{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5}
-  .gate input{width:100%;background:#0c0b0a;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:15px;padding:12px 14px;outline:none}
-  .gate input:focus{border-color:var(--gold)}
-  .gate button{width:100%;margin-top:14px;background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:#1a1508;font-weight:600;font-size:15px;border:none;border-radius:10px;padding:12px;cursor:pointer}
-  .err{color:#e08b7a;font-size:13px;margin-top:12px;min-height:16px}
-
-  .dash{width:100%;max-width:760px;display:none}
-  .hero{text-align:center;padding:24px 0 8px}
-  .hero .label{color:var(--muted);font-size:12px;letter-spacing:.2em;text-transform:uppercase}
-  .hero .big{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(64px,18vw,120px);line-height:.9;background:linear-gradient(180deg,var(--gold-bright),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:6px 0}
-  .hero .mode{color:var(--muted);font-size:12px}
-  .hero .mode b{color:var(--gold)}
-  .section-label{width:100%;color:var(--muted);font-size:11px;letter-spacing:.18em;text-transform:uppercase;margin:30px 0 12px;border-top:1px solid var(--line);padding-top:18px}
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-  @media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
-  .card.hi{border-color:var(--gold);box-shadow:0 0 0 1px rgba(217,180,91,.25)}
-  .card .n{font-family:'Fraunces',serif;font-weight:600;font-size:34px;color:var(--ink)}
-  .card.hi .n{color:var(--gold-bright)}
-  .card .k{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-top:6px}
-
-  .breakdowns{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
-  @media(min-width:560px){.breakdowns{grid-template-columns:1fr 1fr}}
-  .bd{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-  .bd h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:12px}
-  .brow{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-  .brow:last-child{margin-bottom:0}
-  .brow .bl{font-size:13px;color:var(--ink);width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .brow .bar{flex:1;height:8px;background:#0c0b0a;border-radius:5px;overflow:hidden}
-  .brow .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-bright));border-radius:5px}
-  .brow .bc{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);width:34px;text-align:right}
-
-  .emails{width:100%;margin-top:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-  .emails .eh{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;user-select:none}
-  .emails .eh b{font-size:14px;font-weight:600}
-  .emails .eh .chev{color:var(--muted);transition:transform .2s}
-  .emails.open .eh .chev{transform:rotate(180deg)}
-  .emails .list{display:none;border-top:1px solid var(--line);max-height:360px;overflow-y:auto}
-  .emails.open .list{display:block}
-  .erow{padding:11px 18px;border-bottom:1px solid rgba(42,38,33,.5)}
-  .erow:last-child{border-bottom:none}
-  .erow .em{color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all}
-  .erow .sub2{margin-top:3px;color:var(--muted);font-size:11.5px;display:flex;gap:8px;flex-wrap:wrap}
-  .erow .sub2 span{white-space:nowrap}
-  .erow .tag{color:var(--gold)}
-  .empty{padding:18px;color:var(--muted);font-size:13px;text-align:center}
-  .copybar{display:flex;justify-content:flex-end;padding:10px 14px;border-top:1px solid var(--line)}
-  .copybar button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer}
-  .copybar button:hover{border-color:var(--gold);color:var(--gold)}
-
-  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:26px;color:var(--muted);font-size:12px}
-  .foot .ts{font-family:'JetBrains Mono',monospace}
-  .foot button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;margin-left:6px}
-  .foot button:hover{border-color:var(--gold);color:var(--gold)}
-  .spin{opacity:.5}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./stats-dashboard.css" />
 </head>
 <body>
-  <div class="brand"><span class="dot"></span><span>Panda</span></div>
-  <div class="sub">User Analytics</div>
+<a class="skip" href="#main">Skip to content</a>
 
-  <div class="gate" id="gate">
-    <h1>Enter access key</h1>
-    <p>Private dashboard. Your key is stored on this device only — you won't need to type it again.</p>
-    <input id="key" type="password" placeholder="Access key" autocomplete="off" autocapitalize="none" spellcheck="false" />
-    <button id="go">View stats</button>
-    <div class="err" id="err"></div>
+<section class="gate" id="gate" aria-labelledby="gateTitle">
+  <div class="gate-card">
+    <img src="./stats-favicon.svg" alt="Panda" class="gate-logo" width="64" height="64" />
+    <p class="eyebrow">Panda Ledger · owner only</p>
+    <h1 id="gateTitle">Private operations dashboard</h1>
+    <p class="gate-copy">Enter the stats access key. It is held for this browser tab only and cleared when you sign out or close the tab. Nothing is loaded until the key is accepted.</p>
+    <form id="gateForm" autocomplete="off" novalidate>
+      <label for="key" class="lbl">Access key</label>
+      <input id="key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required />
+      <button type="submit" class="btn btn-ink" id="go">Open dashboard</button>
+      <p class="err" id="gateErr" role="alert" aria-live="assertive"></p>
+    </form>
   </div>
+</section>
 
-  <div class="dash" id="dash">
-    <div class="hero">
-      <div class="label">Total sign-ups</div>
-      <div class="big" id="signups">—</div>
-      <div class="mode">One entry per person · logged permanently</div>
-    </div>
-
-    <div class="section-label">Sign-ups</div>
-    <div class="grid">
-      <div class="card hi"><div class="n" id="signupsAll">—</div><div class="k">All time</div></div>
-      <div class="card"><div class="n" id="signupsToday">—</div><div class="k">Today</div></div>
-      <div class="card"><div class="n" id="signups7">—</div><div class="k">Last 7 days</div></div>
-    </div>
-    <div class="breakdowns">
-      <div class="bd"><h4>By gender</h4><div id="genderRows"></div></div>
-      <div class="bd"><h4>By country</h4><div id="countryRows"></div></div>
-    </div>
-    <div class="emails" id="emailsBox">
-      <div class="eh" id="emailsHead">
-        <b>Full email log (<span id="emailCount">0</span>)</b>
-        <span class="chev">▾</span>
+<div class="app" id="app" hidden>
+  <header class="top">
+    <div class="brand"><img src="./stats-favicon.svg" alt="" width="32" height="32" /><div><b>Panda Ledger</b><span>Discovery, adoption &amp; venue partners</span></div></div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button role="tab" data-tab="users" aria-selected="false">Users</button>
+      <button role="tab" data-tab="businesses" aria-selected="false">Businesses</button>
+      <button role="tab" data-tab="payments" aria-selected="false">Payments</button>
+      <button role="tab" data-tab="quality" aria-selected="false">Data quality</button>
+    </nav>
+    <div class="top-actions">
+      <label class="sr" for="autoRefresh">Auto refresh</label>
+      <select id="autoRefresh" title="Auto refresh">
+        <option value="0">Auto refresh off</option>
+        <option value="5">Every 5 min</option>
+        <option value="15">Every 15 min</option>
+        <option value="30">Every 30 min</option>
+      </select>
+      <button class="btn" id="refresh">Refresh</button>
+      <div class="menu">
+        <button class="btn btn-ink" id="exportBtn" aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu">Export</button>
+        <div class="menu-pop" id="exportMenu" hidden role="menu">
+          <p class="menu-h">Combined report (all sheets)</p>
+          <button role="menuitem" data-export="report" data-fmt="xlsx">Report .xlsx</button>
+          <button role="menuitem" data-export="report" data-fmt="xls">Report .xls</button>
+          <p class="menu-h">Filtered rows only</p>
+          <button role="menuitem" data-export="users" data-fmt="xlsx">Users .xlsx</button>
+          <button role="menuitem" data-export="users" data-fmt="xls">Users .xls</button>
+          <button role="menuitem" data-export="businesses" data-fmt="xlsx">Businesses .xlsx</button>
+          <button role="menuitem" data-export="businesses" data-fmt="xls">Businesses .xls</button>
+          <button role="menuitem" data-export="payments" data-fmt="xlsx">Payments .xlsx</button>
+          <button role="menuitem" data-export="payments" data-fmt="xls">Payments .xls</button>
+          <p class="menu-h">Plain text fallback</p>
+          <button role="menuitem" data-export="current" data-fmt="csv">Current tab .csv</button>
+        </div>
       </div>
-      <div class="list" id="emailList"></div>
-      <div class="copybar"><button id="copyEmails">Copy all emails</button></div>
+      <button class="btn btn-ghost" id="logout">Sign out</button>
     </div>
+  </header>
 
-    <div class="section-label">Sign-ins</div>
-    <div class="grid">
-      <div class="card hi"><div class="n" id="signInsAll">—</div><div class="k">All time</div></div>
-      <div class="card"><div class="n" id="signInsToday">—</div><div class="k">Today</div></div>
-      <div class="card"><div class="n" id="signIns7">—</div><div class="k">Last 7 days</div></div>
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+
+  <section class="filters" aria-label="Filters">
+    <div class="f"><label for="fFrom">From</label><input type="date" id="fFrom" /></div>
+    <div class="f"><label for="fTo">To (inclusive)</label><input type="date" id="fTo" /></div>
+    <div class="f presets" role="group" aria-label="Date presets">
+      <button data-preset="7">7d</button><button data-preset="30">30d</button><button data-preset="90">90d</button><button data-preset="all">All</button>
     </div>
-    <div class="emails" id="signInBox">
-      <div class="eh" id="signInHead">
-        <b>Recent sign-in details (<span id="signInCount">0</span>)</b>
-        <span class="chev">▾</span>
-      </div>
-      <div class="list" id="signInList"></div>
-    </div>
+    <div class="f"><label for="fCountry">Country</label><select id="fCountry"></select></div>
+    <div class="f"><label for="fRegion">Region</label><select id="fRegion"></select></div>
+    <div class="f" data-scope="users"><label for="fGender">Sex / gender</label><select id="fGender"></select></div>
+    <div class="f" data-scope="users"><label for="fVerified">Identity</label><select id="fVerified"><option value="">All</option><option value="yes">Verified</option><option value="no">Unverified</option></select></div>
+    <div class="f" data-scope="users"><label for="fSource">Source</label><select id="fSource"></select></div>
+    <div class="f" data-scope="biz"><label for="fPlan">Plan</label><select id="fPlan"></select></div>
+    <div class="f" data-scope="biz"><label for="fBilling">Billing state</label><select id="fBilling"></select></div>
+    <div class="f" data-scope="biz"><label for="fSize">Business size</label><select id="fSize"></select></div>
+    <button class="btn btn-ghost f-reset" id="fReset">Reset filters</button>
+  </section>
+  <p class="filter-note" id="filterNote"></p>
 
-    <div class="section-label">Usage</div>
-    <div class="grid">
-      <div class="card"><div class="n" id="total">—</div><div class="k" id="totalK">Total users</div></div>
-      <div class="card"><div class="n" id="activeToday">—</div><div class="k">Active today</div></div>
-      <div class="card"><div class="n" id="active7">—</div><div class="k">Active · 7 days</div></div>
-      <div class="card"><div class="n" id="appOpens">—</div><div class="k">App opens</div></div>
-      <div class="card"><div class="n" id="opensToday">—</div><div class="k">Opens today</div></div>
-      <div class="card"><div class="n" id="totalEvents">—</div><div class="k">Total events</div></div>
-    </div>
+  <main id="main" tabindex="-1">
+    <section data-panel="overview" id="pOverview"></section>
+    <section data-panel="users" hidden></section>
+    <section data-panel="businesses" hidden></section>
+    <section data-panel="payments" hidden></section>
+    <section data-panel="quality" hidden></section>
+  </main>
+  <footer class="foot">Times shown in Europe/London. Payments are gross venue promotion subscription amounts collected via Stripe before refunds; not net revenue and not consumer or Panda Credit spend (not measured). Sex and country are reported or legacy values, not verified; unknown stays unknown.</footer>
+</div>
 
-    <div class="foot">
-      <span class="ts" id="updated"></span>
-      <span><button id="refresh">Refresh</button><button id="logout">Sign out</button></span>
-    </div>
-  </div>
-
-<script>
-  var API = 'https://panda-partners-api.vercel.app/api/stats';
-  var LS_KEY = 'panda_stats_key';
-  var LAST_EMAILS = [];
-  var LAST_SIGN_INS = [];
-
-  var gate = document.getElementById('gate');
-  var dash = document.getElementById('dash');
-  var keyInput = document.getElementById('key');
-  var err = document.getElementById('err');
-
-  function fmt(n){ return (n==null||isNaN(n)) ? '—' : Number(n).toLocaleString(); }
-  function esc(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-  function fmtDate(ms){ if(!ms) return ''; return new Date(ms).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}); }
-
-  function rows(el, arr){
-    if(!arr || !arr.length){ el.innerHTML = '<div style="color:var(--muted);font-size:12px">No data yet</div>'; return; }
-    var max = arr.reduce(function(m,x){ return Math.max(m, x.count); }, 0) || 1;
-    el.innerHTML = arr.slice(0,8).map(function(x){
-      var pct = Math.round((x.count/max)*100);
-      return '<div class="brow"><span class="bl">'+esc(x.label)+'</span>'
-        + '<span class="bar"><i style="width:'+pct+'%"></i></span>'
-        + '<span class="bc">'+x.count+'</span></div>';
-    }).join('');
-  }
-
-  function paint(d){
-    document.getElementById('signups').textContent = fmt(d.signups);
-    document.getElementById('signupsAll').textContent = fmt(d.signups);
-    document.getElementById('signupsToday').textContent = fmt(d.signupsToday);
-    document.getElementById('signups7').textContent = fmt(d.signupsLast7);
-
-    rows(document.getElementById('genderRows'), d.genders);
-    rows(document.getElementById('countryRows'), d.countries);
-
-    document.getElementById('total').textContent = fmt(d.total);
-    document.getElementById('totalK').textContent = d.countingUniqueDevices ? 'Unique devices' : 'App opens';
-    document.getElementById('activeToday').textContent = fmt(d.activeToday);
-    document.getElementById('active7').textContent = fmt(d.activeLast7Days);
-    document.getElementById('appOpens').textContent = fmt(d.appOpens);
-    document.getElementById('opensToday').textContent = fmt(d.opensToday);
-    document.getElementById('totalEvents').textContent = fmt(d.totalEvents);
-
-    LAST_EMAILS = Array.isArray(d.emails) ? d.emails : [];
-    document.getElementById('emailCount').textContent = LAST_EMAILS.length;
-    var list = document.getElementById('emailList');
-    if(LAST_EMAILS.length){
-      list.innerHTML = LAST_EMAILS.map(function(e){
-        var bits = [];
-        if(e.name) bits.push('<span>'+esc(e.name)+'</span>');
-        if(e.gender) bits.push('<span class="tag">'+esc(e.gender)+'</span>');
-        if(e.country) bits.push('<span>'+esc(e.country)+'</span>');
-        if(e.ts) bits.push('<span>'+fmtDate(e.ts)+'</span>');
-        return '<div class="erow"><div class="em">'+esc(e.email)+'</div>'
-          + (bits.length ? '<div class="sub2">'+bits.join('')+'</div>' : '') + '</div>';
-      }).join('');
-    } else {
-      list.innerHTML = '<div class="empty">No sign-ups captured yet. New sign-ups will appear here.</div>';
-    }
-
-    document.getElementById('signInsAll').textContent = fmt(d.signIns);
-    document.getElementById('signInsToday').textContent = fmt(d.signInsToday);
-    document.getElementById('signIns7').textContent = fmt(d.signInsLast7);
-
-    LAST_SIGN_INS = Array.isArray(d.signInDetails) ? d.signInDetails : [];
-    document.getElementById('signInCount').textContent = LAST_SIGN_INS.length;
-    var signInList = document.getElementById('signInList');
-    if(LAST_SIGN_INS.length){
-      signInList.innerHTML = LAST_SIGN_INS.map(function(e){
-        var bits = [];
-        if(e.name) bits.push('<span>'+esc(e.name)+'</span>');
-        if(e.gender) bits.push('<span class="tag">'+esc(e.gender)+'</span>');
-        if(e.country) bits.push('<span>'+esc(e.country)+'</span>');
-        if(e.age != null) bits.push('<span>Age '+esc(String(e.age))+'</span>');
-        if(e.provider) bits.push('<span class="tag">'+esc(e.provider)+'</span>');
-        if(e.ts) bits.push('<span>'+fmtDate(e.ts)+'</span>');
-        return '<div class="erow"><div class="em">'+esc(e.email || 'No email')+'</div>'
-          + (bits.length ? '<div class="sub2">'+bits.join('')+'</div>' : '') + '</div>';
-      }).join('');
-    } else {
-      signInList.innerHTML = '<div class="empty">No sign-ins captured yet. New sign-ins will appear here.</div>';
-    }
-
-    if(d.updatedAt){ document.getElementById('updated').textContent = 'Updated ' + new Date(d.updatedAt).toLocaleString(); }
-  }
-
-  function load(key, isRetry){
-    err.textContent = '';
-    dash.querySelector('.big').classList.add('spin');
-    return fetch(API, { cache: 'no-store', headers: { Authorization: 'Bearer ' + key } })
-      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok, status:r.status, j:j}; }); })
-      .then(function(res){
-        if(res.status === 401 || (res.j && res.j.error === 'unauthorized')){ throw new Error('Key not recognised. Check for typos or extra spaces.'); }
-        if(res.j && res.j.error){ throw new Error(res.j.error); }
-        sessionStorage.setItem(LS_KEY, key);
-        gate.style.display = 'none'; dash.style.display = 'block';
-        dash.querySelector('.big').classList.remove('spin');
-        paint(res.j);
-      })
-      .catch(function(e){
-        dash.querySelector('.big').classList.remove('spin');
-        if(dash.style.display === 'block'){ document.getElementById('updated').textContent = 'Error: ' + e.message; }
-        else { err.textContent = e.message; }
-        if(isRetry){ sessionStorage.removeItem(LS_KEY); gate.style.display='block'; dash.style.display='none'; }
-      });
-  }
-
-  document.getElementById('go').addEventListener('click', function(){
-    var k = keyInput.value.trim();
-    if(!k){ err.textContent = 'Enter your key.'; return; }
-    load(k, false);
-  });
-  keyInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ document.getElementById('go').click(); } });
-  document.getElementById('refresh').addEventListener('click', function(){ var k=sessionStorage.getItem(LS_KEY); if(k) load(k,false); });
-  document.getElementById('logout').addEventListener('click', function(){
-    sessionStorage.removeItem(LS_KEY); dash.style.display='none'; gate.style.display='block'; keyInput.value='';
-  });
-  document.getElementById('emailsHead').addEventListener('click', function(){ document.getElementById('emailsBox').classList.toggle('open'); });
-   document.getElementById('signInHead').addEventListener('click', function(){ document.getElementById('signInBox').classList.toggle('open'); });
-  document.getElementById('copyEmails').addEventListener('click', function(e){
-    e.stopPropagation();
-    var txt = LAST_EMAILS.map(function(x){ return x.email; }).filter(Boolean).join(', ');
-    if(navigator.clipboard) navigator.clipboard.writeText(txt);
-    var b=e.target; var old=b.textContent; b.textContent='Copied ✓'; setTimeout(function(){ b.textContent=old; },1400);
-  });
-
-  var saved = sessionStorage.getItem(LS_KEY);
-  if(saved){ gate.style.display='none'; dash.style.display='block'; load(saved, true); }
-</script>
+<div class="tip" id="tip" role="tooltip" hidden></div>
+<script src="./stats-xlsx.full.min.js" defer></script>
+<script src="./stats-dashboard.js" defer></script>
 </body>
 </html>
-

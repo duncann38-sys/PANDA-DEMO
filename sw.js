@@ -1,6 +1,6 @@
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-independent-api-2026-08-31-v27';
+const CACHE = 'panda-cache-independent-api-2026-10-11-stats-v28';
 
 self.addEventListener('install', function(){
   self.skipWaiting();
