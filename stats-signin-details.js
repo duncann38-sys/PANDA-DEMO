@@ -26,6 +26,7 @@
           if (item.country) details.push('<span>' + esc(item.country) + '</span>');
           if (item.age) details.push('<span>Age ' + esc(item.age) + '</span>');
           if (item.provider) details.push('<span class="tag">' + esc(item.provider) + '</span>');
+          if (item.platform) details.push('<span class="tag">' + esc(item.platform === 'native' ? 'Native app' : item.platform === 'website' ? 'Website' : item.platform) + '</span>');
           return '<div class="erow"><div class="em">' + esc(item.email || 'No email') + '</div>' + (details.length ? '<div class="sub2">' + details.join('') + '</div>' : '') + '</div>';
         }).join('');
       };
