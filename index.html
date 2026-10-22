@@ -950,15 +950,14 @@ function curateBangingEditorialSection(list){
 let EVQ = (function(){ try{return JSON.parse(localStorage.getItem("panda_evq")||"[]");}catch(e){return [];} })();
 const SEEN_IMPR = new Set();
 function coarseArea(){ if(!COORDS)return null; return {lat:Math.round(COORDS.lat*100)/100, lng:Math.round(COORDS.lng*100)/100}; }
-function track(type,v,extra){ if(!window.__authed && !isAuthed()){ return; }
+function track(type,v,extra){
   if(!v) return;
-  // Sponsor tier by Place ID OR name — independent of distance. A genuinely
-  // sponsored venue (in sponsored.json) always records its events, even when
-  // the user is far away. Non-sponsored venues are still skipped (keeps writes low).
+  // Preserve sponsored-impression collection scope; actions include organic venues.
   const tier=v.__sponsor||sponsorTier(v);
-  if(!tier) return;
+  if(!tier && type==="impression") return;
   const ev=Object.assign({
-    type, ts:Date.now(), venueId:v.id||null, venue:v.name||null, tier,
+    eventId:"panda-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2).padEnd(13,"0")+"-"+Math.random().toString(36).slice(2).padEnd(13,"0"),
+    type, ts:Date.now(), venueId:v.id||null, venue:v.name||null, tier:tier||"organic", platform:"website",
     area:coarseArea(), city:(typeof CITY!=="undefined"?CITY:null)||null,
     distM:(v.distanceMeters!=null?Math.round(v.distanceMeters):null)
   }, extra||{});
@@ -967,44 +966,58 @@ function track(type,v,extra){ if(!window.__authed && !isAuthed()){ return; }
   if(EVQ.length>=8) flushEvents();
 }
 function flushEventsNow(){
-  if(!EVQ.length) return;
-  const batch=EVQ.slice(0,100);
-  const body=JSON.stringify({events:batch});
-  let sent=false;
-  try{
-    if(navigator.sendBeacon){
-      sent=navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body],{type:"application/json"}));
-    }
-  }catch(e){}
-  // Fallback (or belt-and-braces): keepalive fetch. Harmless if beacon also sent.
-  try{
-    fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body,keepalive:true}).catch(()=>{});
-  }catch(e){}
-  // Clear the queue optimistically so we don't re-send the same batch repeatedly.
-  EVQ=EVQ.slice(batch.length);
-  try{ localStorage.setItem("panda_evq",JSON.stringify(EVQ)); }catch(e){}
+  return flushEvents(true);
 }
 function flushEvents(useBeacon){
   if(!EVQ.length) return;
-  const batch=EVQ.slice(0,100);
+  // Reserve this batch immediately, so a tap or visibility flush cannot resend it.
+  const batch=EVQ.splice(0,100);
+  const persist=()=>{try{localStorage.setItem("panda_evq",JSON.stringify(EVQ));}catch(e){}};
+  const retry=()=>{EVQ=batch.concat(EVQ);persist();};
+  persist();
   try{
     const body=JSON.stringify({events:batch});
     if(useBeacon && navigator.sendBeacon){
       const ok=navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body],{type:"application/json"}));
-      if(ok){ EVQ=EVQ.slice(batch.length); localStorage.setItem("panda_evq",JSON.stringify(EVQ)); }
-      return;
+      if(ok) return;
     }
     fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body,keepalive:true})
-      .then(r=>{ if(r.ok){ EVQ=EVQ.slice(batch.length); localStorage.setItem("panda_evq",JSON.stringify(EVQ)); } }).catch(()=>{});
-  }catch(e){}
+      .then(async r=>{const result=r.ok?await r.json():null;if(!result||result.ok!==true||result.stored!==batch.length)retry();})
+      .catch(retry);
+  }catch(e){retry();}
 }
 setInterval(()=>flushEvents(), 15000);
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushEvents(true); });
+const impressionTimers = new Map();
 const imprObserver = ("IntersectionObserver" in window) ? new IntersectionObserver((ents)=>{
-  ents.forEach(e=>{ if(e.isIntersecting){ const el=e.target; const id=el.getAttribute("data-vid"); const src=el.getAttribute("data-asrc"); imprObserver.unobserve(el);
-    if(id && !SEEN_IMPR.has(id)){ SEEN_IMPR.add(id); const arr=(typeof srcArr==="function")?srcArr(src):null; const v=arr?arr.find(x=>x&&x.id===id):null; if(v) track("impression",v); } } });
+  ents.forEach(e=>{
+    const el=e.target;
+    if(!e.isIntersecting || e.intersectionRatio<0.5){
+      clearTimeout(impressionTimers.get(el)); impressionTimers.delete(el); return;
+    }
+    if(impressionTimers.has(el)) return;
+    const timer=setTimeout(()=>{
+      impressionTimers.delete(el);
+      if(document.visibilityState!=="visible" || !el.isConnected) return;
+      const id=el.getAttribute("data-vid"), src=el.getAttribute("data-asrc");
+      const surface=src==="trend"?"banging":src==="home"?"discovery":src==="map"?"map":src==="plan"?"planner":"saved";
+      const key=surface+":"+id;
+      const arr=typeof srcArr==="function"?srcArr(src):null, v=arr?arr.find(x=>x&&x.id===id):null;
+      if(id && v && !SEEN_IMPR.has(key)){ SEEN_IMPR.add(key); track("impression",v,{surface}); }
+    },600);
+    impressionTimers.set(el,timer);
+  });
 },{threshold:0.5}) : null;
-function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll(".promoted-card").forEach(el=>{ if(!el.__obs){ el.__obs=1; imprObserver.observe(el); } }); }
+function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll(".promoted-card[data-vid][data-asrc]").forEach(el=>{ if(!el.__obs){ el.__obs=1; imprObserver.observe(el); } }); }
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"){
+    impressionTimers.forEach(clearTimeout); impressionTimers.clear();
+  }else if(imprObserver){
+    document.querySelectorAll(".promoted-card[data-vid][data-asrc]").forEach(el=>{
+      imprObserver.unobserve(el); imprObserver.observe(el);
+    });
+  }
+});
 function applySponsored(data){
   SPONSORED={};SPONSORED_BYNAME={};BANGING_LIST=[];BANGING_VENUES=[];
   const list=Array.isArray(data)?data:(data&&data.venues?data.venues:[]);
@@ -1951,7 +1964,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-partner-feed-2026-10-11-stats-v26",releaseKey="panda_app_release";
+       var release="panda-partner-impressions-2026-10-22-v29",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
