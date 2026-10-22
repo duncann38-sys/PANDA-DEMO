@@ -1,6 +1,6 @@
 /* Panda service worker — network-first so updates reach users immediately.
    Falls back to cache only when offline. Old caches are cleared on activate. */
-const CACHE = 'panda-cache-partner-impressions-2026-10-22-v29';
+const CACHE = 'panda-cache-placement-funnel-2026-10-22-v30';
 
 self.addEventListener('install', function(){
   self.skipWaiting();

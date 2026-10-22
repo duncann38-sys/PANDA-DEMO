@@ -948,22 +948,43 @@ function curateBangingEditorialSection(list){
 }
 
 let EVQ = (function(){ try{return JSON.parse(localStorage.getItem("panda_evq")||"[]");}catch(e){return [];} })();
-const SEEN_IMPR = new Set();
+const SEEN_IMPR = new Map(), SEEN_PRESENTED = new Map();
+const activeEventBatches = new Set();
+let activityClickContext=null, activeActivityContext=null, lastDetailClick=null, eventPersistTimer=null;
+function placementContext(v,src,el){
+  const surface=src==="trend"?"banging":src==="home"?"discovery":src==="map"?"map":src==="plan"?"planner":src==="saved"?"saved":null;
+  return {surface,placement:surface==="banging"?"banging":surface==="discovery"?
+    (el&&el.classList.contains("promoted-card")?"promoted_discovery":"suggestions"):"other"};
+}
+function persistEvents(){
+  clearTimeout(eventPersistTimer);eventPersistTimer=null;
+  try{localStorage.setItem("panda_evq",JSON.stringify([...activeEventBatches].flat().concat(EVQ)));}catch(error){console.warn("Panda activity could not be persisted for retry.");}
+}
+document.addEventListener("click",function(event){
+  const card=event.target.closest&&event.target.closest("[data-vid][data-asrc]");
+  activityClickContext=card?Object.assign({id:card.dataset.vid,at:Date.now(),click:event},placementContext(null,card.dataset.asrc,card)):null;
+},true);
 function coarseArea(){ if(!COORDS)return null; return {lat:Math.round(COORDS.lat*100)/100, lng:Math.round(COORDS.lng*100)/100}; }
 function track(type,v,extra){
   if(!v) return;
-  // Preserve sponsored-impression collection scope; actions include organic venues.
   const tier=v.__sponsor||sponsorTier(v);
-  if(!tier && type==="impression") return;
+  const clicked=activityClickContext&&activityClickContext.id===v.id&&Date.now()-activityClickContext.at<1000?activityClickContext:null;
+  if(type==="detail_open"){
+    if(clicked&&lastDetailClick===clicked.click)return;
+    lastDetailClick=clicked?clicked.click:null;
+    activeActivityContext=Object.assign({id:v.id},clicked?{surface:clicked.surface,placement:clicked.placement}:{placement:"other"});
+  }
+  const context=clicked||activeActivityContext&&activeActivityContext.id===v.id&&activeActivityContext;
   const ev=Object.assign({
     eventId:"panda-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2).padEnd(13,"0")+"-"+Math.random().toString(36).slice(2).padEnd(13,"0"),
     type, ts:Date.now(), venueId:v.id||null, venue:v.name||null, tier:tier||"organic", platform:"website",
     area:coarseArea(), city:(typeof CITY!=="undefined"?CITY:null)||null,
-    distM:(v.distanceMeters!=null?Math.round(v.distanceMeters):null)
-  }, extra||{});
+    distM:(v.distanceMeters!=null?Math.round(v.distanceMeters):null),
+    trackingVersion:2
+  },context?{surface:context.surface,placement:context.placement}:{},extra||{});
   EVQ.push(ev);
-  try{ localStorage.setItem("panda_evq", JSON.stringify(EVQ.slice(-500))); }catch(e){}
-  if(EVQ.length>=8) flushEvents();
+  if(type==="presentation"||type==="impression"){if(!eventPersistTimer)eventPersistTimer=setTimeout(persistEvents,50);}else persistEvents();
+  if(EVQ.length>=32) flushEvents();
 }
 function flushEventsNow(){
   return flushEvents(true);
@@ -972,26 +993,40 @@ function flushEvents(useBeacon){
   if(!EVQ.length) return;
   // Reserve this batch immediately, so a tap or visibility flush cannot resend it.
   const batch=EVQ.splice(0,100);
-  const persist=()=>{try{localStorage.setItem("panda_evq",JSON.stringify(EVQ));}catch(e){}};
-  const retry=()=>{EVQ=batch.concat(EVQ);persist();};
+  activeEventBatches.add(batch);
+  const persist=()=>persistEvents();
+  const retry=()=>{activeEventBatches.delete(batch);EVQ=batch.concat(EVQ);persist();};
   persist();
   try{
     const body=JSON.stringify({events:batch});
     if(useBeacon && navigator.sendBeacon){
       const ok=navigator.sendBeacon(ANALYTICS_ENDPOINT, new Blob([body],{type:"application/json"}));
-      if(ok) return;
+      if(ok){retry();return;} // Enqueued is not acknowledged; retry the same IDs safely.
     }
     fetch(ANALYTICS_ENDPOINT,{method:"POST",headers:{"Content-Type":"application/json"},body,keepalive:true})
-      .then(async r=>{const result=r.ok?await r.json():null;if(!result||result.ok!==true||result.stored!==batch.length)retry();})
+      .then(async r=>{const result=r.ok?await r.json():null;if(!result||result.ok!==true||result.stored!==batch.length)retry();else{activeEventBatches.delete(batch);persist();}})
       .catch(retry);
   }catch(e){retry();}
 }
 setInterval(()=>flushEvents(), 15000);
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushEvents(true); });
 const impressionTimers = new Map();
+function recordCardExposure(el,type){
+  const id=el.getAttribute("data-vid"),src=el.getAttribute("data-asrc");
+  const arr=typeof srcArr==="function"?srcArr(src):null,v=arr?arr.find(x=>x&&x.id===id):null;
+  if(!v)return;
+  if(document.querySelector("#sheet.open,#pandaPremiumGallery.open"))return;
+  if(src==="home"&&document.querySelector("#trendDrawer.open,#planSheet.open"))return;
+  const context=placementContext(v,src,el),key=context.surface+":"+context.placement+":"+id,now=Date.now();
+  const seen=type==="presentation"?SEEN_PRESENTED:SEEN_IMPR;
+  if(now-(seen.get(key)||0)<60000)return;
+  if(seen.size>=2000)for(const [k,at]of seen)if(now-at>=60000)seen.delete(k);
+  seen.set(key,now);track(type,v,context);
+}
 const imprObserver = ("IntersectionObserver" in window) ? new IntersectionObserver((ents)=>{
   ents.forEach(e=>{
     const el=e.target;
+    if(e.isIntersecting&&e.intersectionRatio>=0.01&&document.visibilityState==="visible")recordCardExposure(el,"presentation");
     if(!e.isIntersecting || e.intersectionRatio<0.5){
       clearTimeout(impressionTimers.get(el)); impressionTimers.delete(el); return;
     }
@@ -999,21 +1034,30 @@ const imprObserver = ("IntersectionObserver" in window) ? new IntersectionObserv
     const timer=setTimeout(()=>{
       impressionTimers.delete(el);
       if(document.visibilityState!=="visible" || !el.isConnected) return;
-      const id=el.getAttribute("data-vid"), src=el.getAttribute("data-asrc");
-      const surface=src==="trend"?"banging":src==="home"?"discovery":src==="map"?"map":src==="plan"?"planner":"saved";
-      const key=surface+":"+id;
-      const arr=typeof srcArr==="function"?srcArr(src):null, v=arr?arr.find(x=>x&&x.id===id):null;
-      if(id && v && !SEEN_IMPR.has(key)){ SEEN_IMPR.add(key); track("impression",v,{surface}); }
+      recordCardExposure(el,"impression");
     },600);
     impressionTimers.set(el,timer);
   });
-},{threshold:0.5}) : null;
-function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll(".promoted-card[data-vid][data-asrc]").forEach(el=>{ if(!el.__obs){ el.__obs=1; imprObserver.observe(el); } }); }
+},{threshold:[0.01,0.5]}) : null;
+function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll("[data-vid][data-asrc]").forEach(el=>{ if(!el.__obs){ el.__obs=1; imprObserver.observe(el); } }); }
+function refreshExposureVisibility(){
+  impressionTimers.forEach(clearTimeout);impressionTimers.clear();
+  if(imprObserver)document.querySelectorAll("[data-vid][data-asrc]").forEach(el=>{imprObserver.unobserve(el);imprObserver.observe(el);});
+}
+if("MutationObserver"in window){
+  const activityVisibilityObserver=new MutationObserver(refreshExposureVisibility);
+  ["trendDrawer","sheet","planSheet"].forEach(id=>{const el=document.getElementById(id);if(el)activityVisibilityObserver.observe(el,{attributes:true,attributeFilter:["class","hidden"]});});
+  window.addEventListener("panda:premium-gallery-open",()=>{
+    const el=document.getElementById("pandaPremiumGallery");
+    if(el&&!el.__activityObserved){el.__activityObserved=true;activityVisibilityObserver.observe(el,{attributes:true,attributeFilter:["class"]});}
+    refreshExposureVisibility();
+  });
+}
 document.addEventListener("visibilitychange",()=>{
   if(document.visibilityState==="hidden"){
     impressionTimers.forEach(clearTimeout); impressionTimers.clear();
   }else if(imprObserver){
-    document.querySelectorAll(".promoted-card[data-vid][data-asrc]").forEach(el=>{
+    document.querySelectorAll("[data-vid][data-asrc]").forEach(el=>{
       imprObserver.unobserve(el); imprObserver.observe(el);
     });
   }
@@ -1144,7 +1188,7 @@ function resFor(v){const placeId=venuePlaceId(v);if(placeId){const byId=RESLIST.
 
 let SAVED=store.lget("panda_saved")||{};
 function isSaved(id){return !!SAVED[id]}
-function toggleSave(v){if(SAVED[v.id])delete SAVED[v.id];else SAVED[v.id]=v;store.lset("panda_saved",SAVED);renderSaved();}
+function toggleSave(v){track("save_click",v);if(SAVED[v.id])delete SAVED[v.id];else SAVED[v.id]=v;store.lset("panda_saved",SAVED);renderSaved();}
 
 let COORDS=null;
 let CITY=null;
@@ -1964,7 +2008,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-partner-impressions-2026-10-22-v29",releaseKey="panda_app_release";
+       var release="panda-placement-funnel-2026-10-22-v30",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
@@ -2178,7 +2222,7 @@ document.addEventListener("DOMContentLoaded",boot);
   document.addEventListener("click",function(event){
     var photo=event.target&&event.target.closest?event.target.closest("[data-panda-premium-photo]"):null;if(!photo)return;
     var card=photo.closest(".vcard.banging-card");if(!card)return;
-    try{activeVenue=srcArr(card.dataset.src)[+card.dataset.i];if(activeVenue)trackAction("detail_open",activeVenue);}catch(error){}
+    try{activeVenue=srcArr(card.dataset.src)[+card.dataset.i];if(activeVenue){trackAction("photo_click",activeVenue);trackAction("detail_open",activeVenue);}}catch(error){}
   },true);
   if(window.MutationObserver)new MutationObserver(function(){renderDetails();}).observe(document.body,{childList:true,subtree:true,characterData:true});
   renderDetails();
