@@ -949,6 +949,20 @@ function curateBangingEditorialSection(list){
 
 let EVQ = (function(){ try{return JSON.parse(localStorage.getItem("panda_evq")||"[]");}catch(e){return [];} })();
 const SEEN_IMPR = new Map(), SEEN_PRESENTED = new Map();
+const RESULT_SETS = new Map();
+let homeResultGeneration=0;
+function recordResultSet(venues,src,scope){
+  const previous=RESULT_SETS.get(src);
+  const listed=previous&&previous.scope===scope?previous.listed:new Set();
+  RESULT_SETS.set(src,{scope,listed});
+  const cards=new Map(Array.from(document.querySelectorAll('[data-asrc="'+src+'"][data-vid]')).map(el=>[el.getAttribute("data-vid"),el]));
+  for(const v of venues){
+    if(!v||!v.id)continue;
+    const context=placementContext(v,src,cards.get(v.id)),key=v.id+":"+context.placement;
+    if(listed.has(key))continue;
+    listed.add(key);track("result_returned",v,context);
+  }
+}
 const activeEventBatches = new Set();
 let activityClickContext=null, activeActivityContext=null, lastDetailClick=null, eventPersistTimer=null;
 function placementContext(v,src,el){
@@ -983,7 +997,7 @@ function track(type,v,extra){
     trackingVersion:2
   },context?{surface:context.surface,placement:context.placement}:{},extra||{});
   EVQ.push(ev);
-  if(type==="presentation"||type==="impression"){if(!eventPersistTimer)eventPersistTimer=setTimeout(persistEvents,50);}else persistEvents();
+  if(type==="result_returned"||type==="presentation"||type==="impression"){if(!eventPersistTimer)eventPersistTimer=setTimeout(persistEvents,50);}else persistEvents();
   if(EVQ.length>=32) flushEvents();
 }
 function flushEventsNow(){
@@ -1039,7 +1053,12 @@ const imprObserver = ("IntersectionObserver" in window) ? new IntersectionObserv
     impressionTimers.set(el,timer);
   });
 },{threshold:[0.01,0.5]}) : null;
-function observeSponsored(){ if(!imprObserver)return; document.querySelectorAll("[data-vid][data-asrc]").forEach(el=>{ if(!el.__obs){ el.__obs=1; imprObserver.observe(el); } }); }
+function observeSponsored(){
+  recordResultSet(DATA.home||[],"home",homeResultGeneration+":"+activeCat+":"+($("#ddBudget").dataset.val||"")+":"+($("#ddSort").dataset.val||""));
+  recordResultSet(DATA.trend||[],"trend","banging:"+homeResultGeneration);
+  if(!imprObserver)return;
+  document.querySelectorAll("[data-vid][data-asrc]").forEach(el=>{ if(!el.__obs){ el.__obs=1; imprObserver.observe(el); } });
+}
 function refreshExposureVisibility(){
   impressionTimers.forEach(clearTimeout);impressionTimers.clear();
   if(imprObserver)document.querySelectorAll("[data-vid][data-asrc]").forEach(el=>{imprObserver.unobserve(el);imprObserver.observe(el);});
@@ -1296,6 +1315,7 @@ function interleaveSponsored(list){
 }
 function applyHomeFilters(){let v=homeRaw.slice();const bud=$("#ddBudget").dataset.val;if(bud)v=v.filter(x=>x.price&&x.price.length===+bud);const sort=$("#ddSort").dataset.val;v=rankSuggestions(v,sort==="rating");v=interleaveSponsored(v);DATA.home=v;$("#sugCount").textContent="";$("#sugList").innerHTML=v.length?v.map((x,i)=>listCard(x,i,"home")).join(''):'<div class="empty">No spots found right now — try another category or price.</div>';observeSponsored();}
 async function refreshHome(){
+  homeResultGeneration++;
   const d=discovery();$("#badgeText").textContent=d.label;$("#sugHead").textContent=activeCat>0?CATEGORIES[activeCat].label:"Suggestions";
   homeQuery=activeCat>0?CATEGORIES[activeCat].q:"restaurants bars cafes";homeToken=null;homeRaw=[];ringStage=0;sk($("#sugList"),4,false);
   const first=await fetchVenuesPaged(homeQuery,null);mergeHome(first.venues);homeToken=first.nextPageToken;
@@ -2008,7 +2028,7 @@ document.addEventListener("DOMContentLoaded",boot);
   }
   if("serviceWorker" in navigator){
     window.addEventListener("load", function(){
-       var release="panda-placement-funnel-2026-10-22-v30",releaseKey="panda_app_release";
+       var release="panda-result-exposure-2026-10-23-v31",releaseKey="panda_app_release";
       function clearPriorPandaCache(){
         var scope=new URL("./",window.location.href).href;
         var workers=navigator.serviceWorker.getRegistrations().then(function(registrations){return Promise.all(registrations.filter(function(registration){return registration.scope===scope;}).map(function(registration){return registration.unregister();}));});
